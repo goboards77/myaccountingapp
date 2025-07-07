@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Accounting App - Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f9f9f9;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      background: #2196F3;
+      color: #fff;
+      padding: 10px 20px;
+      position: relative;
+    }
+    .hamburger {
+      font-size: 24px;
+      cursor: pointer;
+      margin-right: 15px;
+    }
+    .app-title {
+      font-size: 20px;
+      font-weight: bold;
+      flex-grow: 1;
+    }
+    .cash-label {
+      font-size: 16px;
+      margin-left: 10px;
+    }
+    #logoutArea {
+      position: fixed;
+      top: 10px;
+      right: 15px;
+      z-index: 1000;
+    }
+    #logoutArea button {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #logoutArea span {
+      color: #fff;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+    .sidebar {
+      height: 100%;
+      width: 0;
+      position: fixed;
+      z-index: 999;
+      top: 0;
+      left: 0;
+      background-color: #333;
+      overflow-x: hidden;
+      transition: 0.3s;
+      padding-top: 60px;
+      border-radius: 0 8px 8px 0;
+    }
+    .sidebar a {
+      padding: 10px 20px;
+      text-decoration: none;
+      font-size: 18px;
+      color: #f1f1f1;
+      display: block;
+      transition: 0.3s;
+      border-radius: 4px;
+    }
+    .sidebar a:hover {
+      background-color: #575757;
+    }
+    .main-content {
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="hamburger" onclick="openSidebar()">☰</span>
+    <span class="app-title">Accounting App</span>
+    <span class="cash-label">Cash Balance</span>
+  </header>
+
+  <div id="logoutArea">
+    <span id="userEmail"></span>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div id="mySidebar" class="sidebar">
+    <a href="index.html">Dashboard</a>
+    <a href="add-ledger.html">Add Ledger Account</a>
+    <a href="#">Add Transaction</a>
+    <a href="#">Add Product</a>
+    <!-- add more links later -->
+  </div>
+
+  <div class="main-content">
+    <h2>Welcome to your Accounting App Dashboard</h2>
+    <p>This is your home page.</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+      authDomain: "accounts-19d08.firebaseapp.com",
+      projectId: "accounts-19d08",
+      storageBucket: "accounts-19d08.appspot.com",
+      messagingSenderId: "247308606105",
+      appId: "1:247308606105:web:9bfc179368524244bf3608"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    function openSidebar() {
+      document.getElementById("mySidebar").style.width = "250px";
+      document.addEventListener("click", outsideClick);
+    }
+
+    function closeSidebar() {
+      document.getElementById("mySidebar").style.width = "0";
+      document.removeEventListener("click", outsideClick);
+    }
+
+    function outsideClick(e) {
+      if (!e.target.closest(".sidebar") && !e.target.closest(".hamburger")) {
+        closeSidebar();
+      }
+    }
+
+    window.logout = function () {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        document.getElementById("userEmail").innerText = "Logged in as " + user.email;
+      }
+    });
+  </script>
+</body>
+</html>
