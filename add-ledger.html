@@ -76,11 +76,9 @@
 
       alert("Ledger saved!");
 
-      // Clear fields
       ["group", "newAcName", "opBalJama", "opBalKhate"].forEach(id => {
         const el = document.getElementById(id);
         el.value = "";
-        el.placeholder = el.placeholder; // ensure placeholder shows again
       });
     }
 

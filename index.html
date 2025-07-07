@@ -2,81 +2,108 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Accounting App</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+      authDomain: "accounts-19d08.firebaseapp.com",
+      projectId: "accounts-19d08",
+      storageBucket: "accounts-19d08.appspot.com",
+      messagingSenderId: "247308606105",
+      appId: "1:247308606105:web:9bfc179368524244bf3608"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    });
+
+    window.logout = async function() {
+      await signOut(auth);
+      window.location.href = "login.html";
+    }
+  </script>
+
   <style>
     body {
+      font-family: sans-serif;
       margin: 0;
-      font-family: Arial, sans-serif;
+      padding: 0;
     }
-    .navbar {
-      background-color: #333;
-      color: #fff;
-      padding: 10px;
+    .header {
       display: flex;
       align-items: center;
+      background: #f0f0f0;
+      padding: 10px;
     }
     .hamburger {
       font-size: 24px;
       cursor: pointer;
       margin-right: 10px;
     }
-    .label {
-      font-size: 18px;
+    .menu {
+      display: none;
+      flex-direction: column;
+      background: #f9f9f9;
+      border-radius: 8px;
+      margin-top: 10px;
+      padding: 10px;
+      position: absolute;
     }
-    .sidenav {
-      height: 100%;
-      width: 0;
-      position: fixed;
-      z-index: 1;
-      top: 0;
-      left: 0;
-      background-color: #333;
-      overflow-x: hidden;
-      transition: 0.3s;
-      padding-top: 60px;
-      border-top-right-radius: 8px;
-      border-bottom-right-radius: 8px;
-    }
-    .sidenav a {
-      padding: 8px 16px;
+    .menu a {
       text-decoration: none;
-      font-size: 18px;
-      color: #fff;
-      display: block;
+      color: #333;
+      margin: 5px 0;
       border-radius: 5px;
+      padding: 5px;
     }
-    .sidenav a:hover {
-      background-color: #575757;
+    .menu a:hover {
+      background: #ddd;
+    }
+    .label {
+      font-weight: bold;
+      font-size: 18px;
+    }
+    button {
+      border-radius: 5px;
+      padding: 8px;
+      margin-left: 10px;
+      cursor: pointer;
     }
   </style>
 </head>
+
 <body>
-  <div class="navbar">
-    <span class="hamburger" onclick="openNav()">☰</span>
-    <span class="label">Accounting App</span>
+  <div class="header">
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
+    <div class="label">Accounting App</div>
+    <button onclick="logout()">Logout</button>
   </div>
 
-  <div id="mySidenav" class="sidenav">
-    <a href="#" onclick="navigateTo('add-ledger.html')">Add Ledger Account</a>
+  <div class="menu" id="menu">
+    <a href="add-ledger.html">Add Ledger Account</a>
     <a href="#">Add Transaction</a>
     <a href="#">Add Product</a>
-    <!-- Add more menu items later -->
   </div>
 
   <script>
-    function openNav() {
-      document.getElementById("mySidenav").style.width = "250px";
+    function toggleMenu() {
+      const menu = document.getElementById("menu");
+      menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
     }
 
-    function closeNav() {
-      document.getElementById("mySidenav").style.width = "0";
-    }
-
-    function navigateTo(page) {
-      closeNav();
-      window.location.href = page;
-    }
+    document.querySelectorAll(".menu a").forEach(link => {
+      link.addEventListener("click", () => {
+        document.getElementById("menu").style.display = "none";
+      });
+    });
   </script>
 </body>
 </html>
