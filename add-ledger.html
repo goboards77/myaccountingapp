@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Ledger Account</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    input, button {
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #groupDropdown {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      position: absolute;
+      background-color: white;
+      z-index: 999;
+      width: 100%;
+    }
+    #groupDropdown div {
+      padding: 8px;
+      cursor: pointer;
+    }
+    #groupDropdown div:hover {
+      background-color: #f1f1f1;
+    }
+    .back-btn {
+      background-color: #333;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-btn">Back</a>
+
+  <h2>Add Ledger Account</h2>
+
+  <label>Group:</label>
+  <input type="text" id="groupField" placeholder="Select Group" autocomplete="off" />
+
+  <div id="groupDropdown"></div>
+
+  <label>New Account Name:</label>
+  <input type="text" id="newAcName" placeholder="Enter New Account Name" />
+
+  <label>Op Bal Jama:</label>
+  <input type="text" id="opBalJama" placeholder="Enter Op Bal Jama" />
+
+  <label>Op Bal Khate:</label>
+  <input type="text" id="opBalKhate" placeholder="Enter Op Bal Khate" />
+
+  <button id="saveBtn">Save</button>
+
+  <!-- Firebase SDK - compat version -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // Capitalize each word as user types
+    function capitalizeWords(str) {
+      return str.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function formatDateForFirebase(ddmmyyyy) {
+      if (!ddmmyyyy) return "";
+      const parts = ddmmyyyy.split("-");
+      if (parts.length !== 3) return ddmmyyyy;
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
+    function formatDateForDisplay(yyyymmdd) {
+      if (!yyyymmdd) return "";
+      const parts = yyyymmdd.split("-");
+      if (parts.length !== 3) return yyyymmdd;
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll('input[type="text"]').forEach(field => {
+        field.addEventListener('input', () => {
+          field.value = capitalizeWords(field.value);
+        });
+      });
+
+      const groupField = document.getElementById("groupField");
+      const groupDropdown = document.getElementById("groupDropdown");
+
+      const groups = ["Angadiya", "Cash", "Creditors", "Debtors", "Expense", "Bank"];
+
+      groupField.addEventListener("focus", () => {
+        showDropdown(groups);
+      });
+
+      groupField.addEventListener("input", () => {
+        const filter = groupField.value.toLowerCase();
+        const filteredGroups = groups.filter(g => g.toLowerCase().includes(filter));
+        showDropdown(filteredGroups);
+      });
+
+      function showDropdown(list) {
+        groupDropdown.innerHTML = "";
+        list.forEach(item => {
+          const div = document.createElement("div");
+          div.textContent = item;
+          div.addEventListener("click", () => {
+            groupField.value = item;
+            groupDropdown.style.display = "none";
+          });
+          groupDropdown.appendChild(div);
+        });
+        groupDropdown.style.display = list.length > 0 ? "block" : "none";
+      }
+
+      document.addEventListener("click", (e) => {
+        if (e.target !== groupField) {
+          groupDropdown.style.display = "none";
+        }
+      });
+
+      // Firebase config
+      const firebaseConfig = {
+        apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+        authDomain: "accounts-19d08.firebaseapp.com",
+        projectId: "accounts-19d08",
+        storageBucket: "accounts-19d08.firebasestorage.app",
+        messagingSenderId: "247308606105",
+        appId: "1:247308606105:web:9bfc179368524244bf3608"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      document.getElementById("saveBtn").addEventListener("click", async () => {
+        const group = groupField.value.trim();
+        const name = document.getElementById("newAcName").value.trim();
+        const jama = document.getElementById("opBalJama").value.trim();
+        const khate = document.getElementById("opBalKhate").value.trim();
+
+        if (!group || !name) {
+          alert("Please enter Group and Account Name.");
+          return;
+        }
+
+        try {
+          let newId = 1;
+          const snapshot = await db.collection("tran").orderBy("id", "desc").limit(1).get();
+          if (!snapshot.empty) {
+            const maxId = snapshot.docs[0].data().id;
+            newId = maxId + 1;
+          }
+
+          const today = new Date().toISOString().split("T")[0];
+
+          let data = {
+            id: newId,
+            date: today,
+            ttype: "Op Bal",
+            fparty: "",
+            tparty: "",
+            nar: "",
+            amt: "",
+            grp: group,
+            name: name
+          };
+
+          if (jama) {
+            data.fparty = name;
+            data.amt = Number(jama);
+          } else if (khate) {
+            data.tparty = name;
+            data.amt = Number(khate);
+          }
+
+          await db.collection("tran").doc(String(newId)).set(data);
+
+          alert("Ledger saved successfully!");
+
+          document.getElementById("groupField").value = "";
+          document.getElementById("newAcName").value = "";
+          document.getElementById("opBalJama").value = "";
+          document.getElementById("opBalKhate").value = "";
+          groupDropdown.style.display = "none";
+        } catch (error) {
+          console.error(error);
+          alert("Error saving ledger: " + error.message);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
