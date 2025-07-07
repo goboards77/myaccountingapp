@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Ledger</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+      authDomain: "accounts-19d08.firebaseapp.com",
+      projectId: "accounts-19d08",
+      storageBucket: "accounts-19d08.appspot.com",
+      messagingSenderId: "247308606105",
+      appId: "1:247308606105:web:9bfc179368524244bf3608"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    });
+
+    window.logout = async function() {
+      await signOut(auth);
+      window.location.href = "login.html";
+    }
+
+    window.saveLedger = async function() {
+      const group = document.getElementById("group").value.trim();
+      const newAcName = document.getElementById("newAcName").value.trim();
+      const opBalJama = document.getElementById("opBalJama").value.trim();
+      const opBalKhate = document.getElementById("opBalKhate").value.trim();
+
+      let fparty = "";
+      let tparty = "";
+      let nar = "";
+      let amt = "";
+      const today = new Date().toISOString().split('T')[0];
+
+      if (opBalJama !== "") {
+        fparty = newAcName;
+        amt = opBalJama;
+      } else if (opBalKhate !== "") {
+        tparty = newAcName;
+        amt = opBalKhate;
+      }
+
+      // Find max id
+      const tranCol = collection(db, "tran");
+      const q = query(tranCol, orderBy("id", "desc"), limit(1));
+      const snapshot = await getDocs(q);
+      let newId = "1";
+      if (!snapshot.empty) {
+        const lastDoc = snapshot.docs[0].data();
+        newId = String(parseInt(lastDoc.id) + 1);
+      }
+
+      await addDoc(tranCol, {
+        id: newId,
+        date: today,
+        ttype: "Op Bal",
+        fparty,
+        tparty,
+        nar,
+        amt,
+        grp: group,
+        name: newAcName
+      });
+
+      alert("Ledger saved!");
+
+      ["group", "newAcName", "opBalJama", "opBalKhate"].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = "";
+      });
+    }
+
+    window.showGroupMenu = function() {
+      const menu = document.getElementById("groupMenu");
+      menu.style.display = "block";
+      document.getElementById("groupFilter").value = "";
+      filterGroupMenu();
+    }
+
+    window.filterGroupMenu = function() {
+      const text = document.getElementById("groupFilter").value.toLowerCase();
+      document.querySelectorAll("#groupMenu div").forEach(div => {
+        div.style.display = div.textContent.toLowerCase().includes(text) ? "block" : "none";
+      });
+    }
+
+    window.selectGroup = function(val) {
+      document.getElementById("group").value = val;
+      document.getElementById("groupMenu").style.display = "none";
+    }
+  </script>
+
+  <style>
+    input, button {
+      border-radius: 5px;
+      padding: 8px;
+      margin: 5px;
+    }
+    #groupMenu {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      background: #fff;
+      position: absolute;
+      z-index: 999;
+    }
+    #groupMenu div {
+      padding: 5px;
+      cursor: pointer;
+    }
+    #groupMenu div:hover {
+      background: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <button onclick="window.location.href='index.html'">Back</button>
+  <button onclick="logout()">Logout</button>
+
+  <h2>Add Ledger Account</h2>
+  <input type="text" id="group" placeholder="Group" onclick="showGroupMenu()" readonly><br>
+  <div id="groupMenu">
+    <input type="text" id="groupFilter" oninput="filterGroupMenu()" placeholder="Filter groups"><br>
+    <div onclick="selectGroup('Angadiya')">Angadiya</div>
+    <div onclick="selectGroup('Cash')">Cash</div>
+    <div onclick="selectGroup('Creditors')">Creditors</div>
+    <div onclick="selectGroup('Debtors')">Debtors</div>
+    <div onclick="selectGroup('Expense')">Expense</div>
+    <div onclick="selectGroup('Bank')">Bank</div>
+  </div>
+  <input type="text" id="newAcName" placeholder="New Account Name"><br>
+  <input type="text" id="opBalJama" placeholder="Op Bal Jama"><br>
+  <input type="text" id="opBalKhate" placeholder="Op Bal Khate"><br>
+  <button onclick="saveLedger()">Save</button>
+</body>
+</html>
