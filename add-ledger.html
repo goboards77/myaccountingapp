@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Ledger</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2196F3;
+      color: #fff;
+      padding: 10px 20px;
+      flex-wrap: wrap;
+    }
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hamburger {
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+    }
+    .app-title {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .cash-label {
+      font-size: 16px;
+      padding-left: 15px;
+    }
+    #logoutArea {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #logoutArea button {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: #333;
+      color: #fff;
+      overflow-y: auto;
+      transition: left 0.3s;
+      padding-top: 60px;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      padding: 12px 20px;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #575757;
+    }
+    .content {
+      padding: 20px;
+    }
+    input, button {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      text-transform: capitalize;
+    }
+    button#saveBtn {
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button#saveBtn:hover {
+      background: #45a049;
+    }
+    #groupList {
+      background: #fff;
+      border: 1px solid #ccc;
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute;
+      width: calc(100% - 40px);
+      z-index: 999;
+      display: none;
+    }
+    #groupList div {
+      padding: 8px;
+      cursor: pointer;
+    }
+    #groupList div:hover {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="left-section">
+      <span class="hamburger" onclick="openSidebar()">☰</span>
+      <span class="app-title">Accounting App</span>
+      <span class="cash-label">Cash Balance</span>
+    </div>
+    <div id="logoutArea">
+      <span id="userEmail"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard</a>
+    <a href="add-ledger.html">Add Ledger Account</a>
+    <a href="view-groups-accounts.html">View Groups & Accounts</a>
+  </div>
+
+  <div class="content">
+    <h2>Add Ledger Account</h2>
+
+    <input type="text" id="group" placeholder="Group" autocomplete="off" />
+    <div id="groupList"></div>
+
+    <input type="text" id="newacname" placeholder="New Account Name" />
+    <input type="number" id="opbaljama" placeholder="Op Bal Jama" />
+    <input type="number" id="opbalkhate" placeholder="Op Bal Khate" />
+
+    <button id="saveBtn">Save</button>
+
+    <button onclick="goBack()">Back</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+      authDomain: "accounts-19d08.firebaseapp.com",
+      projectId: "accounts-19d08",
+      storageBucket: "accounts-19d08.firebasestorage.app",
+      messagingSenderId: "247308606105",
+      appId: "1:247308606105:web:9bfc179368524244bf3608"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("userEmail").textContent = `Logged in as ${user.email}`;
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    window.logout = () => {
+      signOut(auth).then(() => {
+        window.location.href = "login.html";
+      });
+    };
+
+    window.openSidebar = () => {
+      document.getElementById("sidebar").style.left = "0";
+    };
+
+    window.closeSidebar = () => {
+      document.getElementById("sidebar").style.left = "-250px";
+    };
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".sidebar") && !e.target.closest(".hamburger") && e.target.id !== "group") {
+        closeSidebar();
+        document.getElementById("groupList").style.display = "none";
+      }
+    });
+
+    async function loadGroups() {
+      const groupInput = document.getElementById("group");
+      const listDiv = document.getElementById("groupList");
+
+      groupInput.addEventListener("input", async () => {
+        const text = groupInput.value.toLowerCase();
+        listDiv.innerHTML = "";
+
+        let groups = [];
+
+        const q = query(collection(db, "tran"), where("grp", "!=", "Sales"));
+        const snapshot = await getDocs(q);
+        snapshot.forEach(doc => {
+          const g = doc.data().grp;
+          if (!groups.includes(g) && g !== "Purchase") groups.push(g);
+        });
+
+        if (groups.length === 0) {
+          groups = ["Angadiya", "Cash", "Creditors", "Debtors", "Expense", "Bank"];
+        }
+
+        const filtered = groups.filter(g => g.toLowerCase().includes(text));
+        filtered.forEach(g => {
+          const div = document.createElement("div");
+          div.textContent = capitalizeWords(g);
+          div.onclick = () => {
+            groupInput.value = capitalizeWords(g);
+            listDiv.style.display = "none";
+          };
+          listDiv.appendChild(div);
+        });
+
+        listDiv.style.display = filtered.length > 0 ? "block" : "none";
+      });
+
+      groupInput.addEventListener("focus", () => {
+        groupInput.dispatchEvent(new Event("input"));
+      });
+    }
+
+    loadGroups();
+
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const group = capitalizeWords(document.getElementById("group").value.trim());
+      const newacname = capitalizeWords(document.getElementById("newacname").value.trim());
+      const opbaljama = document.getElementById("opbaljama").value.trim();
+      const opbalkhate = document.getElementById("opbalkhate").value.trim();
+
+      let fparty = "";
+      let tparty = "";
+      let amt = "";
+
+      if (opbaljama !== "") {
+        fparty = newacname;
+        amt = opbaljama;
+      } else if (opbalkhate !== "") {
+        tparty = newacname;
+        amt = opbalkhate;
+      }
+
+      const tranCol = collection(db, "tran");
+      const q = query(tranCol, orderBy("id", "desc"), limit(1));
+      const snapshot = await getDocs(q);
+
+      let newId = 1;
+      snapshot.forEach(doc => {
+        const prevId = parseInt(doc.data().id, 10);
+        if (!isNaN(prevId)) newId = prevId + 1;
+      });
+
+      await addDoc(tranCol, {
+        id: newId.toString(),
+        date: new Date().toISOString().split("T")[0],
+        ttype: "Op Bal",
+        fparty,
+        tparty,
+        nar: "",
+        amt,
+        grp: group,
+        name: newacname
+      });
+
+      alert("Saved!");
+
+      document.getElementById("group").value = "";
+      document.getElementById("newacname").value = "";
+      document.getElementById("opbaljama").value = "";
+      document.getElementById("opbalkhate").value = "";
+    });
+
+    window.goBack = () => {
+      window.location.href = "index.html";
+    };
+
+    function capitalizeWords(str) {
+      return str
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+  </script>
+</body>
+</html>
