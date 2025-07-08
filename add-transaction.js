@@ -12,6 +12,7 @@ import {
   getDocs,
   addDoc,
   query,
+  where,
   orderBy,
   limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -85,6 +86,7 @@ async function loadPartiesForType(ttype) {
   const snapshot = await getDocs(tranCol);
 
   if (ttype === "Sales" || ttype === "Purchase") {
+    // fparty → names where grp is Creditors or Debtors
     snapshot.forEach((doc) => {
       const data = doc.data();
       if (["Creditors", "Debtors"].includes(data.grp)) {
@@ -94,6 +96,7 @@ async function loadPartiesForType(ttype) {
       }
     });
   } else if (ttype === "Receipt" || ttype === "Payment") {
+    // fparty → names where grp is NOT Sales or Purchase
     snapshot.forEach((doc) => {
       const data = doc.data();
       if (data.grp && !["Sales", "Purchase"].includes(data.grp)) {
@@ -123,9 +126,10 @@ async function loadPartiesForType(ttype) {
       }
     });
   } else {
-    tpartyNames = fpartyNames.slice();
+    tpartyNames = fpartyNames.slice(); // same as fparty
   }
 
+  // sort alphabetically
   fpartyNames.sort((a, b) => a.localeCompare(b));
   tpartyNames.sort((a, b) => a.localeCompare(b));
 
@@ -172,18 +176,26 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     document.getElementById("tparty").value.trim()
   );
   const amt = document.getElementById("amount").value.trim();
-  const nar = document.getElementById("details").value.trim();
+  const nar = capitalizeWords(
+    document.getElementById("details").value.trim()
+  );
 
   if (!ttype || !dateInput || !fparty || !tparty || !amt) {
     alert("Please fill all required fields.");
     return;
   }
 
-  const [year, month, day] = dateInput.includes("-")
-    ? dateInput.split("-")
-    : ["", "", ""];
-
-  const saveDate = `${year}-${month}-${day}`;
+  // Convert DD-MM-YYYY → YYYY-MM-DD
+  let saveDate = "";
+  if (dateInput && dateInput.includes("-")) {
+    const parts = dateInput.split("-");
+    if (parts.length === 3) {
+      saveDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+  } else {
+    alert("Invalid date format. Please use DD-MM-YYYY.");
+    return;
+  }
 
   const tranCol = collection(db, "tran");
   const latestSnap = await getDocs(
@@ -203,19 +215,6 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     f = tparty;
     t = fparty;
   }
-
-  console.log("Auth user:", auth.currentUser);
-  console.log("Transaction payload:", {
-    id: newId.toString(),
-    date: saveDate,
-    ttype,
-    fparty: f,
-    tparty: t,
-    nar,
-    amt,
-    grp: "",
-    name: ""
-  });
 
   await addDoc(tranCol, {
     id: newId.toString(),
