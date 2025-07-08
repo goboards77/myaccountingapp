@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>View Receivables</title>
   <style>
     body {
@@ -96,130 +96,132 @@
   </style>
 </head>
 <body>
-  <header>
-    <div class="left-section">
-      <span class="hamburger" onclick="openSidebar()">☰</span>
-      <span class="app-title">Accounting App</span>
-      <span class="cash-label">Cash Balance</span>
-    </div>
-    <div id="logoutArea">
-      <span id="userEmail"></span>
-      <button onclick="logout()">Logout</button>
-    </div>
-  </header>
-
-  <div class="sidebar" id="sidebar">
-    <a href="index.html">Dashboard</a>
-    <a href="add-ledger.html">Add Ledger Account</a>
-    <a href="add-product.html">Add Product</a>
-    <a href="add-transaction.html">Add Transaction</a>
-    <a href="view-groups-accounts.html">View Groups & Accounts</a>
-    <a href="receivables.html">View Receivables</a>
-    <a href="payables.html">View Payables</a>
-    <a href="profit-loss.html">Profit & Loss</a>
+<header>
+  <div class="left-section">
+    <span class="hamburger" onclick="openSidebar()">☰</span>
+    <span class="app-title">Accounting App</span>
+    <span class="cash-label">Cash Balance</span>
   </div>
-
-  <div class="content">
-    <h2>Receivables</h2>
-    <table id="receivablesTable">
-      <thead>
-        <tr>
-          <th>Party</th>
-          <th>Balance</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+  <div id="logoutArea">
+    <span id="userEmail"></span>
+    <button onclick="logout()">Logout</button>
   </div>
+</header>
 
-  <script type="module">
-    import {
-      auth,
-      setupAuthCheck,
-      logout,
-      openSidebar,
-      setupSidebarCloseOnOutsideClick
-    } from "./helpers.js";
+<div class="sidebar" id="sidebar">
+  <a href="index.html">Dashboard</a>
+  <a href="add-ledger.html">Add Ledger Account</a>
+  <a href="add-product.html">Add Product</a>
+  <a href="add-transaction.html">Add Transaction</a>
+  <a href="view-groups-accounts.html">View Groups & Accounts</a>
+  <a href="receivables.html">View Receivables</a>
+  <a href="payables.html">View Payables</a>
+  <a href="profit-loss.html">Profit & Loss</a>
+</div>
 
-    import {
-      getFirestore,
-      collection,
-      getDocs
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<div class="content">
+  <h2>Receivables</h2>
+  <table id="receivablesTable">
+    <thead>
+      <tr>
+        <th>Party</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-    const db = getFirestore();
+<script type="module">
+  import {
+    auth,
+    setupAuthCheck,
+    logout,
+    openSidebar,
+    setupSidebarCloseOnOutsideClick
+  } from "./helpers.js";
 
-    window.logout = logout;
-    window.openSidebar = openSidebar;
-    setupSidebarCloseOnOutsideClick();
+  import {
+    getFirestore,
+    collection,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    setupAuthCheck(loadReceivables);
+  const db = getFirestore();
 
-    async function loadReceivables() {
-      const tranCol = collection(db, "tran");
-      const snapshot = await getDocs(tranCol);
+  window.logout = logout;
+  window.openSidebar = openSidebar;
+  setupSidebarCloseOnOutsideClick();
 
-      const ledgerGroups = {};
-      const balances = {};
+  setupAuthCheck(loadReceivables);
 
-      // Find all ledger definitions
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const name = (data.name || "").trim().toLowerCase();
-        const grp = (data.grp || "").trim().toLowerCase();
-        if (name && grp) {
-          ledgerGroups[name] = grp;
-        }
-      });
+  async function loadReceivables() {
+    const tranCol = collection(db, "tran");
+    const snapshot = await getDocs(tranCol);
 
-      // Sum all transactions
-      snapshot.forEach(doc => {
-        const data = doc.data();
+    const balances = {};
+    const partyGroups = {};
 
-        if (data.fparty) {
-          const party = data.fparty.trim().toLowerCase();
-          balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
-        }
+    const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
 
-        if (data.tparty) {
-          const party = data.tparty.trim().toLowerCase();
-          balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
-        }
-      });
+    // STEP 1: build balances
+    snapshot.forEach(doc => {
+      const data = doc.data();
 
-      const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
-      const rows = [];
+      const amt = parseFloat(data.amt || "0");
 
-      for (const [party, amount] of Object.entries(balances)) {
-        const group = ledgerGroups[party];
-        if (amount > 0 && group && allowedGroups.includes(group)) {
-          rows.push({
-            party: capitalizeWords(party),
-            amount: amount.toFixed(0)
-          });
-        }
+      if (data.fparty) {
+        const party = data.fparty.trim().toLowerCase();
+        balances[party] = (balances[party] || 0) + amt;
       }
 
-      rows.sort((a, b) => b.amount - a.amount);
+      if (data.tparty) {
+        const party = data.tparty.trim().toLowerCase();
+        balances[party] = (balances[party] || 0) - amt;
+      }
 
-      const tbody = document.querySelector("#receivablesTable tbody");
-      tbody.innerHTML = "";
+      // store groups from ledger rows
+      if (data.name && data.grp) {
+        const ledgerName = data.name.trim().toLowerCase();
+        const ledgerGroup = data.grp.trim().toLowerCase();
+        partyGroups[ledgerName] = ledgerGroup;
+      }
+    });
 
-      rows.forEach(row => {
-        const tr = document.createElement("tr");
-        const td1 = document.createElement("td");
-        td1.textContent = row.party;
-        const td2 = document.createElement("td");
-        td2.textContent = row.amount;
-        tr.appendChild(td1);
-        tr.appendChild(td2);
-        tbody.appendChild(tr);
-      });
+    // STEP 2: filter receivables
+    const rows = [];
+
+    for (const [party, netAmount] of Object.entries(balances)) {
+      const group = partyGroups[party];
+
+      if (netAmount > 0 && group && allowedGroups.includes(group)) {
+        rows.push({
+          party: capitalizeWords(party),
+          amount: netAmount.toFixed(0)
+        });
+      }
     }
 
-    function capitalizeWords(str) {
-      return str.replace(/\b\w/g, c => c.toUpperCase());
-    }
-  </script>
+    rows.sort((a, b) => b.amount - a.amount);
+
+    const tbody = document.querySelector("#receivablesTable tbody");
+    tbody.innerHTML = "";
+
+    rows.forEach(row => {
+      const tr = document.createElement("tr");
+      const tdParty = document.createElement("td");
+      tdParty.textContent = row.party;
+      const tdAmt = document.createElement("td");
+      tdAmt.textContent = row.amount;
+      tr.appendChild(tdParty);
+      tr.appendChild(tdAmt);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, c => c.toUpperCase());
+  }
+</script>
 </body>
 </html>
