@@ -162,18 +162,17 @@
       const ledgerGroups = {};
       const balances = {};
 
-      // First, scan all rows to capture the ledger definitions
+      // Find all ledger definitions
       snapshot.forEach(doc => {
         const data = doc.data();
         const name = (data.name || "").trim().toLowerCase();
         const grp = (data.grp || "").trim().toLowerCase();
-
         if (name && grp) {
           ledgerGroups[name] = grp;
         }
       });
 
-      // Next, sum amounts for all parties
+      // Sum all transactions
       snapshot.forEach(doc => {
         const data = doc.data();
 
@@ -188,13 +187,12 @@
         }
       });
 
-      // Now produce the receivables list
       const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
       const rows = [];
 
       for (const [party, amount] of Object.entries(balances)) {
-        const grp = ledgerGroups[party];
-        if (amount > 0 && grp && allowedGroups.includes(grp)) {
+        const group = ledgerGroups[party];
+        if (amount > 0 && group && allowedGroups.includes(group)) {
           rows.push({
             party: capitalizeWords(party),
             amount: amount.toFixed(0)
@@ -207,7 +205,7 @@
       const tbody = document.querySelector("#receivablesTable tbody");
       tbody.innerHTML = "";
 
-      for (const row of rows) {
+      rows.forEach(row => {
         const tr = document.createElement("tr");
         const td1 = document.createElement("td");
         td1.textContent = row.party;
@@ -216,7 +214,7 @@
         tr.appendChild(td1);
         tr.appendChild(td2);
         tbody.appendChild(tr);
-      }
+      });
     }
 
     function capitalizeWords(str) {
@@ -225,4 +223,3 @@
   </script>
 </body>
 </html>
-
