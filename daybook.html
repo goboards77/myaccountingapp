@@ -75,15 +75,26 @@
     }
     .content {
       padding: 20px;
-      position: relative;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
     }
     input, button {
+      width: 100%;
       padding: 8px;
       border-radius: 4px;
       border: 1px solid #ccc;
       font-size: 16px;
-      text-transform: capitalize;
       box-sizing: border-box;
+    }
+    button {
+      background: #2196F3;
+      color: #fff;
+      cursor: pointer;
+      border: none;
     }
     table {
       width: 100%;
@@ -95,6 +106,7 @@
       border: 1px solid #ccc;
       padding: 8px;
       text-align: left;
+      text-transform: capitalize;
     }
     th {
       background: #2196F3;
@@ -103,26 +115,20 @@
     tr:nth-child(even) {
       background: #f9f9f9;
     }
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .dropdown-list {
+    .dropdown {
       position: absolute;
-      background: white;
+      background: #fff;
       border: 1px solid #ccc;
       max-height: 200px;
       overflow-y: auto;
+      z-index: 9999;
       display: none;
-      z-index: 1000;
     }
-    .dropdown-list div {
+    .dropdown div {
       padding: 8px;
       cursor: pointer;
     }
-    .dropdown-list div:hover {
+    .dropdown div:hover {
       background: #eee;
     }
   </style>
@@ -149,22 +155,21 @@
     <a href="receivables.html">View Receivable</a>
     <a href="payables.html">View Payable</a>
     <a href="profit-loss.html">Profit & Loss</a>
+    <a href="daybook.html">Daybook</a>
   </div>
 
   <div class="content">
     <h2>Daybook</h2>
 
-    <div class="grid">
+    <div class="form-grid">
       <div>
-        <input type="text" id="ttype" placeholder="Transaction Type" autocomplete="off" />
-        <div id="ttypeList" class="dropdown-list"></div>
+        <input type="text" id="typeField" placeholder="Type" readonly/>
       </div>
       <div>
-        <input type="text" id="party" placeholder="Party" autocomplete="off" />
-        <div id="partyList" class="dropdown-list"></div>
+        <input type="text" id="partyField" placeholder="Party" readonly/>
       </div>
       <div>
-        <input type="number" id="amount" placeholder="Amount" autocomplete="off" />
+        <input type="text" id="amountField" placeholder="Amount"/>
       </div>
       <div>
         <button id="filterBtn">Filter</button>
@@ -174,17 +179,19 @@
     <table id="daybookTable">
       <thead>
         <tr>
-          <th>Id</th>
+          <th>ID</th>
           <th>Date</th>
-          <th>Ttype</th>
-          <th>Fparty</th>
-          <th>Tparty</th>
-          <th>Nar</th>
-          <th>Amt</th>
+          <th>Type</th>
+          <th>From Party</th>
+          <th>To Party</th>
+          <th>Narration</th>
+          <th>Amount</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+
+    <div id="dropdown" class="dropdown"></div>
   </div>
 
   <script type="module">
@@ -208,128 +215,146 @@
     window.openSidebar = openSidebar;
     setupSidebarCloseOnOutsideClick();
 
-    const ttypeField = document.getElementById("ttype");
-    const partyField = document.getElementById("party");
-    const ttypeList = document.getElementById("ttypeList");
-    const partyList = document.getElementById("partyList");
-    const filterBtn = document.getElementById("filterBtn");
-    const tableBody = document.querySelector("#daybookTable tbody");
+    let typeList = [];
+    let partyList = [];
 
-    let allData = [];
+    setupAuthCheck(loadDropdownData);
 
-    setupAuthCheck(loadData);
-
-    async function loadData() {
+    async function loadDropdownData() {
       const tranCol = collection(db, "tran");
       const snapshot = await getDocs(tranCol);
-      allData = [];
 
-      const ttypes = new Set();
-      const parties = new Set();
+      const typesSet = new Set();
+      const partiesSet = new Set();
 
       snapshot.forEach(doc => {
         const data = doc.data();
-        allData.push(data);
-        if (data.ttype) ttypes.add(data.ttype.trim());
-        if (data.name) parties.add(data.name.trim());
+
+        if (data.ttype) {
+          typesSet.add(data.ttype.trim().toLowerCase());
+        }
+        if (data.name) {
+          partiesSet.add(data.name.trim().toLowerCase());
+        }
       });
 
-      populateDropdown(ttypeList, Array.from(ttypes));
-      populateDropdown(partyList, Array.from(parties));
+      typeList = Array.from(typesSet).sort();
+      partyList = Array.from(partiesSet).sort();
 
-      renderTable(allData);
+      // Load initial table with all data
+      loadDaybook();
     }
 
-    function populateDropdown(listEl, items) {
-      listEl.innerHTML = "";
-      items.sort().forEach(item => {
+    document.getElementById("typeField").addEventListener("click", e => {
+      showDropdown(e.target, typeList, (value) => {
+        e.target.value = value;
+      });
+    });
+
+    document.getElementById("partyField").addEventListener("click", e => {
+      showDropdown(e.target, partyList, (value) => {
+        e.target.value = value;
+      });
+    });
+
+    document.getElementById("filterBtn").addEventListener("click", () => {
+      loadDaybook();
+    });
+
+    function showDropdown(input, items, onSelect) {
+      const dropdown = document.getElementById("dropdown");
+      dropdown.innerHTML = "";
+      items.forEach(item => {
         const div = document.createElement("div");
-        div.textContent = item;
-        div.onclick = () => {
-          if (listEl === ttypeList) {
-            ttypeField.value = div.textContent;
-          } else if (listEl === partyList) {
-            partyField.value = div.textContent;
-          }
-          listEl.style.display = "none";
-        };
-        listEl.appendChild(div);
-      });
-    }
-
-    function showDropdown(inputEl, listEl) {
-      const rect = inputEl.getBoundingClientRect();
-      listEl.style.top = rect.bottom + window.scrollY + "px";
-      listEl.style.left = rect.left + window.scrollX + "px";
-      listEl.style.width = rect.width + "px";
-      listEl.style.display = "block";
-    }
-
-    ttypeField.addEventListener("focus", () => showDropdown(ttypeField, ttypeList));
-    partyField.addEventListener("focus", () => showDropdown(partyField, partyList));
-
-    document.addEventListener("click", e => {
-      if (!ttypeList.contains(e.target) && e.target !== ttypeField) {
-        ttypeList.style.display = "none";
-      }
-      if (!partyList.contains(e.target) && e.target !== partyField) {
-        partyList.style.display = "none";
-      }
-    });
-
-    filterBtn.addEventListener("click", () => {
-      const ttype = ttypeField.value.trim().toLowerCase();
-      const party = partyField.value.trim().toLowerCase();
-      const amt = document.getElementById("amount").value.trim();
-
-      let filtered = [...allData];
-
-      if (ttype) {
-        filtered = filtered.filter(row => (row.ttype || "").toLowerCase() === ttype);
-      }
-
-      if (party) {
-        filtered = filtered.filter(row => {
-          return (row.fparty || "").toLowerCase() === party ||
-                 (row.tparty || "").toLowerCase() === party;
+        div.textContent = capitalizeWords(item);
+        div.addEventListener("click", () => {
+          onSelect(div.textContent);
+          dropdown.style.display = "none";
         });
-      }
-
-      if (amt) {
-        filtered = filtered.filter(row => parseFloat(row.amt) === parseFloat(amt));
-      }
-
-      renderTable(filtered);
-
-      // Clear fields
-      ttypeField.value = "";
-      partyField.value = "";
-      document.getElementById("amount").value = "";
-    });
-
-    function renderTable(rows) {
-      tableBody.innerHTML = "";
-      rows.sort((a, b) => new Date(b.date) - new Date(a.date));
-      rows.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${row.id || ""}</td>
-          <td>${formatDate(row.date)}</td>
-          <td>${row.ttype || ""}</td>
-          <td>${row.fparty || ""}</td>
-          <td>${row.tparty || ""}</td>
-          <td>${row.nar || ""}</td>
-          <td>${row.amt || ""}</td>
-        `;
-        tableBody.appendChild(tr);
+        dropdown.appendChild(div);
       });
+
+      const rect = input.getBoundingClientRect();
+      dropdown.style.top = rect.bottom + window.scrollY + "px";
+      dropdown.style.left = rect.left + window.scrollX + "px";
+      dropdown.style.width = rect.width + "px";
+      dropdown.style.display = "block";
     }
 
-    function formatDate(dateStr) {
-      if (!dateStr) return "";
-      const parts = dateStr.split("-");
-      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateStr;
+    async function loadDaybook() {
+      const tranCol = collection(db, "tran");
+      const snapshot = await getDocs(tranCol);
+
+      const type = document.getElementById("typeField").value.trim().toLowerCase();
+      const party = document.getElementById("partyField").value.trim().toLowerCase();
+      const amount = document.getElementById("amountField").value.trim();
+
+      let rows = [];
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const record = {
+          id: data.id || "",
+          date: formatDate(data.date || ""),
+          ttype: data.ttype || "",
+          fparty: data.fparty || "",
+          tparty: data.tparty || "",
+          nar: data.nar || "",
+          amt: data.amt || "0"
+        };
+
+        let include = true;
+
+        if (type && record.ttype.toLowerCase() !== type) include = false;
+
+        if (party) {
+          const f = (record.fparty || "").toLowerCase();
+          const t = (record.tparty || "").toLowerCase();
+          if (f !== party && t !== party) include = false;
+        }
+
+        if (amount && parseFloat(record.amt) !== parseFloat(amount)) {
+          include = false;
+        }
+
+        if (include) rows.push(record);
+      });
+
+      rows.sort((a, b) => new Date(b.date.split("-").reverse().join("-")) - new Date(a.date.split("-").reverse().join("-")));
+
+      const tbody = document.querySelector("#daybookTable tbody");
+      tbody.innerHTML = "";
+
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        ["id", "date", "ttype", "fparty", "tparty", "nar", "amt"].forEach(key => {
+          const td = document.createElement("td");
+          td.textContent = row[key];
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
     }
+
+    function formatDate(d) {
+      if (!d) return "";
+      const parts = d.split("-");
+      if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return d;
+    }
+
+    function capitalizeWords(str) {
+      return str.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    document.addEventListener("click", (e) => {
+      const dropdown = document.getElementById("dropdown");
+      if (!dropdown.contains(e.target) && !e.target.matches("input")) {
+        dropdown.style.display = "none";
+      }
+    });
   </script>
 </body>
 </html>
