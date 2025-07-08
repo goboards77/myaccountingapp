@@ -37,6 +37,41 @@
       font-size: 16px;
       padding-left: 15px;
     }
+    #logoutArea {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #logoutArea button {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: #333;
+      color: #fff;
+      overflow-y: auto;
+      transition: left 0.3s;
+      padding-top: 60px;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      padding: 12px 20px;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #575757;
+    }
     .content {
       padding: 20px;
     }
@@ -67,7 +102,22 @@
       <span class="app-title">Accounting App</span>
       <span class="cash-label">Cash Balance</span>
     </div>
+    <div id="logoutArea">
+      <span id="userEmail"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
   </header>
+
+  <div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard</a>
+    <a href="add-ledger.html">Add Ledger Account</a>
+    <a href="add-product.html">Add Product</a>
+    <a href="add-transaction.html">Add Transaction</a>
+    <a href="view-groups-accounts.html">View Groups & Accounts</a>
+    <a href="receivables.html">Receivables</a>
+    <a href="payables.html">Payables</a>
+    <a href="profit-loss.html">Profit & Loss</a>
+  </div>
 
   <div class="content">
     <h2>Payables</h2>
@@ -83,30 +133,33 @@
   </div>
 
   <script type="module">
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore();
-
     loadPayables();
 
     async function loadPayables() {
       const tranCol = collection(db, "tran");
       const snapshot = await getDocs(tranCol);
 
-      // Step 1: Build ledgerParties from name + grp
-      const ledgerParties = {};
+      // find parties who belong to relevant groups
+      const partyGroups = {};
       snapshot.forEach(doc => {
         const data = doc.data();
         const grp = (data.grp || "").toLowerCase();
         const name = (data.name || "").toLowerCase();
 
         if (name && ["creditors", "debitors", "bank", "angadiya"].includes(grp)) {
-          ledgerParties[name] = grp;
+          partyGroups[name] = true;
         }
       });
 
-      // Step 2: Sum transactions
       const balances = {};
+
       snapshot.forEach(doc => {
         const data = doc.data();
 
@@ -114,25 +167,24 @@
         const tparty = (data.tparty || "").toLowerCase();
         const amt = parseFloat(data.amt || "0");
 
-        if (fparty && ledgerParties[fparty]) {
+        if (fparty && partyGroups[fparty]) {
           balances[fparty] = (balances[fparty] || 0) + amt;
         }
-        if (tparty && ledgerParties[tparty]) {
+        if (tparty && partyGroups[tparty]) {
           balances[tparty] = (balances[tparty] || 0) - amt;
         }
       });
 
-      // Step 3: Render parties with positive balance (Payables)
       const tableBody = document.querySelector("#payablesTable tbody");
       tableBody.innerHTML = "";
 
       Object.entries(balances)
-        .filter(([name, amt]) => amt > 0)
+        .filter(([party, amt]) => amt > 0)
         .sort((a, b) => b[1] - a[1])
-        .forEach(([name, amt]) => {
+        .forEach(([party, amt]) => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${capitalizeWords(name)}</td>
+            <td>${capitalizeWords(party)}</td>
             <td>${amt.toFixed(0)}</td>
           `;
           tableBody.appendChild(tr);
@@ -140,13 +192,17 @@
     }
 
     function capitalizeWords(str) {
-      return str.replace(/\b\w/g, c => c.toUpperCase());
+      return str
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());
     }
 
-    function openSidebar() {
-      // Placeholder for sidebar toggle logic if needed
-      alert("Sidebar clicked!");
-    }
+    window.openSidebar = function() {
+      document.getElementById("sidebar").style.left = "0";
+    };
+    window.logout = function() {
+      alert("Logout clicked");
+    };
   </script>
 </body>
 </html>
