@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Add Transaction</title>
+  <title>Receivable</title>
   <style>
     body {
       margin: 0;
@@ -75,42 +75,19 @@
     .content {
       padding: 20px;
     }
-    input, button {
-      display: block;
+    table {
       width: 100%;
-      padding: 8px;
-      margin: 10px 0;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      text-transform: capitalize;
-      box-sizing: border-box;
-    }
-    button {
-      background: #4CAF50;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    #groupList, #fpartyList, #tpartyList, #ttypeList {
+      border-collapse: collapse;
       background: #fff;
+    }
+    th, td {
       border: 1px solid #ccc;
-      max-height: 150px;
-      overflow-y: auto;
-      position: absolute;
-      width: calc(100% - 40px);
-      z-index: 999;
-      display: none;
+      padding: 10px;
+      text-align: left;
     }
-    #groupList div, #fpartyList div, #tpartyList div, #ttypeList div {
-      padding: 8px;
-      cursor: pointer;
-    }
-    #groupList div:hover, #fpartyList div:hover, #tpartyList div:hover, #ttypeList div:hover {
-      background: #eee;
+    th {
+      background: #2196F3;
+      color: #fff;
     }
   </style>
 </head>
@@ -135,40 +112,21 @@
     <a href="view-groups-accounts.html">View Groups & Accounts</a>
     <a href="receivable.html">View Receivable</a>
     <a href="payable.html">View Payable</a>
-
   </div>
 
   <div class="content">
-    <h2>Add Transaction</h2>
-    <input type="text" id="ttype" placeholder="Transaction Type (Sales, Purchase, Receipt, Payment)" autocomplete="off" />
-    <div id="ttypeList"></div>
-
-    <input type="text" id="tranDate" placeholder="Date"
-      onfocus="(this.type='date')"
-      onblur="(this.type='text'); formatDateDisplay(this)" />
-
-    <input type="text" id="fparty" placeholder="Party" autocomplete="off" />
-    <div id="fpartyList"></div>
-
-    <input type="text" id="tparty" placeholder="Party/ Product/ Ac" autocomplete="off" />
-    <div id="tpartyList"></div>
-
-    <input type="number" id="amount" placeholder="Amount" autocomplete="off" />
-    <input type="text" id="details" placeholder="Details" autocomplete="off" />
-
-    <button id="saveBtn">Save</button>
+    <h2>Receivable</h2>
+    <table id="resultTable">
+      <thead>
+        <tr>
+          <th>Party</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <script type="module" src="add-transaction.js"></script>
-  <script>
-    window.formatDateDisplay = function(input) {
-      if (input.value) {
-        const parts = input.value.split("-");
-        if (parts.length === 3) {
-          input.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-      }
-    };
-  </script>
+  <script type="module" src="receivable.js"></script>
 </body>
 </html>
