@@ -41,7 +41,7 @@ async function fetchReceivable() {
     .filter(([party, amount]) => amount < 0)
     .sort((a, b) => b[1] - a[1]);
 
-  const tableBody = document.querySelector("#resultTable tbody");
+  document.querySelector("#receivablesTable tbody")
   tableBody.innerHTML = "";
 
   filtered.forEach(([party, amount]) => {

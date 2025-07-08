@@ -38,10 +38,10 @@ async function fetchPayable() {
   });
 
   const filtered = Object.entries(balanceMap)
-    .filter(([party, amount]) => amount > 0)
-    .sort((a, b) => a[1] - b[1]);
+    .filter(([party, amount]) => amount < 0)
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 
-  const tableBody = document.querySelector("#resultTable tbody");
+  document.querySelector("#payablesTable tbody")
   tableBody.innerHTML = "";
 
   filtered.forEach(([party, amount]) => {
