@@ -12,7 +12,6 @@ import {
   getDocs,
   addDoc,
   query,
-  where,
   orderBy,
   limit
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -86,7 +85,6 @@ async function loadPartiesForType(ttype) {
   const snapshot = await getDocs(tranCol);
 
   if (ttype === "Sales" || ttype === "Purchase") {
-    // fparty → names where grp is Creditors or Debtors
     snapshot.forEach((doc) => {
       const data = doc.data();
       if (["Creditors", "Debtors"].includes(data.grp)) {
@@ -96,7 +94,6 @@ async function loadPartiesForType(ttype) {
       }
     });
   } else if (ttype === "Receipt" || ttype === "Payment") {
-    // fparty → names where grp is NOT Sales or Purchase
     snapshot.forEach((doc) => {
       const data = doc.data();
       if (data.grp && !["Sales", "Purchase"].includes(data.grp)) {
@@ -126,10 +123,9 @@ async function loadPartiesForType(ttype) {
       }
     });
   } else {
-    tpartyNames = fpartyNames.slice(); // same list as fparty for other types
+    tpartyNames = fpartyNames.slice();
   }
 
-  // sort alphabetically
   fpartyNames.sort((a, b) => a.localeCompare(b));
   tpartyNames.sort((a, b) => a.localeCompare(b));
 
@@ -176,15 +172,17 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     document.getElementById("tparty").value.trim()
   );
   const amt = document.getElementById("amount").value.trim();
-  const nar = document.getElementById("nar").value.trim();
+  const nar = document.getElementById("details").value.trim();
 
   if (!ttype || !dateInput || !fparty || !tparty || !amt) {
     alert("Please fill all required fields.");
     return;
   }
 
-  // Convert date DD-MM-YYYY → YYYY-MM-DD
-  const [day, month, year] = dateInput.split("-");
+  const [year, month, day] = dateInput.includes("-")
+    ? dateInput.split("-")
+    : ["", "", ""];
+
   const saveDate = `${year}-${month}-${day}`;
 
   const tranCol = collection(db, "tran");
@@ -206,6 +204,19 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     t = fparty;
   }
 
+  console.log("Auth user:", auth.currentUser);
+  console.log("Transaction payload:", {
+    id: newId.toString(),
+    date: saveDate,
+    ttype,
+    fparty: f,
+    tparty: t,
+    nar,
+    amt,
+    grp: "",
+    name: ""
+  });
+
   await addDoc(tranCol, {
     id: newId.toString(),
     date: saveDate,
@@ -224,5 +235,5 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
   document.getElementById("fparty").value = "";
   document.getElementById("tparty").value = "";
   document.getElementById("amount").value = "";
-  document.getElementById("nar").value = "";
+  document.getElementById("details").value = "";
 });
