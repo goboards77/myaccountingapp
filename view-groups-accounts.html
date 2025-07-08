@@ -101,6 +101,18 @@
     th.name-col {
       width: 300px;
     }
+    #backBtn {
+      margin-top: 20px;
+      background: #2196F3;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #backBtn:hover {
+      background: #0b7dda;
+    }
   </style>
 </head>
 <body>
@@ -119,6 +131,7 @@
   <div class="sidebar" id="sidebar">
     <a href="index.html">Dashboard</a>
     <a href="add-ledger.html">Add Ledger Account</a>
+    <a href="add-product.html">Add Product</a>
     <a href="view-groups-accounts.html">View Groups & Accounts</a>
   </div>
 
@@ -140,51 +153,13 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { auth, logout, openSidebar, closeSidebar, setupAuthCheck, setupSidebarCloseOnOutsideClick } from "./helpers.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
-      authDomain: "accounts-19d08.firebaseapp.com",
-      projectId: "accounts-19d08",
-      storageBucket: "accounts-19d08.appspot.com",
-      messagingSenderId: "247308606105",
-      appId: "1:247308606105:web:9bfc179368524244bf3608"
-    };
+    const db = getFirestore();
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById("userEmail").textContent = `Logged in as ${user.email}`;
-        loadData();
-      } else {
-        window.location.href = "login.html";
-      }
-    });
-
-    window.logout = () => {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
-      });
-    };
-
-    window.openSidebar = () => {
-      document.getElementById("sidebar").style.left = "0";
-    };
-
-    window.closeSidebar = () => {
-      document.getElementById("sidebar").style.left = "-250px";
-    };
-
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".sidebar") && !e.target.closest(".hamburger")) {
-        closeSidebar();
-      }
-    });
+    setupAuthCheck(loadData);
+    setupSidebarCloseOnOutsideClick();
 
     async function loadData() {
       const tbody = document.getElementById("dataTable");
@@ -209,13 +184,17 @@
 
       dataList.forEach((data) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${data.grp}</td><td>${data.name}</td>`;
+        tr.innerHTML = `<td>${capitalizeWords(data.grp)}</td><td>${capitalizeWords(data.name)}</td>`;
         tbody.appendChild(tr);
       });
 
       if (seen.size === 0) {
         tbody.innerHTML = `<tr><td colspan="2">No data found.</td></tr>`;
       }
+    }
+
+    function capitalizeWords(str) {
+      return (str || "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     }
 
     window.goBack = () => {
