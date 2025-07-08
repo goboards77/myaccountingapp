@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Add Ledger</title>
   <style>
-    /* ----- Global Styles ----- */
     body {
       margin: 0;
       font-family: sans-serif;
@@ -63,6 +62,7 @@
       overflow-y: auto;
       transition: left 0.3s;
       padding-top: 60px;
+      z-index: 1000;
     }
     .sidebar a {
       display: block;
@@ -85,15 +85,19 @@
       border: 1px solid #ccc;
       font-size: 16px;
       text-transform: capitalize;
+      box-sizing: border-box;
     }
-    button#saveBtn {
+    button {
       background: #4CAF50;
       color: #fff;
       border: none;
       cursor: pointer;
     }
-    button#saveBtn:hover {
+    button:hover {
       background: #45a049;
+    }
+    .dropdown-container {
+      position: relative;
     }
     #groupList {
       background: #fff;
@@ -101,9 +105,11 @@
       max-height: 150px;
       overflow-y: auto;
       position: absolute;
-      width: calc(100% - 40px);
+      width: 100%;
       z-index: 999;
       display: none;
+      top: 100%;
+      left: 0;
     }
     #groupList div {
       padding: 8px;
@@ -115,7 +121,6 @@
   </style>
 </head>
 <body>
-  <!-- ----- Header Section ----- -->
   <header>
     <div class="left-section">
       <span class="hamburger" onclick="openSidebar()">☰</span>
@@ -128,63 +133,55 @@
     </div>
   </header>
 
-  <!-- ----- Sidebar ----- -->
   <div class="sidebar" id="sidebar">
     <a href="index.html">Dashboard</a>
     <a href="add-ledger.html">Add Ledger Account</a>
+    <a href="add-product.html">Add Product</a>
     <a href="view-groups-accounts.html">View Groups & Accounts</a>
   </div>
 
-  <!-- ----- Main Content ----- -->
   <div class="content">
     <h2>Add Ledger Account</h2>
 
-    <!-- Group Input (with suggestion list) -->
-    <input type="text" id="group" placeholder="Group" autocomplete="off" />
-    <div id="groupList"></div>
+    <div class="dropdown-container">
+      <input type="text" id="group" placeholder="Group" autocomplete="off" />
+      <div id="groupList"></div>
+    </div>
 
-    <!-- Account Name -->
     <input type="text" id="newacname" placeholder="New Account Name" />
-
-    <!-- Opening Balance fields -->
     <input type="number" id="opbaljama" placeholder="Op Bal Jama" />
     <input type="number" id="opbalkhate" placeholder="Op Bal Khate" />
 
-    <!-- Save Button -->
     <button id="saveBtn">Save</button>
   </div>
 
-  <!-- ----- Script Section ----- -->
   <script type="module">
-    // Import shared helpers
-    import { auth, db, openSidebar, closeSidebar, logout } from "./helpers.js";
-
+    import { auth, setupAuthCheck, logout, openSidebar, setupSidebarCloseOnOutsideClick } from "./helpers.js";
     import {
+      getFirestore,
       collection,
-      addDoc,
       getDocs,
+      addDoc,
       query,
       where,
       orderBy,
       limit
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    import {
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    const db = getFirestore();
 
-    // Check if user is logged in
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById("userEmail").textContent =
-          `Logged in as ${user.email}`;
-        loadGroups();
-      } else {
-        window.location.href = "login.html";
-      }
-    });
+    window.logout = logout;
+    window.openSidebar = openSidebar;
+    setupSidebarCloseOnOutsideClick();
 
-    // Load Groups for dropdown
+    setupAuthCheck(loadGroups);
+
+    function capitalizeWords(str) {
+      return str
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+
     async function loadGroups() {
       const groupInput = document.getElementById("group");
       const listDiv = document.getElementById("groupList");
@@ -195,30 +192,18 @@
 
         let groups = [];
 
-        // Get distinct group names from tran collection
-        const q = query(
-          collection(db, "tran"),
-          where("grp", "!=", "Sales")
-        );
-
+        const q = query(collection(db, "tran"));
         const snapshot = await getDocs(q);
-
         snapshot.forEach(doc => {
           const g = doc.data().grp;
-          if (!groups.includes(g) && g !== "Purchase") {
+          if (g && g !== "Sales" && g !== "Purchase" && !groups.includes(g)) {
             groups.push(g);
           }
         });
 
-        // If no groups found in DB, show default list
-        if (groups.length === 0) {
-          groups = ["Angadiya", "Cash", "Creditors", "Debtors", "Expense", "Bank"];
-        }
+        groups.sort();
 
-        // Filter list based on user input
-        const filtered = groups.filter(g =>
-          g.toLowerCase().includes(text)
-        );
+        const filtered = groups.filter(g => g.toLowerCase().includes(text));
 
         filtered.forEach(g => {
           const div = document.createElement("div");
@@ -230,52 +215,63 @@
           listDiv.appendChild(div);
         });
 
-        listDiv.style.display =
-          filtered.length > 0 ? "block" : "none";
+        listDiv.style.display = filtered.length > 0 ? "block" : "none";
       });
 
-      // Show dropdown when input gains focus
       groupInput.addEventListener("focus", () => {
         groupInput.dispatchEvent(new Event("input"));
       });
     }
 
-    // Save Ledger Account
     document.getElementById("saveBtn").addEventListener("click", async () => {
       const group = capitalizeWords(document.getElementById("group").value.trim());
       const newacname = capitalizeWords(document.getElementById("newacname").value.trim());
       const opbaljama = document.getElementById("opbaljama").value.trim();
       const opbalkhate = document.getElementById("opbalkhate").value.trim();
 
+      if (!group || !newacname) {
+        alert("Please fill both Group and Account Name.");
+        return;
+      }
+
+      const q = query(
+        collection(db, "tran"),
+        where("grp", "==", group),
+        where("name", "==", newacname)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        alert("Ledger already exists in this group.");
+        return;
+      }
+
       let fparty = "";
       let tparty = "";
       let amt = "";
+      let ttype = "";
 
-      // Determine if Op Bal is Jama or Khate
       if (opbaljama !== "") {
         fparty = newacname;
         amt = opbaljama;
+        ttype = "Op Bal";
       } else if (opbalkhate !== "") {
         tparty = newacname;
         amt = opbalkhate;
+        ttype = "Op Bal";
       }
 
-      // Get next ID
       const tranCol = collection(db, "tran");
-      const q = query(tranCol, orderBy("id", "desc"), limit(1));
-      const snapshot = await getDocs(q);
-
+      const latestSnap = await getDocs(query(tranCol, orderBy("id", "desc"), limit(1)));
       let newId = 1;
-      snapshot.forEach(doc => {
+      latestSnap.forEach(doc => {
         const prevId = parseInt(doc.data().id, 10);
         if (!isNaN(prevId)) newId = prevId + 1;
       });
 
-      // Save the document
       await addDoc(tranCol, {
         id: newId.toString(),
         date: new Date().toISOString().split("T")[0],
-        ttype: "Op Bal",
+        ttype,
         fparty,
         tparty,
         nar: "",
@@ -285,31 +281,22 @@
       });
 
       alert("Ledger saved!");
-
-      // Clear fields
       document.getElementById("group").value = "";
       document.getElementById("newacname").value = "";
       document.getElementById("opbaljama").value = "";
       document.getElementById("opbalkhate").value = "";
     });
 
-    // Capitalize first letter of each word
-    function capitalizeWords(str) {
-      return str
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());
-    }
-
-    // Sidebar toggle logic
     document.addEventListener("click", (e) => {
-      if (!e.target.closest(".sidebar") &&
-          !e.target.closest(".hamburger") &&
-          e.target.id !== "group") {
+      if (
+        !e.target.closest("#sidebar") &&
+        !e.target.closest(".hamburger") &&
+        !e.target.closest("#groupList")
+      ) {
         closeSidebar();
         document.getElementById("groupList").style.display = "none";
       }
     });
-
   </script>
 </body>
 </html>
