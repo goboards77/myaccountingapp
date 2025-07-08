@@ -159,26 +159,28 @@
       const tranCol = collection(db, "tran");
       const snapshot = await getDocs(tranCol);
 
+      const groupsToInclude = ["creditors", "debitors", "bank", "angadiya"];
       const parties = {};
 
-      snapshot.forEach(doc => {
+      snapshot.forEach((doc) => {
         const data = doc.data();
 
-        // Only consider desired groups
-        if (["creditors", "debitors", "bank", "angadiya"].includes((data.grp || "").toLowerCase())) {
-          if (data.fparty) {
-            const party = data.fparty.toLowerCase();
-            parties[party] = (parties[party] || 0) + parseFloat(data.amt || 0);
-          }
-          if (data.tparty) {
-            const party = data.tparty.toLowerCase();
-            parties[party] = (parties[party] || 0) - parseFloat(data.amt || 0);
-          }
+        if (!data.grp || !groupsToInclude.includes(data.grp.toLowerCase())) {
+          return;
+        }
+
+        const amt = parseFloat(data.amt || 0);
+
+        if (data.fparty && data.fparty !== "") {
+          const party = data.fparty.toLowerCase();
+          parties[party] = (parties[party] || 0) + amt;
+        }
+
+        if (data.tparty && data.tparty !== "") {
+          const party = data.tparty.toLowerCase();
+          parties[party] = (parties[party] || 0) - amt;
         }
       });
-
-      const tableBody = document.querySelector("#payablesTable tbody");
-      tableBody.innerHTML = "";
 
       const rows = [];
 
@@ -187,20 +189,22 @@
         if (net > 0) {
           rows.push({
             party: capitalizeWords(party),
-            amount: Math.abs(net).toFixed(0)
+            net: net
           });
         }
       }
 
-      // Sort from largest balance down
-      rows.sort((a, b) => b.amount - a.amount);
+      rows.sort((a, b) => b.net - a.net);
+
+      const tableBody = document.querySelector("#payablesTable tbody");
+      tableBody.innerHTML = "";
 
       rows.forEach(r => {
         const tr = document.createElement("tr");
         const tdParty = document.createElement("td");
         tdParty.textContent = r.party;
         const tdAmt = document.createElement("td");
-        tdAmt.textContent = r.amount;
+        tdAmt.textContent = Math.abs(r.net).toFixed(0);
         tr.appendChild(tdParty);
         tr.appendChild(tdAmt);
         tableBody.appendChild(tr);
