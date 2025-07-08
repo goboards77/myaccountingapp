@@ -27,6 +27,7 @@
     .hamburger {
       cursor: pointer;
       font-size: 20px;
+      user-select: none;
     }
     .app-title {
       font-weight: bold;
@@ -74,16 +75,16 @@
     .content {
       padding: 20px;
     }
-    select, input, button {
+    input, button {
       display: block;
       width: 100%;
       padding: 8px;
       margin: 10px 0;
-      font-size: 16px;
       border-radius: 6px;
       border: 1px solid #ccc;
-      box-sizing: border-box;
+      font-size: 16px;
       text-transform: capitalize;
+      box-sizing: border-box;
     }
     button {
       background: #4CAF50;
@@ -93,6 +94,23 @@
     }
     button:hover {
       background: #45a049;
+    }
+    #groupList, #fpartyList, #tpartyList, #ttypeList {
+      background: #fff;
+      border: 1px solid #ccc;
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute;
+      width: calc(100% - 40px);
+      z-index: 999;
+      display: none;
+    }
+    #groupList div, #fpartyList div, #tpartyList div, #ttypeList div {
+      padding: 8px;
+      cursor: pointer;
+    }
+    #groupList div:hover, #fpartyList div:hover, #tpartyList div:hover, #ttypeList div:hover {
+      background: #eee;
     }
   </style>
 </head>
@@ -119,150 +137,22 @@
 
   <div class="content">
     <h2>Add Transaction</h2>
+    <input type="text" id="ttype" placeholder="Transaction Type (Sales, Purchase, Receipt, Payment)" autocomplete="off" />
+    <div id="ttypeList"></div>
 
-    <select id="ttype"><option value="">Select Transaction Type</option></select>
-    <input type="text" id="date" placeholder="Date (DD-MM-YYYY)" />
-    <select id="fparty"><option value="">Select From Party</option></select>
-    <select id="tparty"><option value="">Select To Party</option></select>
-    <input type="number" id="amt" placeholder="Amount" oninput="this.value = this.value.replace(/\D/g, '')" />
-    <input type="text" id="nar" placeholder="Details" />
+    <input type="text" id="tranDate" placeholder="Date (DD-MM-YYYY)" onfocus="(this.type='date')" onblur="(this.type='text')" />
+    <input type="text" id="fparty" placeholder="From Party" autocomplete="off" />
+    <div id="fpartyList"></div>
+
+    <input type="text" id="tparty" placeholder="To Party" autocomplete="off" />
+    <div id="tpartyList"></div>
+
+    <input type="number" id="amount" placeholder="Amount" />
+    <input type="text" id="details" placeholder="Details" />
+
     <button id="saveBtn">Save</button>
   </div>
 
-  <script type="module">
-    import { auth, setupAuthCheck, logout, openSidebar, setupSidebarCloseOnOutsideClick } from "./helpers.js";
-    import {
-      getFirestore, collection, getDocs, addDoc,
-      query, orderBy, limit, where
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    const db = getFirestore();
-    window.logout = logout;
-    window.openSidebar = openSidebar;
-    setupSidebarCloseOnOutsideClick();
-
-    setupAuthCheck(loadTTypes);
-
-    function formatDateToYMD(ddmmyyyy) {
-      const [dd, mm, yyyy] = ddmmyyyy.split("-");
-      return `${yyyy}-${mm}-${dd}`;
-    }
-
-    async function loadTTypes() {
-      const ttypeSelect = document.getElementById("ttype");
-      const snapshot = await getDocs(collection(db, "tran"));
-      const types = new Set();
-      snapshot.forEach(doc => {
-        const t = doc.data().ttype;
-        if (t) types.add(t);
-      });
-
-      const sorted = Array.from(types).sort((a, b) => a.localeCompare(b));
-      sorted.forEach(t => {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        ttypeSelect.appendChild(opt);
-      });
-
-      ttypeSelect.addEventListener("change", loadParties);
-    }
-
-    async function loadParties() {
-      const ttype = document.getElementById("ttype").value;
-      const fparty = document.getElementById("fparty");
-      const tparty = document.getElementById("tparty");
-
-      fparty.innerHTML = `<option value="">Select From Party</option>`;
-      tparty.innerHTML = `<option value="">Select To Party</option>`;
-
-      const snapshot = await getDocs(collection(db, "tran"));
-      const all = [];
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        if (d.name && d.grp) all.push({ name: d.name, grp: d.grp });
-      });
-
-      const addOption = (el, name) => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        el.appendChild(opt);
-      };
-
-      const unique = (arr) => [...new Set(arr.map(e => e.name))];
-
-      if (["Sales", "Purchase"].includes(ttype)) {
-        const fgrp = ttype === "Sales" ? "Debtors" : "Creditors";
-        const foptions = unique(all.filter(x => x.grp === fgrp));
-        foptions.forEach(n => addOption(fparty, n));
-      } else if (["Receipt", "Payment"].includes(ttype)) {
-        const foptions = unique(all.filter(x => x.grp !== "Sales" && x.grp !== "Purchase"));
-        foptions.forEach(n => addOption(fparty, n));
-      }
-
-      if (ttype === "Sales") {
-        const tops = unique(all.filter(x => x.grp === "Sales"));
-        tops.forEach(n => addOption(tparty, n));
-      } else if (ttype === "Purchase") {
-        const tops = unique(all.filter(x => x.grp === "Purchase"));
-        tops.forEach(n => addOption(tparty, n));
-      } else {
-        const tops = unique(all);
-        tops.forEach(n => addOption(tparty, n));
-      }
-    }
-
-    document.getElementById("saveBtn").addEventListener("click", async () => {
-      const ttype = document.getElementById("ttype").value;
-      const date = document.getElementById("date").value;
-      const fpartyVal = document.getElementById("fparty").value;
-      const tpartyVal = document.getElementById("tparty").value;
-      const amt = document.getElementById("amt").value;
-      const nar = document.getElementById("nar").value;
-
-      if (!ttype || !date || !fpartyVal || !tpartyVal || !amt) {
-        alert("Please fill all required fields.");
-        return;
-      }
-
-      const ymdDate = formatDateToYMD(date);
-      const tranCol = collection(db, "tran");
-      const latestSnap = await getDocs(query(tranCol, orderBy("id", "desc"), limit(1)));
-
-      let newId = 1;
-      latestSnap.forEach(doc => {
-        const prevId = parseInt(doc.data().id, 10);
-        if (!isNaN(prevId)) newId = prevId + 1;
-      });
-
-      const docData = {
-        id: newId.toString(),
-        date: ymdDate,
-        ttype,
-        nar,
-        amt,
-        grp: "",
-        name: ""
-      };
-
-      if (ttype === "Sales") {
-        docData.fparty = tpartyVal;
-        docData.tparty = fpartyVal;
-      } else {
-        docData.fparty = fpartyVal;
-        docData.tparty = tpartyVal;
-      }
-
-      await addDoc(tranCol, docData);
-
-      alert("Transaction saved!");
-
-      // Clear form
-      ["ttype", "date", "fparty", "tparty", "amt", "nar"].forEach(id => {
-        document.getElementById(id).value = "";
-      });
-    });
-  </script>
+  <script type="module" src="add-transaction.js"></script>
 </body>
 </html>
