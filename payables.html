@@ -143,9 +143,7 @@
     import {
       getFirestore,
       collection,
-      getDocs,
-      query,
-      where
+      getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore();
@@ -185,7 +183,7 @@
 
       for (const party in parties) {
         const net = parties[party];
-        if (net < 0) {
+        if (net > 0) {
           rows.push({
             party: capitalizeWords(party),
             amount: Math.abs(net).toFixed(0)
@@ -193,7 +191,7 @@
         }
       }
 
-      // sort by highest absolute payable first
+      // Sort from largest balance down
       rows.sort((a, b) => b.amount - a.amount);
 
       rows.forEach(r => {

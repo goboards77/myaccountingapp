@@ -41,7 +41,8 @@ async function fetchPayable() {
     .filter(([party, amount]) => amount < 0)
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 
-  document.querySelector("#payablesTable tbody")
+  // ✅ Correct assignment:
+  const tableBody = document.querySelector("#payablesTable tbody");
   tableBody.innerHTML = "";
 
   filtered.forEach(([party, amount]) => {

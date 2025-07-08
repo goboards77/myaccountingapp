@@ -29,27 +29,38 @@ async function fetchReceivable() {
   snapshot.forEach((doc) => {
     const data = doc.data();
 
-    if (data.fparty && data.fparty !== "") {
-      balanceMap[data.fparty] = (balanceMap[data.fparty] || 0) + Number(data.amt);
+    // process fparty
+    if (data.fparty && data.fparty.trim() !== "") {
+      const party = data.fparty.trim().toLowerCase();
+      balanceMap[party] = (balanceMap[party] || 0) + Number(data.amt || 0);
     }
-    if (data.tparty && data.tparty !== "") {
-      balanceMap[data.tparty] = (balanceMap[data.tparty] || 0) - Number(data.amt);
+
+    // process tparty
+    if (data.tparty && data.tparty.trim() !== "") {
+      const party = data.tparty.trim().toLowerCase();
+      balanceMap[party] = (balanceMap[party] || 0) - Number(data.amt || 0);
     }
   });
 
   const filtered = Object.entries(balanceMap)
     .filter(([party, amount]) => amount < 0)
-    .sort((a, b) => b[1] - a[1]);
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 
-  document.querySelector("#receivablesTable tbody")
+  const tableBody = document.querySelector("#receivablesTable tbody");
   tableBody.innerHTML = "";
 
   filtered.forEach(([party, amount]) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-      <td>${party}</td>
+      <td>${capitalizeWords(party)}</td>
       <td>${Math.abs(amount).toFixed(0)}</td>
     `;
     tableBody.appendChild(row);
   });
+}
+
+function capitalizeWords(str) {
+  return str
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
