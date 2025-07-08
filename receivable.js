@@ -39,7 +39,7 @@ async function fetchReceivable() {
 
   const filtered = Object.entries(balanceMap)
     .filter(([party, amount]) => amount < 0)
-    .sort((a, b) => a[1] - b[1]);
+    .sort((a, b) => b[1] - a[1]);
 
   const tableBody = document.querySelector("#resultTable tbody");
   tableBody.innerHTML = "";
