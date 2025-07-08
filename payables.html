@@ -142,62 +142,63 @@
 
     const db = getFirestore();
 
-    window.openSidebar = function() {
-      document.getElementById("sidebar").style.left = "0";
-    };
-
-    window.logout = function() {
+    window.logout = function () {
       alert("Logout logic here");
     };
 
     loadPayables();
 
     async function loadPayables() {
-      const tranCol = collection(db, "tran");
-      const snapshot = await getDocs(tranCol);
+      const snapshot = await getDocs(collection(db, "tran"));
 
-      // Step 1: gather parties belonging to desired groups
-      const relevantParties = new Set();
+      // Step 1 - collect all parties who belong to a desired group
+      const groupParties = new Set();
       snapshot.forEach(doc => {
         const data = doc.data();
         const grp = (data.grp || "").toLowerCase();
         const name = (data.name || "").toLowerCase();
         if (["creditors", "debitors", "bank", "angadiya"].includes(grp) && name) {
-          relevantParties.add(name);
+          groupParties.add(name);
         }
       });
 
-      // Step 2: calculate balances
-      const partyBalances = {};
+      // Step 2 - accumulate totals
+      const totals = {};
       snapshot.forEach(doc => {
         const data = doc.data();
         const amt = parseFloat(data.amt || 0);
 
         if (data.fparty) {
           const party = data.fparty.toLowerCase();
-          partyBalances[party] = (partyBalances[party] || 0) + amt;
+          totals[party] = (totals[party] || 0) + amt;
         }
         if (data.tparty) {
           const party = data.tparty.toLowerCase();
-          partyBalances[party] = (partyBalances[party] || 0) - amt;
+          totals[party] = (totals[party] || 0) - amt;
         }
       });
 
-      // Step 3: filter only relevant parties with positive balance
-      const rows = Object.entries(partyBalances)
-        .filter(([party, amount]) =>
-          relevantParties.has(party) && amount > 0
-        )
-        .sort((a, b) => b[1] - a[1]);
+      // Step 3 - only show parties in desired groups, and with positive balance
+      const rows = [];
+      for (const [party, net] of Object.entries(totals)) {
+        if (groupParties.has(party) && net > 0) {
+          rows.push({
+            party,
+            amount: net.toFixed(0)
+          });
+        }
+      }
+
+      rows.sort((a, b) => b.amount - a.amount);
 
       const tbody = document.querySelector("#payablesTable tbody");
       tbody.innerHTML = "";
 
-      rows.forEach(([party, amount]) => {
+      rows.forEach(row => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${capitalizeWords(party)}</td>
-          <td>${amount.toFixed(0)}</td>
+          <td>${capitalizeWords(row.party)}</td>
+          <td>${row.amount}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -206,6 +207,21 @@
     function capitalizeWords(str) {
       return str.replace(/\b\w/g, c => c.toUpperCase());
     }
+  </script>
+
+  <script>
+    function openSidebar() {
+      document.getElementById("sidebar").style.left = "0";
+    }
+    function closeSidebar() {
+      document.getElementById("sidebar").style.left = "-250px";
+    }
+    document.addEventListener("click", function (e) {
+      const sidebar = document.getElementById("sidebar");
+      if (!sidebar.contains(e.target) && !e.target.classList.contains("hamburger")) {
+        closeSidebar();
+      }
+    });
   </script>
 </body>
 </html>
