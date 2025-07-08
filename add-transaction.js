@@ -10,11 +10,7 @@ import {
   getFirestore,
   collection,
   getDocs,
-  addDoc,
-  query,
-  where,
-  orderBy,
-  limit
+  addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore();
@@ -86,7 +82,6 @@ async function loadPartiesForType(ttype) {
   const snapshot = await getDocs(tranCol);
 
   if (ttype === "Sales" || ttype === "Purchase") {
-    // fparty → names where grp is Creditors or Debtors
     snapshot.forEach((doc) => {
       const data = doc.data();
       if (["Creditors", "Debtors"].includes(data.grp)) {
@@ -96,7 +91,6 @@ async function loadPartiesForType(ttype) {
       }
     });
   } else if (ttype === "Receipt" || ttype === "Payment") {
-    // fparty → names where grp is NOT Sales or Purchase
     snapshot.forEach((doc) => {
       const data = doc.data();
       if (data.grp && !["Sales", "Purchase"].includes(data.grp)) {
@@ -126,10 +120,9 @@ async function loadPartiesForType(ttype) {
       }
     });
   } else {
-    tpartyNames = fpartyNames.slice(); // same as fparty
+    tpartyNames = fpartyNames.slice();
   }
 
-  // sort alphabetically
   fpartyNames.sort((a, b) => a.localeCompare(b));
   tpartyNames.sort((a, b) => a.localeCompare(b));
 
@@ -185,28 +178,32 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     return;
   }
 
-  // Convert DD-MM-YYYY → YYYY-MM-DD
+  // ✅ Convert DD-MM-YYYY → YYYY-MM-DD
   let saveDate = "";
-  if (dateInput && dateInput.includes("-")) {
+  if (dateInput.includes("-")) {
     const parts = dateInput.split("-");
     if (parts.length === 3) {
       saveDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+    } else {
+      alert("Invalid date format. Please use DD-MM-YYYY.");
+      return;
     }
   } else {
     alert("Invalid date format. Please use DD-MM-YYYY.");
     return;
   }
 
+  // ✅ Find max id among all docs
   const tranCol = collection(db, "tran");
-  const latestSnap = await getDocs(
-    query(tranCol, orderBy("id", "desc"), limit(1))
-  );
-
-  let newId = 1;
-  latestSnap.forEach((doc) => {
-    const prevId = parseInt(doc.data().id, 10);
-    if (!isNaN(prevId)) newId = prevId + 1;
+  const allDocsSnap = await getDocs(tranCol);
+  let maxId = 0;
+  allDocsSnap.forEach((doc) => {
+    const numId = parseInt(doc.data().id, 10);
+    if (!isNaN(numId) && numId > maxId) {
+      maxId = numId;
+    }
   });
+  const newId = maxId + 1;
 
   let f = fparty;
   let t = tparty;
