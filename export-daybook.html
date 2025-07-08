@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Export Transactions</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2196F3;
+      color: #fff;
+      padding: 10px 20px;
+      flex-wrap: wrap;
+    }
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hamburger {
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+    }
+    .app-title {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .cash-label {
+      font-size: 16px;
+      padding-left: 15px;
+    }
+    #logoutArea {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #logoutArea button {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: #333;
+      color: #fff;
+      overflow-y: auto;
+      transition: left 0.3s;
+      padding-top: 60px;
+      z-index: 1000;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      padding: 12px 20px;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #575757;
+    }
+    .content {
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      max-width: 600px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      text-transform: capitalize;
+      box-sizing: border-box;
+    }
+    button {
+      background: #4CAF50;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .dropdown-list {
+      background: #fff;
+      border: 1px solid #ccc;
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute;
+      width: calc(100% - 2px);
+      display: none;
+      z-index: 1001;
+    }
+    .dropdown-list div {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .dropdown-list div:hover {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="left-section">
+      <span class="hamburger" onclick="openSidebar()">☰</span>
+      <span class="app-title">Accounting App</span>
+      <span class="cash-label">Cash Balance</span>
+    </div>
+    <div id="logoutArea">
+      <span id="userEmail"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard</a>
+    <a href="add-ledger.html">Add Ledger Account</a>
+    <a href="add-product.html">Add Product</a>
+    <a href="add-transaction.html">Add Transaction</a>
+    <a href="view-groups-accounts.html">View Groups & Accounts</a>
+    <a href="receivables.html">View Receivables</a>
+    <a href="payables.html">View Payables</a>
+    <a href="profit-loss.html">Profit & Loss</a>
+    <a href="export.html">Export Data</a>
+  </div>
+
+  <div class="content">
+    <h2>Export Transactions</h2>
+    <div class="grid">
+      <div>
+        <input type="date" id="startDate" placeholder="Start Date">
+      </div>
+      <div>
+        <input type="date" id="endDate" placeholder="End Date">
+      </div>
+      <div style="position:relative;">
+        <input type="text" id="ttypeField" placeholder="Transaction Type" autocomplete="off">
+        <div class="dropdown-list" id="ttypeList"></div>
+      </div>
+      <div style="position:relative;">
+        <input type="text" id="partyField" placeholder="Party" autocomplete="off">
+        <div class="dropdown-list" id="partyList"></div>
+      </div>
+      <div style="grid-column: 1 / span 2;">
+        <button id="exportBtn">Export To CSV And PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      auth,
+      setupAuthCheck,
+      logout,
+      openSidebar,
+      setupSidebarCloseOnOutsideClick
+    } from "./helpers.js";
+
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    import jsPDF from "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
+
+    const db = getFirestore();
+
+    window.logout = logout;
+    window.openSidebar = openSidebar;
+    setupSidebarCloseOnOutsideClick();
+
+    setupAuthCheck(initPage);
+
+    async function initPage() {
+      const tranCol = collection(db, "tran");
+      const snapshot = await getDocs(tranCol);
+
+      const ttypeSet = new Set();
+      const partySet = new Set();
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.ttype) ttypeSet.add(data.ttype.trim());
+        if (data.name) partySet.add(data.name.trim());
+      });
+
+      populateDropdown(document.getElementById("ttypeField"), document.getElementById("ttypeList"), Array.from(ttypeSet).sort());
+      populateDropdown(document.getElementById("partyField"), document.getElementById("partyList"), Array.from(partySet).sort());
+
+      document.getElementById("exportBtn").addEventListener("click", () => exportData(snapshot));
+    }
+
+    function populateDropdown(inputElem, dropdownElem, values) {
+      inputElem.addEventListener("focus", () => {
+        dropdownElem.innerHTML = "";
+        values.forEach(val => {
+          const div = document.createElement("div");
+          div.textContent = val;
+          div.addEventListener("click", () => {
+            inputElem.value = val;
+            dropdownElem.style.display = "none";
+          });
+          dropdownElem.appendChild(div);
+        });
+        dropdownElem.style.display = "block";
+        dropdownElem.style.top = `${inputElem.offsetTop + inputElem.offsetHeight}px`;
+        dropdownElem.style.left = `${inputElem.offsetLeft}px`;
+        dropdownElem.style.width = `${inputElem.offsetWidth}px`;
+      });
+
+      document.addEventListener("click", e => {
+        if (!dropdownElem.contains(e.target) && e.target !== inputElem) {
+          dropdownElem.style.display = "none";
+        }
+      });
+    }
+
+    async function exportData(snapshot) {
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const ttype = document.getElementById("ttypeField").value.trim();
+      const party = document.getElementById("partyField").value.trim();
+
+      const rows = [];
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+
+        let date = (data.date || "");
+        if (date.includes("-")) {
+          const [y,m,d] = date.split("-");
+          date = `${d}-${m}-${y}`;
+        }
+
+        const row = {
+          date: date,
+          ttype: data.ttype || "",
+          fparty: data.fparty || "",
+          tparty: data.tparty || "",
+          amt: data.amt || ""
+        };
+
+        if (startDate && endDate) {
+          if (!data.date) return;
+          if (data.date < startDate || data.date > endDate) return;
+        }
+
+        if (ttype && data.ttype !== ttype) return;
+
+        if (party) {
+          const lowerParty = party.toLowerCase();
+          if (
+            (data.fparty || "").toLowerCase() !== lowerParty &&
+            (data.tparty || "").toLowerCase() !== lowerParty
+          ) {
+            return;
+          }
+        }
+
+        rows.push(row);
+      });
+
+      if (rows.length === 0) {
+        alert("No data found for selected filters!");
+        return;
+      }
+
+      exportCSV(rows);
+      exportPDF(rows);
+      alert("Export completed!");
+    }
+
+    function exportCSV(rows) {
+      const csvRows = [];
+      csvRows.push("Date,Transaction Type,Fparty,Tparty,Amount");
+      for (const row of rows) {
+        csvRows.push(
+          `${row.date},"${row.ttype}","${row.fparty}","${row.tparty}",${row.amt}`
+        );
+      }
+      const csvData = csvRows.join("\n");
+      const blob = new Blob([csvData], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "transactions.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportPDF(rows) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(12);
+      doc.text("Transaction Report", 14, 15);
+
+      const colHeaders = ["Date", "Transaction Type", "Fparty", "Tparty", "Amount"];
+      const tableData = rows.map(r => [r.date, r.ttype, r.fparty, r.tparty, r.amt]);
+
+      doc.autoTable({
+        startY: 25,
+        head: [colHeaders],
+        body: tableData,
+      });
+
+      doc.save("transactions.pdf");
+    }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.30/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
