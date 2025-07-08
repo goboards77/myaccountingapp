@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daybook</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f0f0f0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #2196F3;
+      color: #fff;
+      padding: 10px 20px;
+      flex-wrap: wrap;
+    }
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hamburger {
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+    }
+    .app-title {
+      font-weight: bold;
+      font-size: 20px;
+    }
+    .cash-label {
+      font-size: 16px;
+      padding-left: 15px;
+    }
+    #logoutArea {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #logoutArea button {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: #333;
+      color: #fff;
+      overflow-y: auto;
+      transition: left 0.3s;
+      padding-top: 60px;
+      z-index: 1000;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      padding: 12px 20px;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #575757;
+    }
+    .content {
+      padding: 20px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    input, select, button {
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background: #2196F3;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1976D2;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+      text-transform: capitalize;
+    }
+    th {
+      background: #2196F3;
+      color: #fff;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="left-section">
+    <span class="hamburger" onclick="openSidebar()">☰</span>
+    <span class="app-title">Accounting App</span>
+    <span class="cash-label">Cash Balance</span>
+  </div>
+  <div id="logoutArea">
+    <span id="userEmail"></span>
+    <button onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div class="sidebar" id="sidebar">
+  <a href="index.html">Dashboard</a>
+  <a href="add-ledger.html">Add Ledger Account</a>
+  <a href="add-product.html">Add Product</a>
+  <a href="add-transaction.html">Add Transaction</a>
+  <a href="view-groups-accounts.html">View Groups & Accounts</a>
+  <a href="receivables.html">View Receivable</a>
+  <a href="payables.html">View Payable</a>
+  <a href="profit-loss.html">Profit & Loss</a>
+  <a href="daybook.html">Daybook</a>
+</div>
+
+<div class="content">
+  <h2>Daybook</h2>
+
+  <div class="form-grid">
+    <div class="form-group">
+      <label for="ttypeSelect">Transaction Type</label>
+      <select id="ttypeSelect">
+        <option value="">-- Select Type --</option>
+      </select>
+
+      <label for="amountInput">Amount</label>
+      <input type="number" id="amountInput" placeholder="Enter amount"/>
+    </div>
+
+    <div class="form-group">
+      <label for="partySelect">Party</label>
+      <select id="partySelect">
+        <option value="">-- Select Party --</option>
+      </select>
+
+      <label>&nbsp;</label>
+      <button id="filterBtn">Filter</button>
+    </div>
+  </div>
+
+  <table id="daybookTable">
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Date</th>
+      <th>Type</th>
+      <th>From Party</th>
+      <th>To Party</th>
+      <th>Narration</th>
+      <th>Amount</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script type="module">
+  import {
+    auth,
+    setupAuthCheck,
+    logout,
+    openSidebar,
+    setupSidebarCloseOnOutsideClick
+  } from "./helpers.js";
+
+  import {
+    getFirestore,
+    collection,
+    getDocs
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const db = getFirestore();
+
+  window.logout = logout;
+  window.openSidebar = openSidebar;
+  setupSidebarCloseOnOutsideClick();
+
+  setupAuthCheck(loadData);
+
+  let allRows = [];
+
+  async function loadData() {
+    const tranCol = collection(db, "tran");
+    const snapshot = await getDocs(tranCol);
+
+    const groups = new Set();
+    const parties = new Set();
+    allRows = [];
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+
+      groups.add((data.grp || "").trim());
+      if (data.name) parties.add((data.name || "").trim());
+
+      allRows.push({
+        id: data.id || "",
+        date: formatDate(data.date || ""),
+        ttype: (data.grp || "").trim(),
+        fparty: (data.fparty || "").trim(),
+        tparty: (data.tparty || "").trim(),
+        nar: (data.nar || "").trim(),
+        amt: parseFloat(data.amt || "0")
+      });
+    });
+
+    // Fill dropdowns
+    const ttypeSelect = document.getElementById("ttypeSelect");
+    for (const g of [...groups].sort()) {
+      if (g) {
+        const opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g;
+        ttypeSelect.appendChild(opt);
+      }
+    }
+
+    const partySelect = document.getElementById("partySelect");
+    for (const p of [...parties].sort()) {
+      if (p) {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        partySelect.appendChild(opt);
+      }
+    }
+
+    renderTable(allRows);
+  }
+
+  document.getElementById("filterBtn").addEventListener("click", () => {
+    const ttype = document.getElementById("ttypeSelect").value;
+    const amt = document.getElementById("amountInput").value;
+    const party = document.getElementById("partySelect").value;
+
+    let filtered = [...allRows];
+
+    if (amt) {
+      filtered = filtered.filter(row => row.amt === parseFloat(amt));
+    } else if (ttype) {
+      filtered = filtered.filter(row => row.ttype === ttype);
+    } else if (party) {
+      filtered = filtered.filter(row =>
+        row.fparty === party || row.tparty === party
+      );
+    }
+
+    renderTable(filtered);
+
+    // Clear fields
+    document.getElementById("ttypeSelect").value = "";
+    document.getElementById("amountInput").value = "";
+    document.getElementById("partySelect").value = "";
+  });
+
+  function renderTable(rows) {
+    const tbody = document.querySelector("#daybookTable tbody");
+    tbody.innerHTML = "";
+
+    rows.sort((a, b) => b.date.localeCompare(a.date));
+
+    for (const row of rows) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${row.id}</td>
+        <td>${row.date}</td>
+        <td>${row.ttype}</td>
+        <td>${row.fparty}</td>
+        <td>${row.tparty}</td>
+        <td>${row.nar}</td>
+        <td>${row.amt.toFixed(0)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  function formatDate(str) {
+    if (!str || !str.includes("-")) return str;
+    const [y, m, d] = str.split("-");
+    return `${d}-${m}-${y}`;
+  }
+</script>
+</body>
+</html>
