@@ -10,7 +10,9 @@ import {
   getFirestore,
   collection,
   getDocs,
-  addDoc
+  addDoc,
+  query,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const db = getFirestore();
@@ -178,36 +180,33 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     return;
   }
 
-  // ✅ Convert DD-MM-YYYY → YYYY-MM-DD
+  // Convert DD-MM-YYYY → YYYY-MM-DD
   let saveDate = "";
-  if (dateInput.includes("-")) {
+  if (dateInput && dateInput.includes("-")) {
     const parts = dateInput.split("-");
     if (parts.length === 3) {
       saveDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-    } else {
-      alert("Invalid date format. Please use DD-MM-YYYY.");
-      return;
     }
   } else {
     alert("Invalid date format. Please use DD-MM-YYYY.");
     return;
   }
 
-  // ✅ Find max id among all docs
   const tranCol = collection(db, "tran");
-  const allDocsSnap = await getDocs(tranCol);
+  const snapshot = await getDocs(tranCol);
+
   let maxId = 0;
-  allDocsSnap.forEach((doc) => {
-    const numId = parseInt(doc.data().id, 10);
-    if (!isNaN(numId) && numId > maxId) {
-      maxId = numId;
+  snapshot.forEach((doc) => {
+    const idVal = parseInt(doc.data().id, 10);
+    if (!isNaN(idVal) && idVal > maxId) {
+      maxId = idVal;
     }
   });
+
   const newId = maxId + 1;
 
   let f = fparty;
   let t = tparty;
-
   if (ttype === "Sales") {
     f = tparty;
     t = fparty;

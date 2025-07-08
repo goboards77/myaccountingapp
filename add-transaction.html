@@ -140,8 +140,9 @@
     <input type="text" id="ttype" placeholder="Transaction Type (Sales, Purchase, Receipt, Payment)" autocomplete="off" />
     <div id="ttypeList"></div>
 
-    <input type="text" id="tranDate" placeholder="Date (DD-MM-YYYY)" autocomplete="off" />
-
+    <input type="text" id="tranDate" placeholder="Date (DD-MM-YYYY)"
+      onfocus="(this.type='date')"
+      onblur="(this.type='text'); formatDateDisplay(this)" />
 
     <input type="text" id="fparty" placeholder="From Party" autocomplete="off" />
     <div id="fpartyList"></div>
@@ -149,12 +150,22 @@
     <input type="text" id="tparty" placeholder="To Party" autocomplete="off" />
     <div id="tpartyList"></div>
 
-    <input type="number" id="amount" placeholder="Amount" autocomplete="off" />
-    <input type="text" id="details" placeholder="Details" autocomplete="off" />
+    <input type="number" id="amount" placeholder="Amount" />
+    <input type="text" id="details" placeholder="Details" />
 
     <button id="saveBtn">Save</button>
   </div>
 
   <script type="module" src="add-transaction.js"></script>
+  <script>
+    window.formatDateDisplay = function(input) {
+      if (input.value) {
+        const parts = input.value.split("-");
+        if (parts.length === 3) {
+          input.value = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+      }
+    };
+  </script>
 </body>
 </html>
