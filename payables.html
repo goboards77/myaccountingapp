@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>View Payable</title>
+  <title>View Payables</title>
   <style>
     body {
       margin: 0;
@@ -62,6 +62,7 @@
       overflow-y: auto;
       transition: left 0.3s;
       padding-top: 60px;
+      z-index: 1000;
     }
     .sidebar a {
       display: block;
@@ -79,7 +80,6 @@
       width: 100%;
       border-collapse: collapse;
       background: #fff;
-      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ccc;
@@ -121,7 +121,7 @@
   </div>
 
   <div class="content">
-    <h2>View Payable</h2>
+    <h2>Payables</h2>
     <table id="payablesTable">
       <thead>
         <tr>
@@ -135,6 +135,14 @@
 
   <script type="module">
     import {
+      auth,
+      setupAuthCheck,
+      logout,
+      openSidebar,
+      setupSidebarCloseOnOutsideClick
+    } from "./helpers.js";
+
+    import {
       getFirestore,
       collection,
       getDocs
@@ -142,49 +150,55 @@
 
     const db = getFirestore();
 
-    window.logout = function () {
-      alert("Logout logic here");
-    };
+    window.logout = logout;
+    window.openSidebar = openSidebar;
+    setupSidebarCloseOnOutsideClick();
 
-    loadPayables();
+    setupAuthCheck(loadPayables);
 
     async function loadPayables() {
-      const snapshot = await getDocs(collection(db, "tran"));
+      const tranCol = collection(db, "tran");
+      const snapshot = await getDocs(tranCol);
 
-      // Step 1 - collect all parties who belong to a desired group
-      const groupParties = new Set();
+      const ledgerGroups = {};
+      const balances = {};
+
+      // First, scan all rows to capture the ledger definitions
       snapshot.forEach(doc => {
         const data = doc.data();
-        const grp = (data.grp || "").toLowerCase();
-        const name = (data.name || "").toLowerCase();
-        if (["creditors", "debitors", "bank", "angadiya"].includes(grp) && name) {
-          groupParties.add(name);
+        const name = (data.name || "").trim().toLowerCase();
+        const grp = (data.grp || "").trim().toLowerCase();
+
+        if (name && grp) {
+          ledgerGroups[name] = grp;
         }
       });
 
-      // Step 2 - accumulate totals
-      const totals = {};
+      // Next, sum amounts for all parties
       snapshot.forEach(doc => {
         const data = doc.data();
-        const amt = parseFloat(data.amt || 0);
 
         if (data.fparty) {
-          const party = data.fparty.toLowerCase();
-          totals[party] = (totals[party] || 0) + amt;
+          const party = data.fparty.trim().toLowerCase();
+          balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
         }
+
         if (data.tparty) {
-          const party = data.tparty.toLowerCase();
-          totals[party] = (totals[party] || 0) - amt;
+          const party = data.tparty.trim().toLowerCase();
+          balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
         }
       });
 
-      // Step 3 - only show parties in desired groups, and with positive balance
+      // Now produce the payables list
+      const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
       const rows = [];
-      for (const [party, net] of Object.entries(totals)) {
-        if (groupParties.has(party) && net > 0) {
+
+      for (const [party, amount] of Object.entries(balances)) {
+        const grp = ledgerGroups[party];
+        if (amount > 0 && grp && allowedGroups.includes(grp)) {
           rows.push({
-            party,
-            amount: net.toFixed(0)
+            party: capitalizeWords(party),
+            amount: amount.toFixed(0)
           });
         }
       }
@@ -194,34 +208,21 @@
       const tbody = document.querySelector("#payablesTable tbody");
       tbody.innerHTML = "";
 
-      rows.forEach(row => {
+      for (const row of rows) {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${capitalizeWords(row.party)}</td>
-          <td>${row.amount}</td>
-        `;
+        const td1 = document.createElement("td");
+        td1.textContent = row.party;
+        const td2 = document.createElement("td");
+        td2.textContent = row.amount;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
         tbody.appendChild(tr);
-      });
+      }
     }
 
     function capitalizeWords(str) {
       return str.replace(/\b\w/g, c => c.toUpperCase());
     }
-  </script>
-
-  <script>
-    function openSidebar() {
-      document.getElementById("sidebar").style.left = "0";
-    }
-    function closeSidebar() {
-      document.getElementById("sidebar").style.left = "-250px";
-    }
-    document.addEventListener("click", function (e) {
-      const sidebar = document.getElementById("sidebar");
-      if (!sidebar.contains(e.target) && !e.target.classList.contains("hamburger")) {
-        closeSidebar();
-      }
-    });
   </script>
 </body>
 </html>
