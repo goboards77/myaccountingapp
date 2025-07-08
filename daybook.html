@@ -86,6 +86,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      position: relative;
     }
     input, button {
       padding: 8px;
@@ -122,6 +123,26 @@
     tr:nth-child(even) {
       background: #f9f9f9;
     }
+
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 999;
+      display: none;
+    }
+    .dropdown div {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .dropdown div:hover {
+      background: #eee;
+    }
   </style>
 </head>
 <body>
@@ -156,6 +177,7 @@
     <div class="form-group">
       <label for="ttypeInput">Transaction Type</label>
       <input type="text" id="ttypeInput" placeholder="Enter transaction type">
+      <div id="ttypeDropdown" class="dropdown"></div>
 
       <label for="amountInput">Amount</label>
       <input type="number" id="amountInput" placeholder="Enter amount"/>
@@ -164,6 +186,7 @@
     <div class="form-group">
       <label for="partyInput">Party</label>
       <input type="text" id="partyInput" placeholder="Enter party">
+      <div id="partyDropdown" class="dropdown"></div>
 
       <label>&nbsp;</label>
       <button id="filterBtn">Filter</button>
@@ -207,15 +230,19 @@
   window.openSidebar = openSidebar;
   setupSidebarCloseOnOutsideClick();
 
-  setupAuthCheck(loadData);
-
   let allRows = [];
+  let allTtypes = [];
+  let allParties = [];
+
+  setupAuthCheck(loadData);
 
   async function loadData() {
     const tranCol = collection(db, "tran");
     const snapshot = await getDocs(tranCol);
 
     allRows = [];
+    const ttypesSet = new Set();
+    const partiesSet = new Set();
 
     snapshot.forEach(doc => {
       const data = doc.data();
@@ -229,9 +256,51 @@
         nar: (data.nar || "").trim(),
         amt: parseFloat(data.amt || "0")
       });
+
+      if (data.grp) ttypesSet.add(data.grp.trim());
+      if (data.name) partiesSet.add(data.name.trim());
     });
 
+    allTtypes = Array.from(ttypesSet).sort();
+    allParties = Array.from(partiesSet).sort();
+
+    renderDropdown("ttypeInput", "ttypeDropdown", allTtypes);
+    renderDropdown("partyInput", "partyDropdown", allParties);
+
     renderTable(allRows);
+  }
+
+  function renderDropdown(inputId, dropdownId, list) {
+    const input = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+
+    input.addEventListener("focus", () => {
+      updateDropdown(input, dropdown, list);
+    });
+
+    input.addEventListener("input", () => {
+      const term = input.value.toLowerCase();
+      const filtered = list.filter(item => item.toLowerCase().includes(term));
+      updateDropdown(input, dropdown, filtered);
+    });
+  }
+
+  function updateDropdown(input, dropdown, items) {
+    dropdown.innerHTML = "";
+    if (items.length === 0) {
+      dropdown.style.display = "none";
+      return;
+    }
+    items.forEach(item => {
+      const div = document.createElement("div");
+      div.textContent = item;
+      div.addEventListener("click", () => {
+        input.value = item;
+        dropdown.style.display = "none";
+      });
+      dropdown.appendChild(div);
+    });
+    dropdown.style.display = "block";
   }
 
   document.getElementById("filterBtn").addEventListener("click", () => {
@@ -254,10 +323,11 @@
 
     renderTable(filtered);
 
-    // Clear fields
     document.getElementById("ttypeInput").value = "";
     document.getElementById("amountInput").value = "";
     document.getElementById("partyInput").value = "";
+    document.getElementById("ttypeDropdown").style.display = "none";
+    document.getElementById("partyDropdown").style.display = "none";
   });
 
   function renderTable(rows) {
