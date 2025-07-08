@@ -159,7 +159,7 @@
       const tranCol = collection(db, "tran");
       const snapshot = await getDocs(tranCol);
 
-      const relevantGroups = ["creditors", "debitors", "bank", "angadiya"];
+      const relevantGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
       const balances = {};
 
       snapshot.forEach(doc => {

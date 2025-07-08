@@ -86,7 +86,7 @@ async function loadPartiesForType(ttype) {
   if (ttype === "Sales" || ttype === "Purchase") {
     snapshot.forEach((doc) => {
       const data = doc.data();
-      if (["Creditors", "Debtors"].includes(data.grp)) {
+      if (["Creditors", "Debitors"].includes(data.grp)) {
         if (data.name && !fpartyNames.includes(data.name)) {
           fpartyNames.push(data.name);
         }
