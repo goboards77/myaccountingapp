@@ -159,62 +159,70 @@
       const tranCol = collection(db, "tran");
       const snapshot = await getDocs(tranCol);
 
-      const parties = {};
+      const ledgerGroups = {};
+      const balances = {};
 
+      // First, scan all rows to capture the ledger definitions
       snapshot.forEach(doc => {
         const data = doc.data();
-        const groups = ["creditors", "debitors", "bank", "angadiya"];
+        const name = (data.name || "").trim().toLowerCase();
+        const grp = (data.grp || "").trim().toLowerCase();
 
-        let partyName = "";
-        let amount = 0;
-
-        if (data.fparty && groups.includes((data.grp || "").toLowerCase())) {
-          partyName = data.fparty.toLowerCase();
-          amount = parseFloat(data.amt || 0);
-          parties[partyName] = (parties[partyName] || 0) + amount;
-        }
-
-        if (data.tparty && groups.includes((data.grp || "").toLowerCase())) {
-          partyName = data.tparty.toLowerCase();
-          amount = parseFloat(data.amt || 0);
-          parties[partyName] = (parties[partyName] || 0) - amount;
+        if (name && grp) {
+          ledgerGroups[name] = grp;
         }
       });
 
-      const tableBody = document.querySelector("#receivablesTable tbody");
-      tableBody.innerHTML = "";
+      // Next, sum amounts for all parties
+      snapshot.forEach(doc => {
+        const data = doc.data();
 
+        if (data.fparty) {
+          const party = data.fparty.trim().toLowerCase();
+          balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+        }
+
+        if (data.tparty) {
+          const party = data.tparty.trim().toLowerCase();
+          balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
+        }
+      });
+
+      // Now produce the receivables list
+      const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
       const rows = [];
 
-      for (const party in parties) {
-        const net = parties[party];
-        if (net > 0) {
+      for (const [party, amount] of Object.entries(balances)) {
+        const grp = ledgerGroups[party];
+        if (amount > 0 && grp && allowedGroups.includes(grp)) {
           rows.push({
             party: capitalizeWords(party),
-            amount: Math.abs(net).toFixed(0)
+            amount: amount.toFixed(0)
           });
         }
       }
 
       rows.sort((a, b) => b.amount - a.amount);
 
-      rows.forEach(r => {
+      const tbody = document.querySelector("#receivablesTable tbody");
+      tbody.innerHTML = "";
+
+      for (const row of rows) {
         const tr = document.createElement("tr");
-        const tdParty = document.createElement("td");
-        tdParty.textContent = r.party;
-        const tdAmt = document.createElement("td");
-        tdAmt.textContent = r.amount;
-        tr.appendChild(tdParty);
-        tr.appendChild(tdAmt);
-        tableBody.appendChild(tr);
-      });
+        const td1 = document.createElement("td");
+        td1.textContent = row.party;
+        const td2 = document.createElement("td");
+        td2.textContent = row.amount;
+        tr.appendChild(td1);
+        tr.appendChild(td2);
+        tbody.appendChild(tr);
+      }
     }
 
     function capitalizeWords(str) {
-      return str
-        .toLowerCase()
-        .replace(/\b\w/g, c => c.toUpperCase());
+      return str.replace(/\b\w/g, c => c.toUpperCase());
     }
   </script>
 </body>
 </html>
+
