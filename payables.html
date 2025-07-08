@@ -166,7 +166,7 @@
         const data = doc.data();
 
         // Only consider desired groups
-        if (["Creditors", "Debitors", "Bank", "Angadiya"].includes((data.grp || "").toLowerCase())) {
+        if (["creditors", "debitors", "bank", "angadiya"].includes((data.grp || "").toLowerCase())) {
           if (data.fparty) {
             const party = data.fparty.toLowerCase();
             parties[party] = (parties[party] || 0) + parseFloat(data.amt || 0);
