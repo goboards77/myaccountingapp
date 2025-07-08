@@ -87,7 +87,7 @@
       flex-direction: column;
       gap: 10px;
     }
-    input, select, button {
+    input, button {
       padding: 8px;
       font-size: 14px;
       border-radius: 4px;
@@ -154,20 +154,16 @@
 
   <div class="form-grid">
     <div class="form-group">
-      <label for="ttypeSelect">Transaction Type</label>
-      <select id="ttypeSelect">
-        <option value="">-- Select Type --</option>
-      </select>
+      <label for="ttypeInput">Transaction Type</label>
+      <input type="text" id="ttypeInput" placeholder="Enter transaction type">
 
       <label for="amountInput">Amount</label>
       <input type="number" id="amountInput" placeholder="Enter amount"/>
     </div>
 
     <div class="form-group">
-      <label for="partySelect">Party</label>
-      <select id="partySelect">
-        <option value="">-- Select Party --</option>
-      </select>
+      <label for="partyInput">Party</label>
+      <input type="text" id="partyInput" placeholder="Enter party">
 
       <label>&nbsp;</label>
       <button id="filterBtn">Filter</button>
@@ -219,15 +215,10 @@
     const tranCol = collection(db, "tran");
     const snapshot = await getDocs(tranCol);
 
-    const groups = new Set();
-    const parties = new Set();
     allRows = [];
 
     snapshot.forEach(doc => {
       const data = doc.data();
-
-      groups.add((data.grp || "").trim());
-      if (data.name) parties.add((data.name || "").trim());
 
       allRows.push({
         id: data.id || "",
@@ -240,53 +231,33 @@
       });
     });
 
-    // Fill dropdowns
-    const ttypeSelect = document.getElementById("ttypeSelect");
-    for (const g of [...groups].sort()) {
-      if (g) {
-        const opt = document.createElement("option");
-        opt.value = g;
-        opt.textContent = g;
-        ttypeSelect.appendChild(opt);
-      }
-    }
-
-    const partySelect = document.getElementById("partySelect");
-    for (const p of [...parties].sort()) {
-      if (p) {
-        const opt = document.createElement("option");
-        opt.value = p;
-        opt.textContent = p;
-        partySelect.appendChild(opt);
-      }
-    }
-
     renderTable(allRows);
   }
 
   document.getElementById("filterBtn").addEventListener("click", () => {
-    const ttype = document.getElementById("ttypeSelect").value;
+    const ttype = document.getElementById("ttypeInput").value.trim();
     const amt = document.getElementById("amountInput").value;
-    const party = document.getElementById("partySelect").value;
+    const party = document.getElementById("partyInput").value.trim();
 
     let filtered = [...allRows];
 
     if (amt) {
       filtered = filtered.filter(row => row.amt === parseFloat(amt));
     } else if (ttype) {
-      filtered = filtered.filter(row => row.ttype === ttype);
+      filtered = filtered.filter(row => row.ttype.toLowerCase() === ttype.toLowerCase());
     } else if (party) {
       filtered = filtered.filter(row =>
-        row.fparty === party || row.tparty === party
+        row.fparty.toLowerCase() === party.toLowerCase() ||
+        row.tparty.toLowerCase() === party.toLowerCase()
       );
     }
 
     renderTable(filtered);
 
     // Clear fields
-    document.getElementById("ttypeSelect").value = "";
+    document.getElementById("ttypeInput").value = "";
     document.getElementById("amountInput").value = "";
-    document.getElementById("partySelect").value = "";
+    document.getElementById("partyInput").value = "";
   });
 
   function renderTable(rows) {
