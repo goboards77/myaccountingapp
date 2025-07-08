@@ -140,37 +140,42 @@
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore();
+
     loadPayables();
 
     async function loadPayables() {
       const tranCol = collection(db, "tran");
       const snapshot = await getDocs(tranCol);
 
-      // find parties who belong to relevant groups
-      const partyGroups = {};
+      const groupsOfInterest = ["creditors", "debitors", "bank", "angadiya"];
+
+      // 1. find parties belonging to relevant groups
+      const partiesInGroups = new Set();
+
       snapshot.forEach(doc => {
         const data = doc.data();
         const grp = (data.grp || "").toLowerCase();
-        const name = (data.name || "").toLowerCase();
 
-        if (name && ["creditors", "debitors", "bank", "angadiya"].includes(grp)) {
-          partyGroups[name] = true;
+        if (grp && groupsOfInterest.includes(grp)) {
+          if (data.fparty) partiesInGroups.add(data.fparty.toLowerCase());
+          if (data.tparty) partiesInGroups.add(data.tparty.toLowerCase());
+          if (data.name)   partiesInGroups.add(data.name.toLowerCase());
         }
       });
 
+      // 2. sum all transactions for these parties
       const balances = {};
 
       snapshot.forEach(doc => {
         const data = doc.data();
-
         const fparty = (data.fparty || "").toLowerCase();
         const tparty = (data.tparty || "").toLowerCase();
         const amt = parseFloat(data.amt || "0");
 
-        if (fparty && partyGroups[fparty]) {
+        if (fparty && partiesInGroups.has(fparty)) {
           balances[fparty] = (balances[fparty] || 0) + amt;
         }
-        if (tparty && partyGroups[tparty]) {
+        if (tparty && partiesInGroups.has(tparty)) {
           balances[tparty] = (balances[tparty] || 0) - amt;
         }
       });
