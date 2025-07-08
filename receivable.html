@@ -1,9 +1,10 @@
+<!-- receivables.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Receivable</title>
+  <title>Receivables</title>
   <style>
     body {
       margin: 0;
@@ -27,50 +28,10 @@
     .hamburger {
       cursor: pointer;
       font-size: 20px;
-      user-select: none;
     }
     .app-title {
       font-weight: bold;
       font-size: 20px;
-    }
-    .cash-label {
-      font-size: 16px;
-      padding-left: 15px;
-    }
-    #logoutArea {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #logoutArea button {
-      background: #f44336;
-      border: none;
-      color: #fff;
-      padding: 5px 10px;
-      font-size: 12px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .sidebar {
-      position: fixed;
-      left: -250px;
-      top: 0;
-      width: 250px;
-      height: 100%;
-      background: #333;
-      color: #fff;
-      overflow-y: auto;
-      transition: left 0.3s;
-      padding-top: 60px;
-    }
-    .sidebar a {
-      display: block;
-      color: #fff;
-      padding: 12px 20px;
-      text-decoration: none;
-    }
-    .sidebar a:hover {
-      background: #575757;
     }
     .content {
       padding: 20px;
@@ -78,7 +39,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: #fff;
+      background: white;
     }
     th, td {
       border: 1px solid #ccc;
@@ -86,8 +47,7 @@
       text-align: left;
     }
     th {
-      background: #2196F3;
-      color: #fff;
+      background-color: #e0e0e0;
     }
   </style>
 </head>
@@ -95,38 +55,73 @@
   <header>
     <div class="left-section">
       <span class="hamburger" onclick="openSidebar()">☰</span>
-      <span class="app-title">Accounting App</span>
-      <span class="cash-label">Cash Balance</span>
+      <span class="app-title">Receivables</span>
     </div>
     <div id="logoutArea">
       <span id="userEmail"></span>
       <button onclick="logout()">Logout</button>
     </div>
   </header>
-
   <div class="sidebar" id="sidebar">
     <a href="index.html">Dashboard</a>
     <a href="add-ledger.html">Add Ledger Account</a>
     <a href="add-product.html">Add Product</a>
     <a href="add-transaction.html">Add Transaction</a>
     <a href="view-groups-accounts.html">View Groups & Accounts</a>
-    <a href="receivable.html">View Receivable</a>
-    <a href="payable.html">View Payable</a>
+    <a href="receivables.html">Receivables</a>
+    <a href="payables.html">Payables</a>
   </div>
-
   <div class="content">
-    <h2>Receivable</h2>
-    <table id="resultTable">
+    <h2>Receivables</h2>
+    <table id="dataTable">
       <thead>
-        <tr>
-          <th>Party</th>
-          <th>Balance</th>
-        </tr>
+        <tr><th>Party</th><th>Amount</th></tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
+  <script type="module">
+    import { auth, setupAuthCheck, logout, openSidebar, setupSidebarCloseOnOutsideClick } from "./helpers.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  <script type="module" src="receivable.js"></script>
+    const db = getFirestore();
+    window.logout = logout;
+    window.openSidebar = openSidebar;
+    setupSidebarCloseOnOutsideClick();
+    setupAuthCheck(loadReceivables);
+
+    async function loadReceivables() {
+      const tranCol = collection(db, "tran");
+      const snapshot = await getDocs(tranCol);
+      const relevantGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
+      const balances = {};
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (!data.fparty || !data.tparty || !data.amt) return;
+        const amt = parseFloat(data.amt);
+
+        if (relevantGroups.includes(data.grp)) {
+          if (data.fparty) {
+            if (!balances[data.fparty]) balances[data.fparty] = 0;
+            balances[data.fparty] += amt;
+          }
+          if (data.tparty) {
+            if (!balances[data.tparty]) balances[data.tparty] = 0;
+            balances[data.tparty] -= amt;
+          }
+        }
+      });
+
+      const tableBody = document.querySelector("#dataTable tbody");
+      const rows = Object.entries(balances)
+        .filter(([_, amt]) => amt > 0)
+        .sort((a, b) => b[1] - a[1])
+        .map(([party, amt]) => `<tr><td>${party}</td><td>${amt.toFixed(0)}</td></tr>`)
+        .join("");
+
+      tableBody.innerHTML = rows || `<tr><td colspan="2">No data available</td></tr>`;
+    }
+  </script>
 </body>
 </html>
