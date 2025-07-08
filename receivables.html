@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Receivables</title>
+  <title>View Receivables</title>
   <style>
     body {
       margin: 0;
@@ -32,6 +32,10 @@
     .app-title {
       font-weight: bold;
       font-size: 20px;
+    }
+    .cash-label {
+      font-size: 16px;
+      padding-left: 15px;
     }
     #logoutArea {
       display: flex;
@@ -75,7 +79,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
+      background: #fff;
     }
     th, td {
       border: 1px solid #ccc;
@@ -84,7 +88,7 @@
       text-transform: capitalize;
     }
     th {
-      background-color: #2196F3;
+      background: #2196F3;
       color: #fff;
     }
     tr:nth-child(even) {
@@ -96,7 +100,8 @@
   <header>
     <div class="left-section">
       <span class="hamburger" onclick="openSidebar()">☰</span>
-      <span class="app-title">Receivables</span>
+      <span class="app-title">Accounting App</span>
+      <span class="cash-label">Cash Balance</span>
     </div>
     <div id="logoutArea">
       <span id="userEmail"></span>
@@ -192,7 +197,6 @@
         .replace(/\b\w/g, (c) => c.toUpperCase());
     }
 
-    // Add sidebar close on outside click
     document.addEventListener("click", (e) => {
       if (!document.getElementById("sidebar").contains(e.target) &&
           !e.target.classList.contains("hamburger")) {
