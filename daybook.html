@@ -75,46 +75,26 @@
     }
     .content {
       padding: 20px;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
       position: relative;
     }
     input, button {
       padding: 8px;
-      font-size: 14px;
       border-radius: 4px;
       border: 1px solid #ccc;
-      width: 100%;
+      font-size: 16px;
+      text-transform: capitalize;
       box-sizing: border-box;
-    }
-    button {
-      background: #2196F3;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1976D2;
     }
     table {
       width: 100%;
       border-collapse: collapse;
       background: #fff;
+      margin-top: 20px;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 10px;
+      padding: 8px;
       text-align: left;
-      text-transform: capitalize;
     }
     th {
       background: #2196F3;
@@ -123,239 +103,233 @@
     tr:nth-child(even) {
       background: #f9f9f9;
     }
-
-    .dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #fff;
-      border: 1px solid #ccc;
-      max-height: 150px;
-      overflow-y: auto;
-      z-index: 999;
-      display: none;
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
     }
-    .dropdown div {
+    .dropdown-list {
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    .dropdown-list div {
       padding: 8px;
       cursor: pointer;
     }
-    .dropdown div:hover {
+    .dropdown-list div:hover {
       background: #eee;
     }
   </style>
 </head>
 <body>
-<header>
-  <div class="left-section">
-    <span class="hamburger" onclick="openSidebar()">☰</span>
-    <span class="app-title">Accounting App</span>
-    <span class="cash-label">Cash Balance</span>
+  <header>
+    <div class="left-section">
+      <span class="hamburger" onclick="openSidebar()">☰</span>
+      <span class="app-title">Accounting App</span>
+      <span class="cash-label">Cash Balance</span>
+    </div>
+    <div id="logoutArea">
+      <span id="userEmail"></span>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <a href="index.html">Dashboard</a>
+    <a href="add-ledger.html">Add Ledger Account</a>
+    <a href="add-product.html">Add Product</a>
+    <a href="add-transaction.html">Add Transaction</a>
+    <a href="view-groups-accounts.html">View Groups & Accounts</a>
+    <a href="receivables.html">View Receivable</a>
+    <a href="payables.html">View Payable</a>
+    <a href="profit-loss.html">Profit & Loss</a>
   </div>
-  <div id="logoutArea">
-    <span id="userEmail"></span>
-    <button onclick="logout()">Logout</button>
-  </div>
-</header>
 
-<div class="sidebar" id="sidebar">
-  <a href="index.html">Dashboard</a>
-  <a href="add-ledger.html">Add Ledger Account</a>
-  <a href="add-product.html">Add Product</a>
-  <a href="add-transaction.html">Add Transaction</a>
-  <a href="view-groups-accounts.html">View Groups & Accounts</a>
-  <a href="receivables.html">View Receivable</a>
-  <a href="payables.html">View Payable</a>
-  <a href="profit-loss.html">Profit & Loss</a>
-  <a href="daybook.html">Daybook</a>
-</div>
+  <div class="content">
+    <h2>Daybook</h2>
 
-<div class="content">
-  <h2>Daybook</h2>
-
-  <div class="form-grid">
-    <div class="form-group">
-      <label for="ttypeInput">Transaction Type</label>
-      <input type="text" id="ttypeInput" placeholder="Enter transaction type">
-      <div id="ttypeDropdown" class="dropdown"></div>
-
-      <label for="amountInput">Amount</label>
-      <input type="number" id="amountInput" placeholder="Enter amount"/>
+    <div class="grid">
+      <div>
+        <input type="text" id="ttype" placeholder="Transaction Type" autocomplete="off" />
+        <div id="ttypeList" class="dropdown-list"></div>
+      </div>
+      <div>
+        <input type="text" id="party" placeholder="Party" autocomplete="off" />
+        <div id="partyList" class="dropdown-list"></div>
+      </div>
+      <div>
+        <input type="number" id="amount" placeholder="Amount" autocomplete="off" />
+      </div>
+      <div>
+        <button id="filterBtn">Filter</button>
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="partyInput">Party</label>
-      <input type="text" id="partyInput" placeholder="Enter party">
-      <div id="partyDropdown" class="dropdown"></div>
-
-      <label>&nbsp;</label>
-      <button id="filterBtn">Filter</button>
-    </div>
+    <table id="daybookTable">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Date</th>
+          <th>Ttype</th>
+          <th>Fparty</th>
+          <th>Tparty</th>
+          <th>Nar</th>
+          <th>Amt</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
-  <table id="daybookTable">
-    <thead>
-    <tr>
-      <th>ID</th>
-      <th>Date</th>
-      <th>Type</th>
-      <th>From Party</th>
-      <th>To Party</th>
-      <th>Narration</th>
-      <th>Amount</th>
-    </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+  <script type="module">
+    import {
+      auth,
+      setupAuthCheck,
+      logout,
+      openSidebar,
+      setupSidebarCloseOnOutsideClick
+    } from "./helpers.js";
 
-<script type="module">
-  import {
-    auth,
-    setupAuthCheck,
-    logout,
-    openSidebar,
-    setupSidebarCloseOnOutsideClick
-  } from "./helpers.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  import {
-    getFirestore,
-    collection,
-    getDocs
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    const db = getFirestore();
 
-  const db = getFirestore();
+    window.logout = logout;
+    window.openSidebar = openSidebar;
+    setupSidebarCloseOnOutsideClick();
 
-  window.logout = logout;
-  window.openSidebar = openSidebar;
-  setupSidebarCloseOnOutsideClick();
+    const ttypeField = document.getElementById("ttype");
+    const partyField = document.getElementById("party");
+    const ttypeList = document.getElementById("ttypeList");
+    const partyList = document.getElementById("partyList");
+    const filterBtn = document.getElementById("filterBtn");
+    const tableBody = document.querySelector("#daybookTable tbody");
 
-  let allRows = [];
-  let allTtypes = [];
-  let allParties = [];
+    let allData = [];
 
-  setupAuthCheck(loadData);
+    setupAuthCheck(loadData);
 
-  async function loadData() {
-    const tranCol = collection(db, "tran");
-    const snapshot = await getDocs(tranCol);
+    async function loadData() {
+      const tranCol = collection(db, "tran");
+      const snapshot = await getDocs(tranCol);
+      allData = [];
 
-    allRows = [];
-    const ttypesSet = new Set();
-    const partiesSet = new Set();
+      const ttypes = new Set();
+      const parties = new Set();
 
-    snapshot.forEach(doc => {
-      const data = doc.data();
-
-      allRows.push({
-        id: data.id || "",
-        date: formatDate(data.date || ""),
-        ttype: (data.grp || "").trim(),
-        fparty: (data.fparty || "").trim(),
-        tparty: (data.tparty || "").trim(),
-        nar: (data.nar || "").trim(),
-        amt: parseFloat(data.amt || "0")
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        allData.push(data);
+        if (data.ttype) ttypes.add(data.ttype.trim());
+        if (data.name) parties.add(data.name.trim());
       });
 
-      if (data.grp) ttypesSet.add(data.grp.trim());
-      if (data.name) partiesSet.add(data.name.trim());
-    });
+      populateDropdown(ttypeList, Array.from(ttypes));
+      populateDropdown(partyList, Array.from(parties));
 
-    allTtypes = Array.from(ttypesSet).sort();
-    allParties = Array.from(partiesSet).sort();
-
-    renderDropdown("ttypeInput", "ttypeDropdown", allTtypes);
-    renderDropdown("partyInput", "partyDropdown", allParties);
-
-    renderTable(allRows);
-  }
-
-  function renderDropdown(inputId, dropdownId, list) {
-    const input = document.getElementById(inputId);
-    const dropdown = document.getElementById(dropdownId);
-
-    input.addEventListener("focus", () => {
-      updateDropdown(input, dropdown, list);
-    });
-
-    input.addEventListener("input", () => {
-      const term = input.value.toLowerCase();
-      const filtered = list.filter(item => item.toLowerCase().includes(term));
-      updateDropdown(input, dropdown, filtered);
-    });
-  }
-
-  function updateDropdown(input, dropdown, items) {
-    dropdown.innerHTML = "";
-    if (items.length === 0) {
-      dropdown.style.display = "none";
-      return;
+      renderTable(allData);
     }
-    items.forEach(item => {
-      const div = document.createElement("div");
-      div.textContent = item;
-      div.addEventListener("click", () => {
-        input.value = item;
-        dropdown.style.display = "none";
+
+    function populateDropdown(listEl, items) {
+      listEl.innerHTML = "";
+      items.sort().forEach(item => {
+        const div = document.createElement("div");
+        div.textContent = item;
+        div.onclick = () => {
+          if (listEl === ttypeList) {
+            ttypeField.value = div.textContent;
+          } else if (listEl === partyList) {
+            partyField.value = div.textContent;
+          }
+          listEl.style.display = "none";
+        };
+        listEl.appendChild(div);
       });
-      dropdown.appendChild(div);
+    }
+
+    function showDropdown(inputEl, listEl) {
+      const rect = inputEl.getBoundingClientRect();
+      listEl.style.top = rect.bottom + window.scrollY + "px";
+      listEl.style.left = rect.left + window.scrollX + "px";
+      listEl.style.width = rect.width + "px";
+      listEl.style.display = "block";
+    }
+
+    ttypeField.addEventListener("focus", () => showDropdown(ttypeField, ttypeList));
+    partyField.addEventListener("focus", () => showDropdown(partyField, partyList));
+
+    document.addEventListener("click", e => {
+      if (!ttypeList.contains(e.target) && e.target !== ttypeField) {
+        ttypeList.style.display = "none";
+      }
+      if (!partyList.contains(e.target) && e.target !== partyField) {
+        partyList.style.display = "none";
+      }
     });
-    dropdown.style.display = "block";
-  }
 
-  document.getElementById("filterBtn").addEventListener("click", () => {
-    const ttype = document.getElementById("ttypeInput").value.trim();
-    const amt = document.getElementById("amountInput").value;
-    const party = document.getElementById("partyInput").value.trim();
+    filterBtn.addEventListener("click", () => {
+      const ttype = ttypeField.value.trim().toLowerCase();
+      const party = partyField.value.trim().toLowerCase();
+      const amt = document.getElementById("amount").value.trim();
 
-    let filtered = [...allRows];
+      let filtered = [...allData];
 
-    if (amt) {
-      filtered = filtered.filter(row => row.amt === parseFloat(amt));
-    } else if (ttype) {
-      filtered = filtered.filter(row => row.ttype.toLowerCase() === ttype.toLowerCase());
-    } else if (party) {
-      filtered = filtered.filter(row =>
-        row.fparty.toLowerCase() === party.toLowerCase() ||
-        row.tparty.toLowerCase() === party.toLowerCase()
-      );
+      if (ttype) {
+        filtered = filtered.filter(row => (row.ttype || "").toLowerCase() === ttype);
+      }
+
+      if (party) {
+        filtered = filtered.filter(row => {
+          return (row.fparty || "").toLowerCase() === party ||
+                 (row.tparty || "").toLowerCase() === party;
+        });
+      }
+
+      if (amt) {
+        filtered = filtered.filter(row => parseFloat(row.amt) === parseFloat(amt));
+      }
+
+      renderTable(filtered);
+
+      // Clear fields
+      ttypeField.value = "";
+      partyField.value = "";
+      document.getElementById("amount").value = "";
+    });
+
+    function renderTable(rows) {
+      tableBody.innerHTML = "";
+      rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.id || ""}</td>
+          <td>${formatDate(row.date)}</td>
+          <td>${row.ttype || ""}</td>
+          <td>${row.fparty || ""}</td>
+          <td>${row.tparty || ""}</td>
+          <td>${row.nar || ""}</td>
+          <td>${row.amt || ""}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
     }
 
-    renderTable(filtered);
-
-    document.getElementById("ttypeInput").value = "";
-    document.getElementById("amountInput").value = "";
-    document.getElementById("partyInput").value = "";
-    document.getElementById("ttypeDropdown").style.display = "none";
-    document.getElementById("partyDropdown").style.display = "none";
-  });
-
-  function renderTable(rows) {
-    const tbody = document.querySelector("#daybookTable tbody");
-    tbody.innerHTML = "";
-
-    rows.sort((a, b) => b.date.localeCompare(a.date));
-
-    for (const row of rows) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${row.id}</td>
-        <td>${row.date}</td>
-        <td>${row.ttype}</td>
-        <td>${row.fparty}</td>
-        <td>${row.tparty}</td>
-        <td>${row.nar}</td>
-        <td>${row.amt.toFixed(0)}</td>
-      `;
-      tbody.appendChild(tr);
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const parts = dateStr.split("-");
+      return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateStr;
     }
-  }
-
-  function formatDate(str) {
-    if (!str || !str.includes("-")) return str;
-    const [y, m, d] = str.split("-");
-    return `${d}-${m}-${y}`;
-  }
-</script>
+  </script>
 </body>
 </html>
