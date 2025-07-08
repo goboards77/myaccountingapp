@@ -62,6 +62,7 @@
       overflow-y: auto;
       transition: left 0.3s;
       padding-top: 60px;
+      z-index: 1000;
     }
     .sidebar a {
       display: block;
@@ -101,18 +102,6 @@
     th.name-col {
       width: 300px;
     }
-    #backBtn {
-      margin-top: 20px;
-      background: #2196F3;
-      color: #fff;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #backBtn:hover {
-      background: #0b7dda;
-    }
   </style>
 </head>
 <body>
@@ -148,18 +137,29 @@
         <tr><td colspan="2">Loading...</td></tr>
       </tbody>
     </table>
-
-    <button id="backBtn" onclick="goBack()">Back</button>
   </div>
 
   <script type="module">
-    import { auth, logout, openSidebar, closeSidebar, setupAuthCheck, setupSidebarCloseOnOutsideClick } from "./helpers.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { auth, setupAuthCheck, logout, openSidebar, setupSidebarCloseOnOutsideClick } from "./helpers.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore();
 
-    setupAuthCheck(loadData);
+    window.logout = logout;
+    window.openSidebar = openSidebar;
     setupSidebarCloseOnOutsideClick();
+
+    setupAuthCheck(loadData);
+
+    function capitalizeWords(str) {
+      return str
+        .toLowerCase()
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
 
     async function loadData() {
       const tbody = document.getElementById("dataTable");
@@ -182,24 +182,30 @@
         a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
       );
 
+      if (dataList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="2">No data found.</td></tr>`;
+        return;
+      }
+
       dataList.forEach((data) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `<td>${capitalizeWords(data.grp)}</td><td>${capitalizeWords(data.name)}</td>`;
         tbody.appendChild(tr);
       });
+    }
 
-      if (seen.size === 0) {
-        tbody.innerHTML = `<tr><td colspan="2">No data found.</td></tr>`;
+    document.addEventListener("click", (e) => {
+      if (
+        !e.target.closest("#sidebar") &&
+        !e.target.closest(".hamburger")
+      ) {
+        closeSidebar();
       }
-    }
+    });
 
-    function capitalizeWords(str) {
-      return (str || "").toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    function closeSidebar() {
+      document.getElementById("sidebar").style.left = "-250px";
     }
-
-    window.goBack = () => {
-      window.location.href = "index.html";
-    };
   </script>
 </body>
 </html>
