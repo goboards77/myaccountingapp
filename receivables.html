@@ -1,4 +1,3 @@
-<!-- receivables.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,10 +27,47 @@
     .hamburger {
       cursor: pointer;
       font-size: 20px;
+      user-select: none;
     }
     .app-title {
       font-weight: bold;
       font-size: 20px;
+    }
+    #logoutArea {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    #logoutArea button {
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .sidebar {
+      position: fixed;
+      left: -250px;
+      top: 0;
+      width: 250px;
+      height: 100%;
+      background: #333;
+      color: #fff;
+      overflow-y: auto;
+      transition: left 0.3s;
+      padding-top: 60px;
+      z-index: 999;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      padding: 12px 20px;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #575757;
     }
     .content {
       padding: 20px;
@@ -45,9 +81,14 @@
       border: 1px solid #ccc;
       padding: 10px;
       text-align: left;
+      text-transform: capitalize;
     }
     th {
-      background-color: #e0e0e0;
+      background-color: #2196F3;
+      color: #fff;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
     }
   </style>
 </head>
@@ -62,6 +103,7 @@
       <button onclick="logout()">Logout</button>
     </div>
   </header>
+
   <div class="sidebar" id="sidebar">
     <a href="index.html">Dashboard</a>
     <a href="add-ledger.html">Add Ledger Account</a>
@@ -71,44 +113,64 @@
     <a href="receivables.html">Receivables</a>
     <a href="payables.html">Payables</a>
   </div>
+
   <div class="content">
     <h2>Receivables</h2>
     <table id="dataTable">
       <thead>
-        <tr><th>Party</th><th>Amount</th></tr>
+        <tr>
+          <th>Party</th>
+          <th>Amount</th>
+        </tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
+
   <script type="module">
-    import { auth, setupAuthCheck, logout, openSidebar, setupSidebarCloseOnOutsideClick } from "./helpers.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {
+      auth,
+      setupAuthCheck,
+      logout,
+      openSidebar,
+      setupSidebarCloseOnOutsideClick
+    } from "./helpers.js";
+
+    import {
+      getFirestore,
+      collection,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const db = getFirestore();
+
     window.logout = logout;
     window.openSidebar = openSidebar;
     setupSidebarCloseOnOutsideClick();
+
     setupAuthCheck(loadReceivables);
 
     async function loadReceivables() {
       const tranCol = collection(db, "tran");
       const snapshot = await getDocs(tranCol);
-      const relevantGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
+
+      const relevantGroups = ["creditors", "debitors", "bank", "angadiya"];
       const balances = {};
 
       snapshot.forEach(doc => {
         const data = doc.data();
-        if (!data.fparty || !data.tparty || !data.amt) return;
-        const amt = parseFloat(data.amt);
 
-        if (relevantGroups.includes(data.grp)) {
+        const grp = (data.grp || "").toLowerCase();
+
+        if (relevantGroups.includes(grp)) {
+          const amt = parseFloat(data.amt || 0);
           if (data.fparty) {
-            if (!balances[data.fparty]) balances[data.fparty] = 0;
-            balances[data.fparty] += amt;
+            const fparty = data.fparty.toLowerCase();
+            balances[fparty] = (balances[fparty] || 0) + amt;
           }
           if (data.tparty) {
-            if (!balances[data.tparty]) balances[data.tparty] = 0;
-            balances[data.tparty] -= amt;
+            const tparty = data.tparty.toLowerCase();
+            balances[tparty] = (balances[tparty] || 0) - amt;
           }
         }
       });
@@ -117,10 +179,29 @@
       const rows = Object.entries(balances)
         .filter(([_, amt]) => amt > 0)
         .sort((a, b) => b[1] - a[1])
-        .map(([party, amt]) => `<tr><td>${party}</td><td>${amt.toFixed(0)}</td></tr>`)
-        .join("");
+        .map(([party, amt]) => {
+          return `<tr><td>${capitalizeWords(party)}</td><td>${Math.abs(amt).toFixed(0)}</td></tr>`;
+        }).join("");
 
       tableBody.innerHTML = rows || `<tr><td colspan="2">No data available</td></tr>`;
+    }
+
+    function capitalizeWords(str) {
+      return str
+        .toLowerCase()
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+
+    // Add sidebar close on outside click
+    document.addEventListener("click", (e) => {
+      if (!document.getElementById("sidebar").contains(e.target) &&
+          !e.target.classList.contains("hamburger")) {
+        document.getElementById("sidebar").style.left = "-250px";
+      }
+    });
+
+    function openSidebar() {
+      document.getElementById("sidebar").style.left = "0";
     }
   </script>
 </body>
