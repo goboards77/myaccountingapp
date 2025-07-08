@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Add Ledger</title>
+  <title>Add Product</title>
   <style>
     body {
       margin: 0;
@@ -135,14 +135,13 @@
   </div>
 
   <div class="content">
-    <h2>Add Ledger Account</h2>
+    <h2>Add Product</h2>
 
     <input type="text" id="group" placeholder="Group" autocomplete="off" />
     <div id="groupList"></div>
 
-    <input type="text" id="newacname" placeholder="New Account Name" />
-    <input type="number" id="opbaljama" placeholder="Op Bal Jama" />
-    <input type="number" id="opbalkhate" placeholder="Op Bal Khate" />
+    <input type="text" id="productName" placeholder="New Product Name" />
+    <input type="number" id="opStock" placeholder="Op Stock" />
 
     <button id="saveBtn">Save</button>
   </div>
@@ -162,7 +161,6 @@
 
     const db = getFirestore();
 
-    // Attach helpers to window for HTML onclicks
     window.logout = logout;
     window.openSidebar = openSidebar;
     setupSidebarCloseOnOutsideClick();
@@ -185,18 +183,16 @@
 
         let groups = [];
 
-        // Fetch unique groups excluding Sales and Purchase
         const q = query(collection(db, "tran"));
         const snapshot = await getDocs(q);
         snapshot.forEach(doc => {
           const g = doc.data().grp;
-          if (g && g !== "Sales" && g !== "Purchase" && !groups.includes(g)) {
+          if ((g === "Sales" || g === "Purchase") && !groups.includes(g)) {
             groups.push(g);
           }
         });
 
-        // Sort descending
-        groups.sort((a, b) => b.localeCompare(a));
+        groups.sort();
 
         const filtered = groups.filter(g => g.toLowerCase().includes(text));
 
@@ -220,43 +216,36 @@
 
     document.getElementById("saveBtn").addEventListener("click", async () => {
       const group = capitalizeWords(document.getElementById("group").value.trim());
-      const newacname = capitalizeWords(document.getElementById("newacname").value.trim());
-      const opbaljama = document.getElementById("opbaljama").value.trim();
-      const opbalkhate = document.getElementById("opbalkhate").value.trim();
+      const productName = capitalizeWords(document.getElementById("productName").value.trim());
+      const opStock = document.getElementById("opStock").value.trim();
 
-      if (!group || !newacname) {
-        alert("Please fill required fields.");
+      if (!group || !productName) {
+        alert("Please fill both Group and Product Name.");
         return;
       }
 
-      // Check if ledger already exists
+      // Check duplicate
       const q = query(
         collection(db, "tran"),
         where("grp", "==", group),
-        where("name", "==", newacname)
+        where("name", "==", productName)
       );
       const snapshot = await getDocs(q);
       if (!snapshot.empty) {
-        alert("Ledger already exists in this group.");
+        alert("Product already exists in this group.");
         return;
       }
 
-      let fparty = "";
-      let tparty = "";
-      let amt = "";
       let ttype = "";
+      let fparty = "";
+      let amt = "";
 
-      if (opbaljama !== "") {
-        fparty = newacname;
-        amt = opbaljama;
-        ttype = "Op Bal";
-      } else if (opbalkhate !== "") {
-        tparty = newacname;
-        amt = opbalkhate;
-        ttype = "Op Bal";
+      if (opStock !== "") {
+        ttype = "Op Stock";
+        fparty = productName;
+        amt = opStock;
       }
 
-      // Get new ID
       const tranCol = collection(db, "tran");
       const latestSnap = await getDocs(query(tranCol, orderBy("id", "desc"), limit(1)));
       let newId = 1;
@@ -270,18 +259,17 @@
         date: new Date().toISOString().split("T")[0],
         ttype,
         fparty,
-        tparty,
+        tparty: "",
         nar: "",
         amt,
         grp: group,
-        name: newacname
+        name: productName
       });
 
-      alert("Ledger saved!");
+      alert("Product saved!");
       document.getElementById("group").value = "";
-      document.getElementById("newacname").value = "";
-      document.getElementById("opbaljama").value = "";
-      document.getElementById("opbalkhate").value = "";
+      document.getElementById("productName").value = "";
+      document.getElementById("opStock").value = "";
     });
   </script>
 </body>
