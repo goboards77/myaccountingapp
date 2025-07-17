@@ -99,7 +99,7 @@
             font-size: 16px;
             margin-top: 20px;
             height: 40px;
-            width: 60%;
+            width: 100%;
             float: right;
             font-family: inherit;
         }
@@ -304,7 +304,7 @@
 
 
     <!-- Add Group -->
-    <div class="widget-area" id="GroupWidgets" style="height: 150px; width: 400px;">
+    <div class="widget-area" id="GroupWidgets" style="height: 150px;">
         <br>
         <label>Group Name:</label>
         <input autocomplete="off" id="GroupName" list="grp_list" placeholder="Group Name" type="text"><br>
@@ -313,7 +313,7 @@
 
 
     <!-- Add Ledger -->
-    <div class="widget-area" id="LedgerWidgets" style="height: 400px; width: 400px;">
+    <div class="widget-area" id="LedgerWidgets" style="height: 400px;">
         <br>
         <label>Select Ledger Group:</label>
         <input autocomplete="off" id="LedgerGroup" list="grp_list" placeholder="Ledger Group" type="text"><br>
@@ -329,7 +329,7 @@
 
 
     <!-- Add Product -->
-    <div class="widget-area" id="ProductWidgets" style="height: 300px; width: 400px;">
+    <div class="widget-area" id="ProductWidgets" style="height: 300px;">
         <br>
         <label>Select Product Group:</label>
         <input autocomplete="off" id="ProductGroup" list="sp_list" placeholder="Product Group" type="text"><br>
@@ -344,7 +344,7 @@
 
 
     <!-- Update Ledger -->
-    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 350px; width: 300px;">
+    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 350px;">
         <input autocomplete="off" id="OldLedgerGroup" list="grp_list" placeholder="Old Ledger Group" type="text"><br>
         <input autocomplete="off" id="OldLedgerName" list="allnames_list" placeholder="Old Ledger Name" type="text"><br><br><br>
         <input autocomplete="off" id="UpdatedLedgerGroup" list="grp_list" placeholder="Updated Ledger Group" type="text"><br>
@@ -356,7 +356,7 @@
 
 
     <!-- Update product -->
-    <div class="widget-area" id="UpdateProductWidgets" style="height: 270px; width: 300px;">
+    <div class="widget-area" id="UpdateProductWidgets" style="height: 270px;">
         <input autocomplete="off" id="OldProductGroup" list="sp_list" placeholder="Select Product Group" type="text"><br>
         <input autocomplete="off" id="OldProductName" placeholder="Old Product Name" type="text"><br>
         <input autocomplete="off" id="NewProductGroup" list="sp_list" placeholder="Updated Product Name" type="text"><br>
@@ -367,7 +367,7 @@
 
 
     <!-- Add Transaction -->
-    <div class="widget-area" id="Transaction" style="height: 300px; width: 300px;">
+    <div class="widget-area" id="Transaction" style="height: 300px;">
         <input autocomplete="off" id="AddTranTtype" list="ttype_list" placeholder="Transaction Type" type="text"><br>
         <input autocomplete="off" id="AddTranDate" type="date"><br>
         <input autocomplete="off" id="AddTranFparty" list="" placeholder="" type="text"><br>
@@ -379,7 +379,7 @@
 
 
     <!-- Update Transaction -->
-    <div class="widget-area" id="UpdateTransaction" style="height: 410px; width: 300px;">
+    <div class="widget-area" id="UpdateTransaction" style="height: 410px;">
         <input autocomplete="off" id="UpdateId" placeholder="Id To Update" type="number"><br>
         <button class="action-button" id="UpdateSearchButton">🔍 Search & Insert</button>
         <br><br><br><br>
@@ -394,7 +394,7 @@
 
 
     <!-- Delete Transaction -->
-    <div class="widget-area" id="DeleteTransaction" style="height: 130px; width: 300px;">
+    <div class="widget-area" id="DeleteTransaction" style="height: 130px;">
         <input autocomplete="off" id="DeleteId" placeholder="Id To Delete" type="number"><br>
         <button class="action-button del-action-button" id="DeleteTranButton">🗑️ Delete Transaction</button>
         <br>
@@ -406,7 +406,7 @@
 
 
     <!-- Daybook --------------->
-    <div class="widget-area" id="vdb" style="height: 160px; width: 300px;">
+    <div class="widget-area" id="vdb" style="height: 160px;">
         <input autocomplete="off" id="typeField" list="ttype_list" placeholder="Filter By Transaction Type" type="text"><br>
         <input autocomplete="off" id="apartyfield" list="allnames_list" placeholder="Filter By Party / Product" type="text"><br>
         <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number"><br>
@@ -417,35 +417,35 @@
 
 
     <!-- Groups & Ledgers --------------->
-    <div class="widget-area" id="vgl" style="width: 400px;">
+    <div class="widget-area" id="vgl">
         <Label>View Groups Ledgers</Label>
         <div id="viewGroupsLadgersTable"></div>
     </div>
 
 
     <!-- Product --------------->
-    <div class="widget-area" id="vprod" style="width: 400px;">
+    <div class="widget-area" id="vprod">
         <Label>View Products</Label>
         <div id="productsTable"></div>
     </div>
 
 
     <!-- Receivable --------------->
-    <div class="widget-area" id="vrec" style="width: 400px;">
+    <div class="widget-area" id="vrec">
         <Label>View Receivables</Label>
         <div id="viewRecTable"></div>
     </div>
 
 
     <!-- Payable --------------->
-    <div class="widget-area" id="vpay" style="width: 400px;">
+    <div class="widget-area" id="vpay">
         <Label>View Payables</Label>
         <div id="viewPayTable"></div>
     </div>
 
 
     <!-- Profit & Loss --------------->
-    <div class="widget-area" id="vprofit" style="height: 180px; width: 300px;">
+    <div class="widget-area" id="vprofit" style="height: 180px;">
         <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date"><br>
         <input autocomplete="off" id="toDate" placeholder="End Date" type="date"><br>
         <input autocomplete="off" id="closingStock" placeholder="Cosing Stock" type="number"><br>
@@ -456,7 +456,7 @@
 
 
     <!-- Khatavahi --------------->
-    <div class="widget-area" id="vkha" style="height: 180px; width: 300px;">
+    <div class="widget-area" id="vkha" style="height: 180px;">
         <input autocomplete="off" id="kfromDate" placeholder="Start Date" type="date"><br>
         <input autocomplete="off" id="ktoDate" placeholder="End Date" type="date"><br>
         <input autocomplete="off" id="kparty" list="allnames_list" placeholder="Party Product Expense" type="text"><br>
@@ -467,7 +467,7 @@
 
 
     <!-- Export -->
-    <div class="widget-area" id="export" style="height: 440px; width: 300px;">
+    <div class="widget-area" id="export" style="height: 440px;">
         <h2>Export - PDF Export</h2>
         <label>Start Date:</label>
         <input autocomplete="off" id="exportStartDate" placeholder="Start Date" type="date"><br><br>
