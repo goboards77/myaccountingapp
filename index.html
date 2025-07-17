@@ -224,10 +224,10 @@
 
 <body>
 
+
 <!-- Firebase ------------------------------------------------------------------------------------>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
@@ -395,9 +395,8 @@
         document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("show"));
     }
 
-
     // Clear Field Values /////////////////////////////////////////////////////////////////////////
-    window.clearInputsById = function(ids) {
+    function clearInputsById(ids) {
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el && 'value' in el) {
@@ -408,7 +407,7 @@
 
 
     // Date Conversion ////////////////////////////////////////////////////////////////////////////
-    window.formatDate = function(d) {
+    function formatDate(d) {
         if (!d) return "";
         const parts = d.split("-");
         if (parts.length === 3) {
@@ -419,19 +418,19 @@
 
 
     // Converts yyyy-mm-dd -> dd-mm-yyyy //////////////////////////////////////////////////////////
-    window.toYMD = function(d) {
+    function toYMD(d) {
         return d;
     }
 
 
     // To Capitalize Words ////////////////////////////////////////////////////////////////////////
-    window.capitalizeWords = function(str) {
+    function capitalizeWords(str) {
         return str.replace(/\b\w/g, c => c.toUpperCase());
     }
 
 
     // Cash Label /////////////////////////////////////////////////////////////////////////////////
-    window.updateCashLabel = function() {
+    async function updateCashLabel() {
         const tranCol = collection(db, "tran");
         const snapshot = await getDocs(tranCol);
 
@@ -454,7 +453,7 @@
 
 
     // All Dropdown Lists /////////////////////////////////////////////////////////////////////////
-    window.loadDropdownData = function() {
+    async function loadDropdownData() {
         const tranCol = collection(db, "tran");
         const snapshot = await getDocs(tranCol);
 
@@ -590,7 +589,7 @@
     });
 
 
-    window.populateDatalist = function(datalistId, items) {
+    async function populateDatalist(datalistId, items) {
         const datalist = document.getElementById(datalistId);
         if (!datalist) {
             showError("⚠️ Datalist element not found:", datalistId);
@@ -621,7 +620,7 @@
 
 
     // New Names Added To Update Datalist /////////////////////////////////////////////////////////
-    window.addToDatalist = function(datalistId, value) {
+    function addToDatalist(datalistId, value) {
         const dataList = document.getElementById(datalistId);
         if (!dataList) return;
 
@@ -632,7 +631,7 @@
 
 
     // List Selector //////////////////////////////////////////////////////////////////////////////
-    window.setupTransactionForm = function(prefix) {
+    function setupTransactionForm(prefix) {
         const dateInput = document.getElementById(prefix + "TranDate");
         const ttypeInput = document.getElementById(prefix + "TranTtype");
         const fpartyInput = document.getElementById(prefix + "TranFparty");
@@ -1873,6 +1872,7 @@
         exportToPDF(rows);
     }
 
+
     function exportToCSV(rows) {
         const headers = Object.keys(rows[0]);
         let csv = headers.join(",") + "\n";
@@ -1894,6 +1894,7 @@
         a.click();
         document.body.removeChild(a);
     }
+
 
     function exportToPDF(rows) {
         if (!rows || !rows.length) {
@@ -1917,6 +1918,7 @@
         doc.save(`Export_${new Date().getTime()}.pdf`);
     }
 
+
     document.getElementById("exportBtn").addEventListener("click", exportData);
 
 
@@ -1936,6 +1938,7 @@
 
 
 </script>
+
 
 <div class="topbar">
     <button class="hamburger" id="hamburgerBtn">☰ App</button>
@@ -2326,6 +2329,7 @@
     <!-- Global Errors Space ----->
     <div id="Add-transaction-errors"></div>
     <div id="Update-transaction-errors"></div>
+
 
 </div>
 
