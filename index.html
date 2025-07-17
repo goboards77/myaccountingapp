@@ -143,7 +143,6 @@
 
         table {
             border-collapse: collapse;
-            width: 400px;
             margin-top: 15px;
             table-layout: fixed;
         }
@@ -395,7 +394,7 @@
         <input autocomplete="off" id="UpdateId" placeholder="Id To Update" type="number"><br>
         <button class="action-button" id="UpdateSearchButton">🔍 Search & Insert</button>
         <br><br><br><br>
-        <input autocomplete="off" id="UpdateTranTtype" placeholder="Transaction Type" type="text"><br>
+        <input autocomplete="off" id="UpdateTranTtype" placeholder="Transaction Type" readonly type="text"><br>
         <input autocomplete="off" id="UpdateTranDate" type="date"><br>
         <input autocomplete="off" id="UpdateTranFparty" list="" placeholder="" type="text"><br>
         <input autocomplete="off" id="UpdateTranTparty" list="" placeholder="" type="text"><br>
@@ -418,7 +417,7 @@
 
 
     <!-- Daybook --------------->
-    <div class="widget-area" id="vdb" style="height: 160px;">
+    <div class="widget-area" id="vdb" style="height: 190px;">
         <input autocomplete="off" id="typeField" list="ttype_list" placeholder="Filter By Transaction Type" type="text"><br>
         <input autocomplete="off" id="apartyfield" list="allnames_list" placeholder="Filter By Party / Product" type="text"><br>
         <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number"><br>
@@ -429,35 +428,35 @@
 
 
     <!-- Groups & Ledgers --------------->
-    <div class="widget-area" id="vgl">
+    <div class="widget-area" id="vgl" style="height: 15px;">
         <Label>View Groups Ledgers</Label>
         <div id="viewGroupsLadgersTable"></div>
     </div>
 
 
     <!-- Product --------------->
-    <div class="widget-area" id="vprod">
+    <div class="widget-area" id="vprod" style="height: 15px;">
         <Label>View Products</Label>
         <div id="productsTable"></div>
     </div>
 
 
     <!-- Receivable --------------->
-    <div class="widget-area" id="vrec">
+    <div class="widget-area" id="vrec" style="height: 15px;">
         <Label>View Receivables</Label>
         <div id="viewRecTable"></div>
     </div>
 
 
     <!-- Payable --------------->
-    <div class="widget-area" id="vpay">
+    <div class="widget-area" id="vpay" style="height: 15px;">
         <Label>View Payables</Label>
         <div id="viewPayTable"></div>
     </div>
 
 
     <!-- Profit & Loss --------------->
-    <div class="widget-area" id="vprofit" style="height: 180px;">
+    <div class="widget-area" id="vprofit" style="height: 200px;">
         <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date"><br>
         <input autocomplete="off" id="toDate" placeholder="End Date" type="date"><br>
         <input autocomplete="off" id="closingStock" placeholder="Cosing Stock" type="number"><br>
@@ -468,7 +467,7 @@
 
 
     <!-- Khatavahi --------------->
-    <div class="widget-area" id="vkha" style="height: 180px;">
+    <div class="widget-area" id="vkha" style="height: 200px;">
         <input autocomplete="off" id="kfromDate" placeholder="Start Date" type="date"><br>
         <input autocomplete="off" id="ktoDate" placeholder="End Date" type="date"><br>
         <input autocomplete="off" id="kparty" list="allnames_list" placeholder="Party Product Expense" type="text"><br>
@@ -479,8 +478,8 @@
 
 
     <!-- Export -->
-    <div class="widget-area" id="export" style="height: 440px;">
-        <h2>Export - PDF Export</h2>
+    <div class="widget-area" id="export" style="height: 410px;">
+        <Label>Export - PDF Export</Label><br><br>
         <label>Start Date:</label>
         <input autocomplete="off" id="exportStartDate" placeholder="Start Date" type="date"><br><br>
         <label>End Date:</label>
@@ -488,7 +487,7 @@
         <label>Party:</label>
         <input autocomplete="off" id="exportParty" list="allnames_list" placeholder="Party" type="text"><br><br>
         <label>Transaction Type:</label>
-        <input autocomplete="off" id="exportTType" list="ttype_list" placeholder="Tran Type" type="text"><br><br>
+        <input autocomplete="off" id="exportTType" list="ttype_list" placeholder="Tran Type" type="text"><br>
         <button class="action-button" id="exportBtn">✈️ Export Data</button>
         <div class="error" id="exportError"></div>
     </div>
@@ -2145,6 +2144,14 @@
     // On Page Load Functions /////////////////////////////////////////////////////////////////////
     window.onload = () => {
         updateCashLabel();
+        viewGroupsAndAccounts();
+        viewProducts();
+        viewReceivables();
+        viewPayables();
+        loadDropdownData();
+        profit_loss()
+        viewDaybook()
+
     };
 
 </script>
