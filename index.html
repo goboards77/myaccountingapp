@@ -167,8 +167,6 @@
             z-index: 999;
         }
 
-
-        /* Main MenuButton Colors */
         .groups-accordion {
             background-color: #dd42f5;
         }
@@ -238,7 +236,6 @@
     import {
         getFirestore, collection, getDocs, updateDoc, deleteDoc, addDoc, query, where, orderBy, limit, doc
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
         authDomain: "accounts-19d08.firebaseapp.com",
@@ -428,6 +425,7 @@
     function capitalizeWords(str) {
         return str.replace(/\b\w/g, c => c.toUpperCase());
     }
+
 
     // Cash Label /////////////////////////////////////////////////////////////////////////////////
     async function updateCashLabel() {
@@ -730,12 +728,11 @@
             return;
         }
 
-        const newDoc = {grp: groupName};
-        await addDoc(tranCol, newDoc);
-        const snapshot = await getDocs(tranCol);
-
-        addToDatalist("grp_list", groupName);
-        viewGroupsAndAccounts()
+        await addDoc(tranCol, {grp: groupName});
+        if (!window.grp_list.includes(groupName)) {
+            window.grp_list.push(groupName);
+            window.grp_list.sort((a, b) => a.localeCompare(b));
+        }
         inputField.value = "";
     }
 
@@ -757,17 +754,13 @@
             return alert("Please enter value in only one of Old Bal Jama or Old Bal Khate, not both.");
         }
 
-        const grpList = document.getElementById("grp_list");
-        const isValidGroup = Array.from(grpList.options).some(opt => opt.value === group);
-        if (!isValidGroup) {
-            return alert("Ledger Group Is Not Valid. Add This Group First");
+        if (!window.grp_list.includes(group)) {
+            return alert("Ledger Group is not valid. Add this group first.");
         }
 
-        const q = query(
-            collection(db, "tran"),
-            where("name", "==", newacname)
-        );
+        const q = query(collection(db, "tran"), where("name", "==", newacname));
         const snapshot = await getDocs(q);
+
         if (!snapshot.empty) {
             return alert("Ledger already exists in this group.");
         }
@@ -786,7 +779,7 @@
 
         const newId = maxId + 1;
 
-        let fparty = "", tparty = "", amt = 0;  // default 0
+        let fparty = "", tparty = "", amt = 0;
 
         if (opbaljama !== "") {
             fparty = newacname;
@@ -810,8 +803,11 @@
             name: newacname
         });
 
-        addToDatalist("allnames_list", newacname);
-        viewGroupsAndAccounts()
+        if (!window.allnames_list.includes(newacname)) {
+            window.allnames_list.push(newacname);
+            window.allnames_list.sort((a, b) => a.localeCompare(b));
+        }
+
         clearInputsById(["LedgerGroup", "LedgerName", "OBJ", "OBK"]);
     }
 
@@ -835,21 +831,23 @@
             return;
         }
 
-        const grpList = document.getElementById("grp_list");
-        const isValidGroup = Array.from(grpList.options).some(opt => opt.value === usledgrp);
-        if (!isValidGroup) {
-            alert("New Ledger Group Is Not Valid. Add This Group First");
+        // ✅ Use in-memory window.grp_list
+        if (!window.grp_list.includes(usledgrp)) {
+            alert("New Ledger Group is not valid. Add this group first.");
             return;
         }
 
-        const existsQuery = query(
-            collection(db, "tran"),
-            where("name", "==", newLedgerName)
-        );
-        const existsSnap = await getDocs(existsQuery);
-        if (!existsSnap.empty) {
-            alert("Ledger with this name already exists");
-            return;
+        // ✅ Only check for duplicate if the new name is different
+        if (oldLedgerName !== newLedgerName) {
+            const existsQuery = query(
+                collection(db, "tran"),
+                where("name", "==", newLedgerName)
+            );
+            const existsSnap = await getDocs(existsQuery);
+            if (!existsSnap.empty) {
+                alert("Ledger with this name already exists.");
+                return;
+            }
         }
 
         try {
@@ -878,7 +876,6 @@
                 let needsUpdate = false;
 
                 if (matchOpBal) {
-                    // ✅ Update Op Bal entry
                     updatedData.grp = usledgrp;
                     updatedData.name = newLedgerName;
 
@@ -912,12 +909,25 @@
             });
 
             await Promise.all(updatePromises);
-            addToDatalist("allnames_list", uledn);
-            viewGroupsAndAccounts()
+
+            // ✅ Update in-memory allnames_list
+            if (!window.allnames_list.includes(newLedgerName)) {
+                window.allnames_list.push(newLedgerName);
+                window.allnames_list.sort((a, b) => a.localeCompare(b));
+            }
+
+            // ✅ Show updated dropdown if input is still visible
+            const inputElem = document.getElementById("UpdatedLedgerName");
+            if (inputElem) {
+                showCustomDropdown(inputElem, window.allnames_list);
+            }
+
+            viewGroupsAndAccounts();
             clearInputsById(["OldLedgerGroup", "OldLedgerName", "UpdatedLedgerGroup", "UpdatedLedgerName", "UpdatedOBJ", "UpdatedOBK"]);
 
         } catch (error) {
             alert("An error occurred while updating the ledger.");
+            console.error("update_ledger error:", error);
         }
     }
 
@@ -935,16 +945,15 @@
             return;
         }
 
-        const q = query(
-            collection(db, "tran"),
-            where("name", "==", productname)
-        );
+        // Check for duplicate product name in Firestore
+        const q = query(collection(db, "tran"), where("name", "==", productname));
         const snapshot = await getDocs(q);
         if (!snapshot.empty) {
             alert("Product already exists.");
             return;
         }
 
+        // Get new ID
         const tranCol = collection(db, "tran");
         const allDocs = await getDocs(tranCol);
 
@@ -960,6 +969,7 @@
         const newId = maxId + 1;
         const amt = opstk === "" ? 0 : Number(opstk);
 
+        // Add product entry to Firestore
         await addDoc(tranCol, {
             id: newId,
             date: new Date().toISOString().split("T")[0],
@@ -970,11 +980,28 @@
             name: productname
         });
 
-        addToDatalist("allnames_list", newacname);
+        // ✅ Update appropriate product list
+        if (spgroup === "Sales") {
+            if (!window.sproduct_list.includes(productname)) {
+                window.sproduct_list.push(productname);
+                window.sproduct_list.sort((a, b) => a.localeCompare(b));
+            }
 
-        document.getElementById("ProductGroup").value = "";
-        document.getElementById("ProductName").value = "";
-        document.getElementById("ProductOPSTK").value = "";
+            const input = document.getElementById("ProductName");
+            if (input) showCustomDropdown(input, window.sproduct_list);
+
+        } else if (spgroup === "Purchase") {
+            if (!window.pproduct_list.includes(productname)) {
+                window.pproduct_list.push(productname);
+                window.pproduct_list.sort((a, b) => a.localeCompare(b));
+            }
+
+            const input = document.getElementById("ProductName");
+            if (input) showCustomDropdown(input, window.pproduct_list);
+        }
+
+        viewGroupsAndAccounts();
+        clearInputsById(["ProductGroup", "ProductName", "ProductOPSTK"]);
     }
 
     document.getElementById("SaveProductButton").addEventListener("click", saveProduct);
@@ -993,11 +1020,10 @@
             return;
         }
 
-        // ✅ Determine final group to use
         const finalProdGrp = newProdGrp || oldProdGrp;
 
         try {
-            // ✅ Check if new product name already exists in target group
+            // ✅ Check if new product already exists
             const existsQuery = query(
                 collection(db, "tran"),
                 where("grp", "==", finalProdGrp),
@@ -1023,37 +1049,29 @@
                 const data = docSnap.data();
                 const docRef = doc(db, "tran", docSnap.id);
 
-                // ✅ Check for Op Stock record match
                 const matchOpStock =
                     data.grp === oldProdGrp &&
                     data.name === oldProdName &&
                     data.ttype === "Op Stock";
 
-                // ✅ Check for other transactions referencing old product name
                 const matchOther = ["fparty", "tparty", "name"].some(field => data[field] === oldProdName);
 
                 const updatedData = {};
                 let needsUpdate = false;
 
                 if (matchOpStock) {
-                    // ✅ Update Op Stock record
                     updatedData.grp = finalProdGrp;
                     updatedData.name = newProdName;
                     updatedData.fparty = newProdName;
-                    updatedData.amt =
-                        newOpStock !== "" ? Number(newOpStock) : Number(data.amt || 0);
+                    updatedData.amt = newOpStock !== "" ? Number(newOpStock) : Number(data.amt || 0);
                     needsUpdate = true;
                 } else if (matchOther) {
-                    // ✅ For other transactions:
-                    // Only update if both old group and old name match
                     if (data.grp === oldProdGrp && data.name === oldProdName) {
                         updatedData.grp = finalProdGrp;
                         updatedData.name = newProdName;
                         needsUpdate = true;
                     }
 
-                    // ✅ If product name is referenced in fparty/tparty elsewhere,
-                    // update those fields (but not grp there)
                     ["fparty", "tparty"].forEach(field => {
                         if (data[field] === oldProdName) {
                             updatedData[field] = newProdName;
@@ -1069,22 +1087,29 @@
 
             await Promise.all(updatePromises);
 
-            alert("Product updated successfully!");
+            // ✅ Update the proper dropdown array
+            if (finalProdGrp === "Sales") {
+                if (!window.sproduct_list.includes(newProdName)) {
+                    window.sproduct_list.push(newProdName);
+                    window.sproduct_list.sort((a, b) => a.localeCompare(b));
+                }
+                const input = document.getElementById("NewProductName");
+                if (input) showCustomDropdown(input, window.sproduct_list);
 
-            // ✅ Clear fields
-            const ids = [
-                "OldProductGroup",
-                "OldProductName",
-                "NewProductGroup",
-                "NewProductName",
-                "NewOpStock"
-            ];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = "";
-            });
+            } else if (finalProdGrp === "Purchase") {
+                if (!window.pproduct_list.includes(newProdName)) {
+                    window.pproduct_list.push(newProdName);
+                    window.pproduct_list.sort((a, b) => a.localeCompare(b));
+                }
+                const input = document.getElementById("NewProductName");
+                if (input) showCustomDropdown(input, window.pproduct_list);
+            }
+
+            viewGroupsAndAccounts();
+            clearInputsById(["OldProductGroup", "OldProductName", "NewProductGroup", "NewProductName", "NewOpStock"]);
 
         } catch (error) {
+            console.error("Update Error:", error);
             alert("An error occurred while updating the product.");
         }
     }
@@ -1898,21 +1923,17 @@
 
 
     // On Page Load Functions /////////////////////////////////////////////////////////////////////
-    loadDropdownData().then(() => {
-        setupTransactionForm("Add");      // or "Update"
-    });
+    window.onload = async () => {
+        await loadDropdownData();
+        setupTransactionForm("Add");
 
-
-    window.onload = () => {
         updateCashLabel();
         viewGroupsAndAccounts();
         viewProducts();
         viewReceivables();
         viewPayables();
-        loadDropdownData();
-        profit_loss()
-        viewDaybook()
-
+        profit_loss();
+        viewDaybook();
     };
 
 </script>
@@ -2027,6 +2048,7 @@
         <button class="action-button" id="SaveGroupButton">📏 Save Group</button>
     </div>
 
+
     <!-- Add Ledger -->
     <div class="widget-area" id="LedgerWidgets" style="height: 400px;">
         <br>
@@ -2047,6 +2069,7 @@
         <button class="action-button" id="SaveLedgerButton">📏 Save Ledger</button>
     </div>
 
+
     <!-- Add Product -->
     <div class="widget-area" id="ProductWidgets" style="height: 310px;">
         <label for="ProductGroup">Product Group:</label>
@@ -2063,6 +2086,7 @@
         <button class="action-button" id="SaveProductButton">📏 Save Product</button>
     </div>
 
+
     <!-- Update Ledger -->
     <div class="widget-area" id="UpdateLedgerWidgets" style="height: 560px;">
         <label for="OldLedgerGroup">Old Ledger Group:</label>
@@ -2078,8 +2102,7 @@
         <div class="dropdown-container" id="UpdatedLedgerGroup-dropdown"></div>
         <br><br>
         <label for="UpdatedLedgerName">New Ledger Name:</label>
-        <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Updated Ledger Name"
-               type="text">
+        <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Updated Ledger Name" type="text">
         <div class="dropdown-container" id="UpdatedLedgerName-dropdown"></div>
         <br><br>
         <label for="UpdatedOBJ">Updated Opening Balance Jama:</label>
@@ -2182,6 +2205,7 @@
         <div id="delete-error" style="color: red; margin-top: 5px;"></div>
     </div>
 
+
     <!-- Views ----------------------------------------------------------------------------------->
 
 
@@ -2192,8 +2216,7 @@
         <div class="dropdown-container" id="typeField-dropdown"></div>
         <br><br>
         <label for="apartyfield">Party / Product:</label>
-        <input autocomplete="off" id="apartyfield" oninput="showCustomDropdown(this, allnames_list)" placeholder="Filter By Party / Product"
-               type="text">
+        <input autocomplete="off" id="apartyfield" oninput="showCustomDropdown(this, allnames_list)" placeholder="Filter By Party / Product" type="text">
         <div class="dropdown-container" id="apartyfield-dropdown"></div>
         <br><br>
         <label for="amountField">Amount:</label>
@@ -2296,10 +2319,6 @@
     <div id="Update-transaction-errors"></div>
 
 </div>
-
-
-<!-- Lists --------------------------------------------------------------------------------------->
-
 
 </body>
 
