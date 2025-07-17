@@ -198,328 +198,34 @@
         .del-action-button {
             background-color: #ba0612;
         }
+
+        .dropdown-container {
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 999;
+            width: 200px;
+        }
+
+        .dropdown-container div {
+            padding: 6px;
+            cursor: pointer;
+        }
+
+        .dropdown-container div:hover {
+            background-color: #f0f0f0;
+        }
+
     </style>
 </head>
 
 <body>
-
-<div class="topbar">
-    <button class="hamburger" id="hamburgerBtn">☰ App</button>
-    <label class="cash-label" id="cashLabel">Cash: ₹0</label>
-</div>
-
-
-<!-- Login Form -->
-<div id="loginContainer" style="display: none;">
-    <h2>Login</h2>
-    <input id="loginEmail" placeholder="Email" type="email">
-    <input id="loginPassword" placeholder="Password" type="password">
-    <button class="action-button" onclick="login()">Login</button>
-    <div class="error" id="loginError"></div>
-    <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
-</div>
-
-
-<!-- Register Form -->
-<div id="registerContainer" style="display:none;">
-    <h2>Register</h2>
-    <input id="registerEmail" placeholder="Email" type="email">
-    <input id="registerPassword" placeholder="Password" type="password">
-    <button class="action-button" onclick="register()">Register</button>
-    <div class="error" id="registerError"></div>
-    <div class="small-link"><a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a></div>
-</div>
-
-
-<div id="widget-area">
-
-    <!-- All Sub-Menu Buttons -------------------------------------------------------------------->
-
-
-    <div class="accordion-container" id="accordionMenu">
-
-        <!-- Group Sub-Button -------------------------------------------------------------------->
-        <button class="accordion groups-accordion">👥 Groups</button>
-        <div class="panel">
-            <button class="sub-button" widgets="GroupWidgets">👥 New Group</button>
-        </div>
-
-
-        <!-- Ledger  Sub-Button ------------------------------------------------------------------>
-        <button class="accordion ledgers-accordion">📖 Ledgers</button>
-        <div class="panel">
-            <button class="sub-button" widgets="LedgerWidgets">📖 New Ledger</button>
-            <button class="sub-button" widgets="UpdateLedgerWidgets">✏️ Update Ledger</button>
-        </div>
-
-
-        <!-- Product  Sub-Button ----------------------------------------------------------------->
-        <button class="accordion products-accordion">🛍️ Products</button>
-        <div class="panel">
-            <button class="sub-button" widgets="ProductWidgets">🛍️ New Product</button>
-            <button class="sub-button" widgets="UpdateProductWidgets">✏️ Update Product</button>
-        </div>
-
-
-        <!-- transaction Sub-Button -------------------------------------------------------------->
-        <button class="accordion tran-accordion">➕ Transactions</button>
-        <div class="panel">
-            <button class="sub-button" widgets="Transaction">🛒 New Transaction</button>
-            <button class="sub-button" widgets="UpdateTransaction">✏️ Update Transaction</button>
-            <button class="sub-button" widgets="DeleteTransaction">🗑️ Delete Transaction</button>
-        </div>
-
-
-        <!-- View Sub-Button --------------------------------------------------------------------->
-        <button class="accordion view-accordion">👁️ View</button>
-        <div class="panel">
-            <button class="sub-button" id="vdbbtn" widgets="vdb">📖 Daybook</button>
-            <button class="sub-button" id="vglbtn" widgets="vgl">👥 Groups & 📖 Ledgers</button>
-            <button class="sub-button" id="vprodbtn" widgets="vprod">🛍️ Products</button>
-            <button class="sub-button" id="vrecbtn" widgets="vrec">💰 Receivables</button>
-            <button class="sub-button" id="vpaybtn" widgets="vpay">💵 Payables</button>
-            <button class="sub-button" id="profitbtn" widgets="vprofit">📈 Profit & 📉 Loss</button>
-            <button class="sub-button" id="khabtn" widgets="vkha">📒 Khatavahi</button>
-        </div>
-
-
-        <!-- Export Sub-Button ------------------------------------------------------------------->
-        <button class="accordion export-accordion">✈️ Export</button>
-        <div class="panel">
-            <button class="sub-button" widgets="export">📤 Export CSV PDF</button>
-        </div>
-
-
-        <!-- Logout Sub-Button ------------------------------------------------------------------->
-        <button class="accordion logout-accordion">🔒Logout</button>
-        <div class="panel">
-            <button class="sub-button" id="logoutbtn" onclick="logout()" widgets="logout">↩️ Logout</button>
-        </div>
-
-    </div>
-
-
-    <!-- Widgets --------------------------------------------------------------------------------->
-
-
-    <!-- Add Group -->
-    <div class="widget-area" id="GroupWidgets" style="height: 150px;">
-        <br>
-        <label>Group Name:</label>
-        <input autocomplete="off" id="GroupName" list="grp_list" placeholder="Group Name" type="text"><br>
-        <button class="action-button" id="SaveGroupButton">💾 Save Group</button>
-    </div>
-
-
-    <!-- Add Ledger -->
-    <div class="widget-area" id="LedgerWidgets" style="height: 400px;">
-        <br>
-        <label>Select Ledger Group:</label>
-        <input autocomplete="off" id="LedgerGroup" list="grp_list" placeholder="Ledger Group" type="text"><br>
-        <br>
-        <label>Enter Ledger Name:</label>
-        <input autocomplete="off" id="LedgerName" list="allnames_list" placeholder="Ledger Name" type="text"><br>
-        <br>
-        <label>Enter Op Bal Jama Jo Hoy Toh:</label><input autocomplete="off" id="OBJ" placeholder="Op Bal Jama" type="number"><br>
-        <br>
-        <label>Enter Op Bal Khate Jo Hoy Toh:</label><input autocomplete="off" id="OBK" placeholder="Op Bal Khate" type="number"><br>
-        <button class="action-button" id="SaveLedgerButton">💾 Save Ledger</button>
-    </div>
-
-
-    <!-- Add Product -->
-    <div class="widget-area" id="ProductWidgets" style="height: 300px;">
-        <br>
-        <label>Select Product Group:</label>
-        <input autocomplete="off" id="ProductGroup" list="sp_list" placeholder="Product Group" type="text"><br>
-        <br>
-        <label>Enter Product Name:</label><input autocomplete="off" id="ProductName" placeholder="New Product Name" type="text"><br>
-        <br>
-        <label>Enter Op Stock Jo Hoy Toh:</label>
-        <input autocomplete="off" id="ProductOPSTK" placeholder="Product Op Stock" type="number"><br>
-        <button class="action-button" id="SaveProductButton">💾 Save Product</button>
-        <br><br>
-    </div>
-
-
-    <!-- Update Ledger -->
-    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 600px;">
-        <br>
-        <label>Select Old Ledger Group:</label>
-        <input autocomplete="off" id="OldLedgerGroup" list="grp_list" placeholder="Old Ledger Group" type="text"><br>
-        <br>
-        <label>Select Old Ledger Name:</label>
-        <input autocomplete="off" id="OldLedgerName" list="allnames_list" placeholder="Old Ledger Name" type="text"><br><br><br>
-        <br>
-        <label>Select New Ledger Group:</label>
-        <input autocomplete="off" id="UpdatedLedgerGroup" list="grp_list" placeholder="Updated Ledger Group" type="text"><br>
-        <br>
-        <label>Enter New Ledger Name:</label>
-        <input autocomplete="off" id="UpdatedLedgerName" placeholder="Updated Ledger Name" type="text"><br>
-        <br>
-        <label>Enter Op Bal Jama:</label>
-        <input autocomplete="off" id="UpdatedOBJ" placeholder="Updated Op Bal Jama" type="number"><br>
-        <br>
-        <label>Enter Op Bal Khate:</label>
-        <input autocomplete="off" id="UpdatedOBK" placeholder="Updated Op Bal Khate" type="number"><br>
-        <button class="action-button" id="UpdateLedgerButton">✏️ Update Ledger</button>
-    </div>
-
-
-    <!-- Update product -->
-    <div class="widget-area" id="UpdateProductWidgets" style="height: 270px;">
-        <input autocomplete="off" id="OldProductGroup" list="sp_list" placeholder="Select Product Group" type="text"><br>
-        <input autocomplete="off" id="OldProductName" placeholder="Old Product Name" type="text"><br>
-        <input autocomplete="off" id="NewProductGroup" list="sp_list" placeholder="Updated Product Name" type="text"><br>
-        <input autocomplete="off" id="NewProductName" placeholder="New Product Name" type="text"><br>
-        <input autocomplete="off" id="NewOpStock" placeholder="Product Op Stock" type="number"><br>
-        <button class="action-button" id="UpdateProductButton">✏️ Update Product</button>
-    </div>
-
-
-    <!-- Add Transaction -->
-    <div class="widget-area" id="Transaction" style="height: 350px; position: relative;">
-        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)" placeholder="Transaction Type">
-        <div class="dropdown-container" id="AddTranTtype-dropdown"></div>
-        <br>
-
-        <input id="AddTranDate" type="date"><br>
-
-        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, [])" placeholder="From Party">
-        <div class="dropdown-container" id="AddTranFparty-dropdown"></div>
-        <br>
-
-        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, [])" placeholder="To Party">
-        <div class="dropdown-container" id="AddTranTparty-dropdown"></div>
-        <br>
-
-        <input id="AddTranAmount" placeholder="Amount" type="number"><br>
-
-        <input id="AddTranNar" placeholder="Narration" type="text"><br>
-
-        <div id="Add-transaction-errors" style="color: red; display: none;"></div>
-
-        <button class="action-button" id="AddTranSaveButton">💾 Save Transaction</button>
-    </div>
-
-
-    <!-- Update Transaction -->
-    <div class="widget-area" id="UpdateTransaction" style="height: 410px;">
-        <input autocomplete="off" id="UpdateId" placeholder="Id To Update" type="number"><br>
-        <button class="action-button" id="UpdateSearchButton">🔍 Search & Insert</button>
-        <br><br><br><br>
-        <input autocomplete="off" id="UpdateTranTtype" placeholder="Transaction Type" readonly type="text"><br>
-        <input autocomplete="off" id="UpdateTranDate" type="date"><br>
-        <input autocomplete="off" id="UpdateTranFparty" list="" placeholder="" type="text"><br>
-        <input autocomplete="off" id="UpdateTranTparty" list="" placeholder="" type="text"><br>
-        <input autocomplete="off" id="UpdateTranAmount" placeholder="" type="number"><br>
-        <input autocomplete="off" id="UpdateTranNar" placeholder="Naration" type="text"><br>
-        <button class="action-button" id="UpdateTranButton">✏️ Update Transaction</button>
-    </div>
-
-
-    <!-- Delete Transaction -->
-    <div class="widget-area" id="DeleteTransaction" style="height: 130px;">
-        <input autocomplete="off" id="DeleteId" placeholder="Id To Delete" type="number"><br>
-        <button class="action-button del-action-button" id="DeleteTranButton">🗑️ Delete Transaction</button>
-        <br>
-        <div id="delete-error" style="color: red; margin-top: 5px;"></div>
-    </div>
-
-
-    <!-- Views ----------------------------------------------------------------------------------->
-
-
-    <!-- Daybook --------------->
-    <div class="widget-area" id="vdb" style="height: 190px;">
-        <input autocomplete="off" id="typeField" list="ttype_list" placeholder="Filter By Transaction Type" type="text"><br>
-        <input autocomplete="off" id="apartyfield" list="allnames_list" placeholder="Filter By Party / Product" type="text"><br>
-        <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number"><br>
-        <button class="action-button" id="filterBtn">⏳ Filter</button>
-        <br><br>
-        <div id="daybookTable"></div>
-    </div>
-
-
-    <!-- Groups & Ledgers --------------->
-    <div class="widget-area" id="vgl" style="height: 15px;">
-        <Label>View Groups Ledgers</Label>
-        <div id="viewGroupsLadgersTable"></div>
-    </div>
-
-
-    <!-- Product --------------->
-    <div class="widget-area" id="vprod" style="height: 15px;">
-        <Label>View Products</Label>
-        <div id="productsTable"></div>
-    </div>
-
-
-    <!-- Receivable --------------->
-    <div class="widget-area" id="vrec" style="height: 15px;">
-        <Label>View Receivables</Label>
-        <div id="viewRecTable"></div>
-    </div>
-
-
-    <!-- Payable --------------->
-    <div class="widget-area" id="vpay" style="height: 15px;">
-        <Label>View Payables</Label>
-        <div id="viewPayTable"></div>
-    </div>
-
-
-    <!-- Profit & Loss --------------->
-    <div class="widget-area" id="vprofit" style="height: 200px;">
-        <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date"><br>
-        <input autocomplete="off" id="toDate" placeholder="End Date" type="date"><br>
-        <input autocomplete="off" id="closingStock" placeholder="Cosing Stock" type="number"><br>
-        <button class="action-button" id="calculateProfitbtn">Calculate Profit & Loss</button>
-        <br><br>
-        <div id="plTable"></div>
-    </div>
-
-
-    <!-- Khatavahi --------------->
-    <div class="widget-area" id="vkha" style="height: 200px;">
-        <input autocomplete="off" id="kfromDate" placeholder="Start Date" type="date"><br>
-        <input autocomplete="off" id="ktoDate" placeholder="End Date" type="date"><br>
-        <input autocomplete="off" id="kparty" list="allnames_list" placeholder="Party Product Expense" type="text"><br>
-        <button class="action-button" id="calkhabtn">⏳ Show Transactions</button>
-        <br><br>
-        <div id="khaTable"></div>
-    </div>
-
-
-    <!-- Export -->
-    <div class="widget-area" id="export" style="height: 410px;">
-        <Label>Export - PDF Export</Label><br><br>
-        <label>Start Date:</label>
-        <input autocomplete="off" id="exportStartDate" placeholder="Start Date" type="date"><br><br>
-        <label>End Date:</label>
-        <input autocomplete="off" id="exportEndDate" placeholder="End Date" type="date"><br><br>
-        <label>Party:</label>
-        <input autocomplete="off" id="exportParty" list="allnames_list" placeholder="Party" type="text"><br><br>
-        <label>Transaction Type:</label>
-        <input autocomplete="off" id="exportTType" list="ttype_list" placeholder="Tran Type" type="text"><br>
-        <button class="action-button" id="exportBtn">✈️ Export Data</button>
-        <div class="error" id="exportError"></div>
-    </div>
-
-
-    <!-- Global Errors Space ----->
-    <div id="Add-transaction-errors"></div>
-    <div id="Update-transaction-errors"></div>
-
-</div>
-
-
-<!-- Lists --------------------------------------------------------------------------------------->
-
-
 <!-- Firebase ------------------------------------------------------------------------------------>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 
@@ -812,31 +518,28 @@
         });
 
         // Convert Sets to sorted arrays
-        const grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
-        const sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
-        const allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
-        const ttype_list = [...ttypeSet].sort((a, b) => a.localeCompare(b));
+        window.grp_list = [];
+        window.sp_list = [];
+        window.allnames_list = [];
+        window.ttype_list = [];
+        window.sproduct_list = [];
+        window.pproduct_list = [];
+        window.crdb_list = [];
+        window.crdbcsbkang_list = [];
+        window.crdbcsbkangexp_list = [];
 
-        const sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
-        const pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
-        const crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
-        const crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
-        const crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
-
-        // ✅ Populate all datalists
-        window.grp_list = [...grpSet].sort();
-        window.sp_list = [...spSet].sort();
-        window.allnames_list = [...nameSet].sort();
-        window.ttype_list = [...ttypeSet].sort();
-        window.sproduct_list = [...sproductSet].sort();
-        window.pproduct_list = [...pproductSet].sort();
-        window.crdb_list = [...crdbSet].sort();
-        window.crdbcsbkang_list = [...crdbcsbkangSet].sort();
-        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort();
-
+        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
+        window.sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
+        window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
+        window.ttype_list = [...ttypeSet].sort((a, b) => a.localeCompare(b));
+        window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
+        window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
+        window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
     }
 
-    function showCustomDropdown(inputElem, dataArray) {
+    window.showCustomDropdown = function(inputElem, dataArray) {
         const dropdownId = inputElem.id + '-dropdown';
         const container = document.getElementById(dropdownId);
         const query = inputElem.value.toLowerCase();
@@ -919,6 +622,10 @@
 
         // === Core logic to update dropdowns based on Transaction Type ===
         function applyTransactionTypeSettings(ttype, clearFields = false) {
+            const fpartyInput = document.getElementById(prefix + "TranFparty");
+            const tpartyInput = document.getElementById(prefix + "TranTparty");
+            const amountInput = document.getElementById(prefix + "TranAmount");
+
             if (ttype === "Sales") {
                 fpartyInput.oninput = () => showCustomDropdown(fpartyInput, sproduct_list);
                 tpartyInput.oninput = () => showCustomDropdown(tpartyInput, crdb_list);
@@ -951,9 +658,9 @@
             }
 
             if (clearFields) {
-                fpartyInput.value = "";
-                tpartyInput.value = "";
-                amountInput.value = "";
+                fpartyInput.value = '';
+                tpartyInput.value = '';
+                amountInput.value = '';
             }
         }
 
@@ -989,8 +696,8 @@
         }
 
         // === Setup initial validation for both party fields (basic fallback list)
-        setupValidation(fpartyInput, "From Party", crdb_list);
-        setupValidation(tpartyInput, "To Party", crdbcsbkangexp_list);
+        //setupValidation(fpartyInput, "From Party", crdb_list);
+        //setupValidation(tpartyInput, "To Party", crdbcsbkangexp_list);
 
         // === If value already filled (like in Update), apply settings
         const initialType = ttypeInput.value.trim();
@@ -2193,6 +1900,11 @@
 
 
     // On Page Load Functions /////////////////////////////////////////////////////////////////////
+    loadDropdownData().then(() => {
+        setupTransactionForm("Add");      // or "Update"
+    });
+
+
     window.onload = () => {
         updateCashLabel();
         viewGroupsAndAccounts();
@@ -2206,6 +1918,320 @@
     };
 
 </script>
+
+<div class="topbar">
+    <button class="hamburger" id="hamburgerBtn">☰ App</button>
+    <label class="cash-label" id="cashLabel">Cash: ₹0</label>
+</div>
+
+
+<!-- Login Form -->
+<div id="loginContainer" style="display: none;">
+    <h2>Login</h2>
+    <input id="loginEmail" placeholder="Email" type="email">
+    <input id="loginPassword" placeholder="Password" type="password">
+    <button class="action-button" onclick="login()">Login</button>
+    <div class="error" id="loginError"></div>
+    <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+</div>
+
+
+<!-- Register Form -->
+<div id="registerContainer" style="display:none;">
+    <h2>Register</h2>
+    <input id="registerEmail" placeholder="Email" type="email">
+    <input id="registerPassword" placeholder="Password" type="password">
+    <button class="action-button" onclick="register()">Register</button>
+    <div class="error" id="registerError"></div>
+    <div class="small-link"><a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a></div>
+</div>
+
+
+<div id="widget-area">
+
+    <!-- All Sub-Menu Buttons -------------------------------------------------------------------->
+
+
+    <div class="accordion-container" id="accordionMenu">
+
+        <!-- Group Sub-Button -------------------------------------------------------------------->
+        <button class="accordion groups-accordion">👥 Groups</button>
+        <div class="panel">
+            <button class="sub-button" widgets="GroupWidgets">👥 New Group</button>
+        </div>
+
+
+        <!-- Ledger  Sub-Button ------------------------------------------------------------------>
+        <button class="accordion ledgers-accordion">📖 Ledgers</button>
+        <div class="panel">
+            <button class="sub-button" widgets="LedgerWidgets">📖 New Ledger</button>
+            <button class="sub-button" widgets="UpdateLedgerWidgets">✏️ Update Ledger</button>
+        </div>
+
+
+        <!-- Product  Sub-Button ----------------------------------------------------------------->
+        <button class="accordion products-accordion">🛍️ Products</button>
+        <div class="panel">
+            <button class="sub-button" widgets="ProductWidgets">🛍️ New Product</button>
+            <button class="sub-button" widgets="UpdateProductWidgets">✏️ Update Product</button>
+        </div>
+
+
+        <!-- transaction Sub-Button -------------------------------------------------------------->
+        <button class="accordion tran-accordion">➕ Transactions</button>
+        <div class="panel">
+            <button class="sub-button" widgets="Transaction">🛒 New Transaction</button>
+            <button class="sub-button" widgets="UpdateTransaction">✏️ Update Transaction</button>
+            <button class="sub-button" widgets="DeleteTransaction">🗑️ Delete Transaction</button>
+        </div>
+
+
+        <!-- View Sub-Button --------------------------------------------------------------------->
+        <button class="accordion view-accordion">👁️ View</button>
+        <div class="panel">
+            <button class="sub-button" id="vdbbtn" widgets="vdb">📖 Daybook</button>
+            <button class="sub-button" id="vglbtn" widgets="vgl">👥 Groups & 📖 Ledgers</button>
+            <button class="sub-button" id="vprodbtn" widgets="vprod">🛍️ Products</button>
+            <button class="sub-button" id="vrecbtn" widgets="vrec">💰 Receivables</button>
+            <button class="sub-button" id="vpaybtn" widgets="vpay">💵 Payables</button>
+            <button class="sub-button" id="profitbtn" widgets="vprofit">📈 Profit & 📉 Loss</button>
+            <button class="sub-button" id="khabtn" widgets="vkha">📒 Khatavahi</button>
+        </div>
+
+
+        <!-- Export Sub-Button ------------------------------------------------------------------->
+        <button class="accordion export-accordion">✈️ Export</button>
+        <div class="panel">
+            <button class="sub-button" widgets="export">📤 Export CSV PDF</button>
+        </div>
+
+
+        <!-- Logout Sub-Button ------------------------------------------------------------------->
+        <button class="accordion logout-accordion">🔒Logout</button>
+        <div class="panel">
+            <button class="sub-button" id="logoutbtn" onclick="logout()" widgets="logout">↩️ Logout</button>
+        </div>
+
+    </div>
+
+
+    <!-- Widgets --------------------------------------------------------------------------------->
+
+
+    <!-- Add Group -->
+    <div class="widget-area" id="GroupWidgets" style="height: 150px;">
+        <br>
+        <label>Group Name:</label>
+        <input autocomplete="off" id="GroupName" list="grp_list" placeholder="Group Name" type="text"><br>
+        <button class="action-button" id="SaveGroupButton">💾 Save Group</button>
+    </div>
+
+
+    <!-- Add Ledger -->
+    <div class="widget-area" id="LedgerWidgets" style="height: 400px;">
+        <br>
+        <label>Select Ledger Group:</label>
+        <input autocomplete="off" id="LedgerGroup" list="grp_list" placeholder="Ledger Group" type="text"><br>
+        <br>
+        <label>Enter Ledger Name:</label>
+        <input autocomplete="off" id="LedgerName" list="allnames_list" placeholder="Ledger Name" type="text"><br>
+        <br>
+        <label>Enter Op Bal Jama Jo Hoy Toh:</label><input autocomplete="off" id="OBJ" placeholder="Op Bal Jama" type="number"><br>
+        <br>
+        <label>Enter Op Bal Khate Jo Hoy Toh:</label><input autocomplete="off" id="OBK" placeholder="Op Bal Khate" type="number"><br>
+        <button class="action-button" id="SaveLedgerButton">💾 Save Ledger</button>
+    </div>
+
+
+    <!-- Add Product -->
+    <div class="widget-area" id="ProductWidgets" style="height: 300px;">
+        <br>
+        <label>Select Product Group:</label>
+        <input autocomplete="off" id="ProductGroup" list="sp_list" placeholder="Product Group" type="text"><br>
+        <br>
+        <label>Enter Product Name:</label><input autocomplete="off" id="ProductName" placeholder="New Product Name" type="text"><br>
+        <br>
+        <label>Enter Op Stock Jo Hoy Toh:</label>
+        <input autocomplete="off" id="ProductOPSTK" placeholder="Product Op Stock" type="number"><br>
+        <button class="action-button" id="SaveProductButton">💾 Save Product</button>
+        <br><br>
+    </div>
+
+
+    <!-- Update Ledger -->
+    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 600px;">
+        <br>
+        <label>Select Old Ledger Group:</label>
+        <input autocomplete="off" id="OldLedgerGroup" list="grp_list" placeholder="Old Ledger Group" type="text"><br>
+        <br>
+        <label>Select Old Ledger Name:</label>
+        <input autocomplete="off" id="OldLedgerName" list="allnames_list" placeholder="Old Ledger Name" type="text"><br><br><br>
+        <br>
+        <label>Select New Ledger Group:</label>
+        <input autocomplete="off" id="UpdatedLedgerGroup" list="grp_list" placeholder="Updated Ledger Group" type="text"><br>
+        <br>
+        <label>Enter New Ledger Name:</label>
+        <input autocomplete="off" id="UpdatedLedgerName" placeholder="Updated Ledger Name" type="text"><br>
+        <br>
+        <label>Enter Op Bal Jama:</label>
+        <input autocomplete="off" id="UpdatedOBJ" placeholder="Updated Op Bal Jama" type="number"><br>
+        <br>
+        <label>Enter Op Bal Khate:</label>
+        <input autocomplete="off" id="UpdatedOBK" placeholder="Updated Op Bal Khate" type="number"><br>
+        <button class="action-button" id="UpdateLedgerButton">✏️ Update Ledger</button>
+    </div>
+
+
+    <!-- Update product -->
+    <div class="widget-area" id="UpdateProductWidgets" style="height: 270px;">
+        <input autocomplete="off" id="OldProductGroup" list="sp_list" placeholder="Select Product Group" type="text"><br>
+        <input autocomplete="off" id="OldProductName" placeholder="Old Product Name" type="text"><br>
+        <input autocomplete="off" id="NewProductGroup" list="sp_list" placeholder="Updated Product Name" type="text"><br>
+        <input autocomplete="off" id="NewProductName" placeholder="New Product Name" type="text"><br>
+        <input autocomplete="off" id="NewOpStock" placeholder="Product Op Stock" type="number"><br>
+        <button class="action-button" id="UpdateProductButton">✏️ Update Product</button>
+    </div>
+
+
+    <!-- Add Transaction -->
+    <div class="widget-area" id="Transaction" style="height: 350px; position: relative;">
+        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)"
+               placeholder="Transaction Type">
+        <div class="dropdown-container" id="AddTranTtype-dropdown"></div>
+
+        <input id="AddTranDate" type="date"><br>
+
+        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, [])" placeholder="From Party">
+        <div class="dropdown-container" id="AddTranFparty-dropdown"></div>
+        <br>
+
+        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, [])" placeholder="To Party">
+        <div class="dropdown-container" id="AddTranTparty-dropdown"></div>
+        <br>
+
+        <input id="AddTranAmount" placeholder="Amount" type="number"><br>
+
+        <input id="AddTranNar" placeholder="Narration" type="text"><br>
+
+        <div id="Add-transaction-errors" style="color: red; display: none;"></div>
+
+        <button class="action-button" id="AddTranSaveButton">💾 Save Transaction</button>
+    </div>
+
+
+    <!-- Update Transaction -->
+    <div class="widget-area" id="UpdateTransaction" style="height: 410px;">
+        <input autocomplete="off" id="UpdateId" placeholder="Id To Update" type="number"><br>
+        <button class="action-button" id="UpdateSearchButton">🔍 Search & Insert</button>
+        <br><br><br><br>
+        <input autocomplete="off" id="UpdateTranTtype" placeholder="Transaction Type" readonly type="text"><br>
+        <input autocomplete="off" id="UpdateTranDate" type="date"><br>
+        <input autocomplete="off" id="UpdateTranFparty" list="" placeholder="" type="text"><br>
+        <input autocomplete="off" id="UpdateTranTparty" list="" placeholder="" type="text"><br>
+        <input autocomplete="off" id="UpdateTranAmount" placeholder="" type="number"><br>
+        <input autocomplete="off" id="UpdateTranNar" placeholder="Naration" type="text"><br>
+        <button class="action-button" id="UpdateTranButton">✏️ Update Transaction</button>
+    </div>
+
+
+    <!-- Delete Transaction -->
+    <div class="widget-area" id="DeleteTransaction" style="height: 130px;">
+        <input autocomplete="off" id="DeleteId" placeholder="Id To Delete" type="number"><br>
+        <button class="action-button del-action-button" id="DeleteTranButton">🗑️ Delete Transaction</button>
+        <br>
+        <div id="delete-error" style="color: red; margin-top: 5px;"></div>
+    </div>
+
+
+    <!-- Views ----------------------------------------------------------------------------------->
+
+
+    <!-- Daybook --------------->
+    <div class="widget-area" id="vdb" style="height: 190px;">
+        <input autocomplete="off" id="typeField" list="ttype_list" placeholder="Filter By Transaction Type" type="text"><br>
+        <input autocomplete="off" id="apartyfield" list="allnames_list" placeholder="Filter By Party / Product" type="text"><br>
+        <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number"><br>
+        <button class="action-button" id="filterBtn">⏳ Filter</button>
+        <br><br>
+        <div id="daybookTable"></div>
+    </div>
+
+
+    <!-- Groups & Ledgers --------------->
+    <div class="widget-area" id="vgl" style="height: 15px;">
+        <Label>View Groups Ledgers</Label>
+        <div id="viewGroupsLadgersTable"></div>
+    </div>
+
+
+    <!-- Product --------------->
+    <div class="widget-area" id="vprod" style="height: 15px;">
+        <Label>View Products</Label>
+        <div id="productsTable"></div>
+    </div>
+
+
+    <!-- Receivable --------------->
+    <div class="widget-area" id="vrec" style="height: 15px;">
+        <Label>View Receivables</Label>
+        <div id="viewRecTable"></div>
+    </div>
+
+
+    <!-- Payable --------------->
+    <div class="widget-area" id="vpay" style="height: 15px;">
+        <Label>View Payables</Label>
+        <div id="viewPayTable"></div>
+    </div>
+
+
+    <!-- Profit & Loss --------------->
+    <div class="widget-area" id="vprofit" style="height: 200px;">
+        <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date"><br>
+        <input autocomplete="off" id="toDate" placeholder="End Date" type="date"><br>
+        <input autocomplete="off" id="closingStock" placeholder="Cosing Stock" type="number"><br>
+        <button class="action-button" id="calculateProfitbtn">Calculate Profit & Loss</button>
+        <br><br>
+        <div id="plTable"></div>
+    </div>
+
+
+    <!-- Khatavahi --------------->
+    <div class="widget-area" id="vkha" style="height: 200px;">
+        <input autocomplete="off" id="kfromDate" placeholder="Start Date" type="date"><br>
+        <input autocomplete="off" id="ktoDate" placeholder="End Date" type="date"><br>
+        <input autocomplete="off" id="kparty" list="allnames_list" placeholder="Party Product Expense" type="text"><br>
+        <button class="action-button" id="calkhabtn">⏳ Show Transactions</button>
+        <br><br>
+        <div id="khaTable"></div>
+    </div>
+
+
+    <!-- Export -->
+    <div class="widget-area" id="export" style="height: 410px;">
+        <Label>Export - PDF Export</Label><br><br>
+        <label>Start Date:</label>
+        <input autocomplete="off" id="exportStartDate" placeholder="Start Date" type="date"><br><br>
+        <label>End Date:</label>
+        <input autocomplete="off" id="exportEndDate" placeholder="End Date" type="date"><br><br>
+        <label>Party:</label>
+        <input autocomplete="off" id="exportParty" list="allnames_list" placeholder="Party" type="text"><br><br>
+        <label>Transaction Type:</label>
+        <input autocomplete="off" id="exportTType" list="ttype_list" placeholder="Tran Type" type="text"><br>
+        <button class="action-button" id="exportBtn">✈️ Export Data</button>
+        <div class="error" id="exportError"></div>
+    </div>
+
+
+    <!-- Global Errors Space ----->
+    <div id="Add-transaction-errors"></div>
+    <div id="Update-transaction-errors"></div>
+
+</div>
+
+
+<!-- Lists --------------------------------------------------------------------------------------->
+
 
 </body>
 
