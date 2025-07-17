@@ -219,9 +219,11 @@
         }
 
     </style>
+
 </head>
 
 <body>
+
 <!-- Firebase ------------------------------------------------------------------------------------>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
@@ -393,8 +395,9 @@
         document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("show"));
     }
 
+
     // Clear Field Values /////////////////////////////////////////////////////////////////////////
-    function clearInputsById(ids) {
+    window.clearInputsById = function(ids) {
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el && 'value' in el) {
@@ -405,7 +408,7 @@
 
 
     // Date Conversion ////////////////////////////////////////////////////////////////////////////
-    function formatDate(d) {
+    window.formatDate = function(d) {
         if (!d) return "";
         const parts = d.split("-");
         if (parts.length === 3) {
@@ -416,19 +419,19 @@
 
 
     // Converts yyyy-mm-dd -> dd-mm-yyyy //////////////////////////////////////////////////////////
-    function toYMD(d) {
+    window.toYMD = function(d) {
         return d;
     }
 
 
     // To Capitalize Words ////////////////////////////////////////////////////////////////////////
-    function capitalizeWords(str) {
+    window.capitalizeWords = function(str) {
         return str.replace(/\b\w/g, c => c.toUpperCase());
     }
 
 
     // Cash Label /////////////////////////////////////////////////////////////////////////////////
-    async function updateCashLabel() {
+    window.updateCashLabel = function() {
         const tranCol = collection(db, "tran");
         const snapshot = await getDocs(tranCol);
 
@@ -451,7 +454,7 @@
 
 
     // All Dropdown Lists /////////////////////////////////////////////////////////////////////////
-    async function loadDropdownData() {
+    window.loadDropdownData = function() {
         const tranCol = collection(db, "tran");
         const snapshot = await getDocs(tranCol);
 
@@ -538,12 +541,24 @@
         window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
     }
 
+
     window.showCustomDropdown = function (inputElem, dataArray) {
         const dropdownId = inputElem.id + '-dropdown';
         const container = document.getElementById(dropdownId);
-        const query = inputElem.value.toLowerCase();
+        const query = inputElem.value.toLowerCase().trim();
 
+        // Clear previous suggestions
         container.innerHTML = '';
+        container.style.display = 'none';
+
+        if (!query || !Array.isArray(dataArray) || dataArray.length === 0) {
+            return;
+        }
+
+        const matches = dataArray.filter(item => item.toLowerCase().includes(query));
+        if (matches.length === 0) return;
+
+        container.style.display = 'block';
         container.style.border = '1px solid #ccc';
         container.style.position = 'absolute';
         container.style.backgroundColor = 'white';
@@ -552,28 +567,21 @@
         container.style.maxHeight = '150px';
         container.style.overflowY = 'auto';
 
-        const matches = dataArray.filter(item => item.toLowerCase().includes(query));
         matches.forEach(match => {
             const div = document.createElement('div');
             div.textContent = match;
             div.style.padding = '6px';
             div.style.cursor = 'pointer';
-            div.onclick = () => {
+            div.onmousedown = () => {
                 inputElem.value = match;
                 container.innerHTML = '';
-                inputElem.dispatchEvent(new Event("change"));  // trigger dependent logic
+                container.style.display = 'none';
+                inputElem.dispatchEvent(new Event("change")); // Useful for form logic
             };
             container.appendChild(div);
         });
+    };
 
-        if (matches.length === 0) {
-            const div = document.createElement('div');
-            div.textContent = 'No match';
-            div.style.color = 'gray';
-            div.style.padding = '6px';
-            container.appendChild(div);
-        }
-    }
 
     document.addEventListener('click', (e) => {
         document.querySelectorAll('.dropdown-container').forEach(container => {
@@ -582,7 +590,7 @@
     });
 
 
-    async function populateDatalist(datalistId, items) {
+    window.populateDatalist = function(datalistId, items) {
         const datalist = document.getElementById(datalistId);
         if (!datalist) {
             showError("⚠️ Datalist element not found:", datalistId);
@@ -598,8 +606,22 @@
     }
 
 
+    window.handleProductDropdown = function(inputElem, groupInputId) {
+        const groupName = capitalizeWords(document.getElementById(groupInputId)?.value.trim() || "");
+        let list = [];
+
+        if (groupName === "Sales") {
+            list = window.sproduct_list || [];
+        } else if (groupName === "Purchase") {
+            list = window.pproduct_list || [];
+        }
+
+        showCustomDropdown(inputElem, list);
+    }
+
+
     // New Names Added To Update Datalist /////////////////////////////////////////////////////////
-    function addToDatalist(datalistId, value) {
+    window.addToDatalist = function(datalistId, value) {
         const dataList = document.getElementById(datalistId);
         if (!dataList) return;
 
@@ -610,7 +632,7 @@
 
 
     // List Selector //////////////////////////////////////////////////////////////////////////////
-    function setupTransactionForm(prefix) {
+    window.setupTransactionForm = function(prefix) {
         const dateInput = document.getElementById(prefix + "TranDate");
         const ttypeInput = document.getElementById(prefix + "TranTtype");
         const fpartyInput = document.getElementById(prefix + "TranFparty");
@@ -910,19 +932,11 @@
 
             await Promise.all(updatePromises);
 
-            // ✅ Update in-memory allnames_list
             if (!window.allnames_list.includes(newLedgerName)) {
                 window.allnames_list.push(newLedgerName);
                 window.allnames_list.sort((a, b) => a.localeCompare(b));
             }
 
-            // ✅ Show updated dropdown if input is still visible
-            const inputElem = document.getElementById("UpdatedLedgerName");
-            if (inputElem) {
-                showCustomDropdown(inputElem, window.allnames_list);
-            }
-
-            viewGroupsAndAccounts();
             clearInputsById(["OldLedgerGroup", "OldLedgerName", "UpdatedLedgerGroup", "UpdatedLedgerName", "UpdatedOBJ", "UpdatedOBK"]);
 
         } catch (error) {
@@ -980,27 +994,18 @@
             name: productname
         });
 
-        // ✅ Update appropriate product list
         if (spgroup === "Sales") {
             if (!window.sproduct_list.includes(productname)) {
                 window.sproduct_list.push(productname);
                 window.sproduct_list.sort((a, b) => a.localeCompare(b));
             }
-
-            const input = document.getElementById("ProductName");
-            if (input) showCustomDropdown(input, window.sproduct_list);
-
         } else if (spgroup === "Purchase") {
             if (!window.pproduct_list.includes(productname)) {
                 window.pproduct_list.push(productname);
                 window.pproduct_list.sort((a, b) => a.localeCompare(b));
             }
-
-            const input = document.getElementById("ProductName");
-            if (input) showCustomDropdown(input, window.pproduct_list);
         }
 
-        viewGroupsAndAccounts();
         clearInputsById(["ProductGroup", "ProductName", "ProductOPSTK"]);
     }
 
@@ -1023,7 +1028,6 @@
         const finalProdGrp = newProdGrp || oldProdGrp;
 
         try {
-            // ✅ Check if new product already exists
             const existsQuery = query(
                 collection(db, "tran"),
                 where("grp", "==", finalProdGrp),
@@ -1087,25 +1091,19 @@
 
             await Promise.all(updatePromises);
 
-            // ✅ Update the proper dropdown array
             if (finalProdGrp === "Sales") {
                 if (!window.sproduct_list.includes(newProdName)) {
                     window.sproduct_list.push(newProdName);
                     window.sproduct_list.sort((a, b) => a.localeCompare(b));
                 }
-                const input = document.getElementById("NewProductName");
-                if (input) showCustomDropdown(input, window.sproduct_list);
 
             } else if (finalProdGrp === "Purchase") {
                 if (!window.pproduct_list.includes(newProdName)) {
                     window.pproduct_list.push(newProdName);
                     window.pproduct_list.sort((a, b) => a.localeCompare(b));
                 }
-                const input = document.getElementById("NewProductName");
-                if (input) showCustomDropdown(input, window.pproduct_list);
             }
 
-            viewGroupsAndAccounts();
             clearInputsById(["OldProductGroup", "OldProductName", "NewProductGroup", "NewProductName", "NewOpStock"]);
 
         } catch (error) {
@@ -1936,6 +1934,7 @@
         viewDaybook();
     };
 
+
 </script>
 
 <div class="topbar">
@@ -2102,7 +2101,8 @@
         <div class="dropdown-container" id="UpdatedLedgerGroup-dropdown"></div>
         <br><br>
         <label for="UpdatedLedgerName">New Ledger Name:</label>
-        <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Updated Ledger Name" type="text">
+        <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Updated Ledger Name"
+               type="text">
         <div class="dropdown-container" id="UpdatedLedgerName-dropdown"></div>
         <br><br>
         <label for="UpdatedOBJ">Updated Opening Balance Jama:</label>
@@ -2120,17 +2120,25 @@
         <label for="OldProductGroup">Old Product Group:</label>
         <input autocomplete="off" id="OldProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Select Product Group" type="text">
         <div class="dropdown-container" id="OldProductGroup-dropdown"></div>
+
         <br><br>
+
         <label for="OldProductName">Old Product Name:</label>
-        <input autocomplete="off" id="OldProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Old Product Name" type="text">
+        <input autocomplete="off" id="OldProductName" oninput="handleProductDropdown(this, 'OldProductGroup')" placeholder="Old Product Name"
+               type="text">
         <div class="dropdown-container" id="OldProductName-dropdown"></div>
+
         <br><br>
+
         <label for="NewProductGroup">New Product Group:</label>
         <input autocomplete="off" id="NewProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Updated Product Group" type="text">
         <div class="dropdown-container" id="NewProductGroup-dropdown"></div>
+
         <br><br>
+
         <label for="NewProductName">New Product Name:</label>
-        <input autocomplete="off" id="NewProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="New Product Name" type="text">
+        <input autocomplete="off" id="NewProductName" oninput="handleProductDropdown(this, 'NewProductGroup')" placeholder="New Product Name"
+               type="text">
         <div class="dropdown-container" id="NewProductName-dropdown"></div>
         <br><br>
         <label for="NewOpStock">New Opening Stock:</label>
@@ -2216,7 +2224,8 @@
         <div class="dropdown-container" id="typeField-dropdown"></div>
         <br><br>
         <label for="apartyfield">Party / Product:</label>
-        <input autocomplete="off" id="apartyfield" oninput="showCustomDropdown(this, allnames_list)" placeholder="Filter By Party / Product" type="text">
+        <input autocomplete="off" id="apartyfield" oninput="showCustomDropdown(this, allnames_list)" placeholder="Filter By Party / Product"
+               type="text">
         <div class="dropdown-container" id="apartyfield-dropdown"></div>
         <br><br>
         <label for="amountField">Amount:</label>
