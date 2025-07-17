@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Index104</title>
+    <title>Index</title>
 
     <style>
         body {
@@ -15,10 +15,15 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 40px;
             background-color: #343541;
             padding: 1px 1px 1px 10px;
+            border-bottom: 1px solid #ccc;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
@@ -35,8 +40,9 @@
             background-color: #2b1727;
             display: none;
             width: 100%;
-            max-width: 300px;
+            max-width: 317px;
             padding: 5px 20px 20px 20px;
+            margin: 45px 2px 2px 2px;
             border-radius: 1px 1px 15px 15px;
         }
 
@@ -50,6 +56,7 @@
             color: #fff;
             background-color: #0c7508;
             cursor: pointer;
+            margin: 3px;
         }
 
         .accordion.active {
@@ -68,7 +75,7 @@
             margin: 1px 1px 5px 40px;
             padding: 1px;
             width: 100%;
-            max-width: 255px;
+            max-width: 272px;
         }
 
         .panel.show {
@@ -116,7 +123,7 @@
             border-radius: 5px;
             height: 40px;
             border: 2px solid #ccc;
-            font-size: 16px;
+            font-size: 20px;
             font-family: inherit;
         }
 
@@ -135,7 +142,7 @@
             background: #fff;
             border-radius: 8px;
             padding: 10px;
-            margin: 2px;
+            margin: 45px 2px 2px 2px;
             max-width: 330px;
             display: none;
             border: 2px solid #ddd;
@@ -145,6 +152,7 @@
             border-collapse: collapse;
             margin-top: 15px;
             table-layout: fixed;
+            font-size: 20px;
         }
 
         table th, table td {
@@ -155,16 +163,10 @@
         table th {
             background-color: #28a745;
             position: sticky;
-            top: 0;
-            z-index: 1;
+            top: 40px;
+            z-index: 999;
         }
 
-        .edit-table {
-            border-collapse: collapse;
-            width: 400px;
-            margin-top: 15px;
-            table-layout: fixed;
-        }
 
         /* Main MenuButton Colors */
         .groups-accordion {
@@ -203,7 +205,7 @@
             position: absolute;
             background-color: white;
             border: 1px solid #ccc;
-            max-height: 150px;
+            font-size: 20px;
             overflow-y: auto;
             z-index: 999;
             width: 200px;
@@ -474,10 +476,8 @@
             const data = doc.data();
             const grp = (data.grp || "").trim();
             const name = (data.name || "").trim();
-
             if (grp.length === 0) return;
 
-            // Transaction types
             if (["Sales", "Purchase", "Receipt", "Payment"].includes(grp)) {
                 ttypeSet.add(grp);
             }
@@ -486,9 +486,10 @@
                 spSet.add(grp);
             } else if (!["Receipt", "Payment"].includes(grp)) {
                 grpSet.add(grp);
-                if (name.length > 0) {
-                    nameSet.add(name);
-                }
+            }
+
+            if (name.length > 0) {
+                nameSet.add(name);
             }
 
             // Sales products
@@ -1924,6 +1925,7 @@
 
 <!-- Login Form -->
 <div id="loginContainer" style="display: none;">
+    <br><br>
     <h2>Login</h2>
     <input id="loginEmail" placeholder="Email" type="email">
     <input id="loginPassword" placeholder="Password" type="password">
@@ -2016,13 +2018,12 @@
 
 
     <!-- Add Group -->
-    <div class="widget-area" id="GroupWidgets" style="height: 150px;">
+    <div class="widget-area" id="GroupWidgets" style="height: 190px;">
         <br>
         <label for="GroupName">Group Name:</label>
-        <input autocomplete="off" id="GroupName" oninput="showCustomDropdown(this, grp_list)" placeholder="Group Name"
-               type="text">
+        <input autocomplete="off" id="GroupName" oninput="showCustomDropdown(this, grp_list)" placeholder="Group Name" type="text"><br>
         <div class="dropdown-container" id="GroupName-dropdown"></div>
-        <br>
+        <br><br>
         <button class="action-button" id="SaveGroupButton">📏 Save Group</button>
     </div>
 
@@ -2032,14 +2033,14 @@
         <label for="LedgerGroup">Ledger Group:</label>
         <input autocomplete="off" id="LedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Ledger Group" type="text">
         <div class="dropdown-container" id="LedgerGroup-dropdown"></div>
-        <br>
+        <br><br>
         <label for="LedgerName">Ledger Name:</label>
         <input autocomplete="off" id="LedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Ledger Name" type="text">
         <div class="dropdown-container" id="LedgerName-dropdown"></div>
-        <br>
+        <br><br>
         <label for="OBJ">Opening Balance Jama:</label>
         <input autocomplete="off" id="OBJ" placeholder="Op Bal Jama" type="number">
-        <br>
+        <br><br>
         <label for="OBK">Opening Balance Khate:</label>
         <input autocomplete="off" id="OBK" placeholder="Op Bal Khate" type="number">
         <br>
@@ -2047,153 +2048,137 @@
     </div>
 
     <!-- Add Product -->
-    <div class="widget-area" id="ProductWidgets" style="height: 300px;">
-        <br>
+    <div class="widget-area" id="ProductWidgets" style="height: 310px;">
         <label for="ProductGroup">Product Group:</label>
-        <input autocomplete="off" id="ProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Product Group"
-               type="text">
+        <input autocomplete="off" id="ProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Product Group" type="text">
         <div class="dropdown-container" id="ProductGroup-dropdown"></div>
-        <br>
+        <br><br>
         <label for="ProductName">Product Name:</label>
-        <input autocomplete="off" id="ProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="New Product Name"
-               type="text">
+        <input autocomplete="off" id="ProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="New Product Name" type="text">
         <div class="dropdown-container" id="ProductName-dropdown"></div>
-        <br>
+        <br><br>
         <label for="ProductOPSTK">Opening Stock:</label>
         <input autocomplete="off" id="ProductOPSTK" placeholder="Product Op Stock" type="number">
-        <br>
-        <button class="action-button" id="SaveProductButton">📏 Save Product</button>
         <br><br>
+        <button class="action-button" id="SaveProductButton">📏 Save Product</button>
     </div>
 
     <!-- Update Ledger -->
-    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 600px;">
-        <br>
+    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 560px;">
         <label for="OldLedgerGroup">Old Ledger Group:</label>
-        <input autocomplete="off" id="OldLedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Old Ledger Group"
-               type="text">
+        <input autocomplete="off" id="OldLedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Old Ledger Group" type="text">
         <div class="dropdown-container" id="OldLedgerGroup-dropdown"></div>
-        <br>
+        <br><br>
         <label for="OldLedgerName">Old Ledger Name:</label>
-        <input autocomplete="off" id="OldLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Old Ledger Name"
-               type="text">
+        <input autocomplete="off" id="OldLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Old Ledger Name" type="text">
         <div class="dropdown-container" id="OldLedgerName-dropdown"></div>
-        <br>
+        <br><br>
         <label for="UpdatedLedgerGroup">New Ledger Group:</label>
-        <input autocomplete="off" id="UpdatedLedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Updated Ledger Group"
-               type="text">
+        <input autocomplete="off" id="UpdatedLedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Updated Ledger Group" type="text">
         <div class="dropdown-container" id="UpdatedLedgerGroup-dropdown"></div>
-        <br>
+        <br><br>
         <label for="UpdatedLedgerName">New Ledger Name:</label>
         <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Updated Ledger Name"
                type="text">
         <div class="dropdown-container" id="UpdatedLedgerName-dropdown"></div>
-        <br>
+        <br><br>
         <label for="UpdatedOBJ">Updated Opening Balance Jama:</label>
         <input autocomplete="off" id="UpdatedOBJ" placeholder="Updated Op Bal Jama" type="number">
-        <br>
+        <br><br>
         <label for="UpdatedOBK">Updated Opening Balance Khate:</label>
         <input autocomplete="off" id="UpdatedOBK" placeholder="Updated Op Bal Khate" type="number">
-        <br>
+        <br><br>
         <button class="action-button" id="UpdateLedgerButton">✏️ Update Ledger</button>
     </div>
 
+
     <!-- Update Product -->
-    <div class="widget-area" id="UpdateProductWidgets" style="height: 270px;">
-        <br>
+    <div class="widget-area" id="UpdateProductWidgets" style="height: 480px;">
         <label for="OldProductGroup">Old Product Group:</label>
-        <input autocomplete="off" id="OldProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Select Product Group"
-               type="text">
+        <input autocomplete="off" id="OldProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Select Product Group" type="text">
         <div class="dropdown-container" id="OldProductGroup-dropdown"></div>
-        <br>
+        <br><br>
         <label for="OldProductName">Old Product Name:</label>
-        <input autocomplete="off" id="OldProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Old Product Name"
-               type="text">
+        <input autocomplete="off" id="OldProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Old Product Name" type="text">
         <div class="dropdown-container" id="OldProductName-dropdown"></div>
-        <br>
+        <br><br>
         <label for="NewProductGroup">New Product Group:</label>
-        <input autocomplete="off" id="NewProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Updated Product Group"
-               type="text">
+        <input autocomplete="off" id="NewProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Updated Product Group" type="text">
         <div class="dropdown-container" id="NewProductGroup-dropdown"></div>
-        <br>
+        <br><br>
         <label for="NewProductName">New Product Name:</label>
-        <input autocomplete="off" id="NewProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="New Product Name"
-               type="text">
+        <input autocomplete="off" id="NewProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="New Product Name" type="text">
         <div class="dropdown-container" id="NewProductName-dropdown"></div>
-        <br>
+        <br><br>
         <label for="NewOpStock">New Opening Stock:</label>
         <input autocomplete="off" id="NewOpStock" placeholder="Product Op Stock" type="number">
-        <br>
+        <br><br>
         <button class="action-button" id="UpdateProductButton">✏️ Update Product</button>
     </div>
 
+
     <!-- Add Transaction -->
-    <div class="widget-area" id="Transaction" style="height: 350px;">
-        <br>
+    <div class="widget-area" id="Transaction" style="height: 560px;">
         <label for="AddTranTtype">Transaction Type:</label>
-        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)" placeholder="Transaction Type"
-               type="text">
+        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)" placeholder="Transaction Type" type="text">
         <div class="dropdown-container" id="AddTranTtype-dropdown"></div>
-        <br>
+        <br><br>
         <label for="AddTranDate">Transaction Date:</label>
         <input autocomplete="off" id="AddTranDate" placeholder="Transaction Date" type="date">
-        <br>
+        <br><br>
         <label for="AddTranFparty">From Party:</label>
-        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, crdb_list)" placeholder="From Party"
-               type="text">
+        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, crdb_list)" placeholder="From Party" type="text">
         <div class="dropdown-container" id="AddTranFparty-dropdown"></div>
-        <br>
+        <br><br>
         <label for="AddTranTparty">To Party:</label>
-        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, crdb_list)" placeholder="To Party"
-               type="text">
+        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, crdb_list)" placeholder="To Party" type="text">
         <div class="dropdown-container" id="AddTranTparty-dropdown"></div>
-        <br>
+        <br><br>
         <label for="AddTranAmount">Amount:</label>
         <input autocomplete="off" id="AddTranAmount" placeholder="Amount" type="number">
-        <br>
+        <br><br>
         <label for="AddTranNar">Narration:</label>
         <input autocomplete="off" id="AddTranNar" placeholder="Narration" type="text">
-        <br>
+        <br><br>
         <button class="action-button" id="AddTranSaveButton">📏 Save Transaction</button>
     </div>
 
 
     <!-- Update Transaction -->
-    <div class="widget-area" id="UpdateTransaction" style="height: 410px;">
+    <div class="widget-area" id="UpdateTransaction" style="height: 700px;">
         <input autocomplete="off" id="UpdateId" placeholder="Id To Update" type="number">
         <button class="action-button" id="UpdateSearchButton">🔍 Search & Insert</button>
-        <br><br>
-
+        <br><br><br><br><br><br>
         <label for="UpdateTranTtype">Transaction Type:</label>
         <input autocomplete="off" id="UpdateTranTtype" placeholder="Transaction Type" readonly type="text">
-
+        <br><br>
         <label for="UpdateTranDate">Transaction Date:</label>
-        <input autocomplete="off" id="UpdateTranDate" type="date"><br>
-
+        <input autocomplete="off" id="UpdateTranDate" type="date">
+        <br><br>
         <label for="UpdateTranFparty">From Party:</label>
         <input autocomplete="off" id="UpdateTranFparty" list="" placeholder="" type="text">
         <div class="dropdown-container" id="UpdateTranFparty-dropdown"></div>
-
+        <br><br>
         <label for="UpdateTranTparty">To Party:</label>
         <input autocomplete="off" id="UpdateTranTparty" list="" placeholder="" type="text">
         <div class="dropdown-container" id="UpdateTranTparty-dropdown"></div>
-
+        <br><br>
         <label for="UpdateTranAmount">Amount:</label>
         <input autocomplete="off" id="UpdateTranAmount" placeholder="" type="number">
-
+        <br><br>
         <label for="UpdateTranNar">Narration:</label>
         <input autocomplete="off" id="UpdateTranNar" placeholder="Naration" type="text">
-
+        <br><br>
         <button class="action-button" id="UpdateTranButton">✏️ Update Transaction</button>
     </div>
 
 
     <!-- Delete Transaction -->
-    <div class="widget-area" id="DeleteTransaction" style="height: 130px;">
+    <div class="widget-area" id="DeleteTransaction" style="height: 150px;">
         <label for="DeleteId">Transaction ID to Delete:</label>
-        <input autocomplete="off" id="DeleteId" placeholder="Id To Delete" type="number"><br>
+        <input autocomplete="off" id="DeleteId" placeholder="Id To Delete" type="number">
+        <br><br>
         <button class="action-button del-action-button" id="DeleteTranButton">🚨 Delete Transaction</button>
-        <br>
         <div id="delete-error" style="color: red; margin-top: 5px;"></div>
     </div>
 
@@ -2201,24 +2186,21 @@
 
 
     <!-- Daybook --------------->
-    <div class="widget-area" id="vdb" style="height: 230px;">
+    <div class="widget-area" id="vdb" style="height: 290px;">
         <label for="typeField">Transaction Type:</label>
-        <input autocomplete="off" id="typeField" oninput="showCustomDropdown(this, ttype_list)" placeholder="Filter By Transaction Type"
-               type="text">
+        <input autocomplete="off" id="typeField" oninput="showCustomDropdown(this, ttype_list)" placeholder="Filter By Transaction Type" type="text">
         <div class="dropdown-container" id="typeField-dropdown"></div>
-        <br>
-
+        <br><br>
         <label for="apartyfield">Party / Product:</label>
         <input autocomplete="off" id="apartyfield" oninput="showCustomDropdown(this, allnames_list)" placeholder="Filter By Party / Product"
                type="text">
         <div class="dropdown-container" id="apartyfield-dropdown"></div>
-        <br>
-
-        <label for="amountField">Amount:</label>
-        <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number"><br>
-
-        <button class="action-button" id="filterBtn">⏳ Filter</button>
         <br><br>
+        <label for="amountField">Amount:</label>
+        <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number">
+        <br>
+        <button class="action-button" id="filterBtn">⏳ Filter</button>
+        <br><br><br><br>
         <div id="daybookTable"></div>
     </div>
 
@@ -2252,58 +2234,58 @@
 
 
     <!-- Profit & Loss -->
-    <div class="widget-area" id="vprofit" style="height: 200px;">
-        <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date"><br>
-        <input autocomplete="off" id="toDate" placeholder="End Date" type="date"><br>
-        <input autocomplete="off" id="closingStock" placeholder="Cosing Stock" type="number"><br>
-        <button class="action-button" id="calculateProfitbtn">Calculate Profit & Loss</button>
+    <div class="widget-area" id="vprofit" style="height: 290px;">
+        <label for="romDate">Start Date:</label>
+        <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date">
         <br><br>
+        <label for="toDate">End Date:</label>
+        <input autocomplete="off" id="toDate" placeholder="End Date" type="date">
+        <br><br>
+        <label for="closingstock">Closing Stock:</label>
+        <input autocomplete="off" id="closingStock" placeholder="Cosing Stock" type="number">
+        <br>
+        <button class="action-button" id="calculateProfitbtn">Calculate Profit & Loss</button>
+        <br><br><br><br>
         <div id="plTable"></div>
     </div>
 
 
     <!-- Khaatavahi -->
-    <div class="widget-area" id="vkha" style="height: 230px;">
+    <div class="widget-area" id="vkha" style="height: 290px;">
         <label for="kfromDate">Start Date:</label>
-        <input autocomplete="off" id="kfromDate" placeholder="Start Date" type="date"><br>
-
+        <input autocomplete="off" id="kfromDate" placeholder="Start Date" type="date">
+        <br><br>
         <label for="ktoDate">End Date:</label>
-        <input autocomplete="off" id="ktoDate" placeholder="End Date" type="date"><br>
-
+        <input autocomplete="off" id="ktoDate" placeholder="End Date" type="date">
+        <br><br>
         <label for="kparty">Party / Product / Expense:</label>
-        <input autocomplete="off" id="kparty" oninput="showCustomDropdown(this, allnames_list)" placeholder="Party Product Expense"
-               type="text">
+        <input autocomplete="off" id="kparty" oninput="showCustomDropdown(this, allnames_list)" placeholder="Party Product Expense" type="text">
         <div class="dropdown-container" id="kparty-dropdown"></div>
         <br>
-
         <button class="action-button" id="calkhabtn">⏳ Show Transactions</button>
-        <br><br>
+        <br><br><br><br>
         <div id="khaTable"></div>
     </div>
 
 
     <!-- Export Section -->
-    <div class="widget-area" id="export" style="height: 450px;">
-        <label>Export - PDF Export</label><br><br>
-
+    <div class="widget-area" id="export" style="height: 440px;">
+        <label>Export - PDF Export</label>
+        <br><br>
         <label for="exportStartDate">Start Date:</label>
-        <input autocomplete="off" id="exportStartDate" placeholder="Start Date" type="date"><br><br>
-
+        <input autocomplete="off" id="exportStartDate" placeholder="Start Date" type="date">
+        <br><br>
         <label for="exportEndDate">End Date:</label>
-        <input autocomplete="off" id="exportEndDate" placeholder="End Date" type="date"><br><br>
-
+        <input autocomplete="off" id="exportEndDate" placeholder="End Date" type="date">
+        <br><br>
         <label for="exportParty">Party:</label>
-        <input autocomplete="off" id="exportParty" oninput="showCustomDropdown(this, allnames_list)" placeholder="Party"
-               type="text">
+        <input autocomplete="off" id="exportParty" oninput="showCustomDropdown(this, allnames_list)" placeholder="Party" type="text">
         <div class="dropdown-container" id="exportParty-dropdown"></div>
         <br><br>
-
         <label for="exportTType">Transaction Type:</label>
-        <input autocomplete="off" id="exportTType" oninput="showCustomDropdown(this, ttype_list)" placeholder="Tran Type"
-               type="text">
+        <input autocomplete="off" id="exportTType" oninput="showCustomDropdown(this, ttype_list)" placeholder="Tran Type" type="text">
         <div class="dropdown-container" id="exportTType-dropdown"></div>
-        <br>
-
+        <br><br>
         <button class="action-button" id="exportBtn">✈️ Export Data</button>
         <div class="error" id="exportError"></div>
     </div>
