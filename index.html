@@ -378,13 +378,27 @@
 
 
     <!-- Add Transaction -->
-    <div class="widget-area" id="Transaction" style="height: 300px;">
-        <input autocomplete="off" id="AddTranTtype" list="ttype_list" placeholder="Transaction Type" type="text"><br>
-        <input autocomplete="off" id="AddTranDate" type="date"><br>
-        <input autocomplete="off" id="AddTranFparty" list="" placeholder="" type="text"><br>
-        <input autocomplete="off" id="AddTranTparty" list="" placeholder="" type="text"><br>
-        <input autocomplete="off" id="AddTranAmount" placeholder="" type="number"><br>
-        <input autocomplete="off" id="AddTranNar" placeholder="Naration" type="text"><br>
+    <div class="widget-area" id="Transaction" style="height: 350px; position: relative;">
+        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)" placeholder="Transaction Type">
+        <div class="dropdown-container" id="AddTranTtype-dropdown"></div>
+        <br>
+
+        <input id="AddTranDate" type="date"><br>
+
+        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, [])" placeholder="From Party">
+        <div class="dropdown-container" id="AddTranFparty-dropdown"></div>
+        <br>
+
+        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, [])" placeholder="To Party">
+        <div class="dropdown-container" id="AddTranTparty-dropdown"></div>
+        <br>
+
+        <input id="AddTranAmount" placeholder="Amount" type="number"><br>
+
+        <input id="AddTranNar" placeholder="Narration" type="text"><br>
+
+        <div id="Add-transaction-errors" style="color: red; display: none;"></div>
+
         <button class="action-button" id="AddTranSaveButton">💾 Save Transaction</button>
     </div>
 
@@ -501,15 +515,6 @@
 
 
 <!-- Lists --------------------------------------------------------------------------------------->
-<datalist id="grp_list"></datalist>
-<datalist id="sp_list"></datalist>
-<datalist id="allnames_list"></datalist>
-<datalist id="ttype_list"></datalist>
-<datalist id="crdb_list"></datalist>
-<datalist id="sproduct_list"></datalist>
-<datalist id="pproduct_list"></datalist>
-<datalist id="crdbcsbkang_list"></datalist>
-<datalist id="crdbcsbkangexp_list"></datalist>
 
 
 <!-- Firebase ------------------------------------------------------------------------------------>
@@ -819,16 +824,61 @@
         const crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
 
         // ✅ Populate all datalists
-        populateDatalist("grp_list", grp_list);
-        populateDatalist("sp_list", sp_list);
-        populateDatalist("allnames_list", allnames_list);
-        populateDatalist("ttype_list", ttype_list);
-        populateDatalist("sproduct_list", sproduct_list);
-        populateDatalist("pproduct_list", pproduct_list);
-        populateDatalist("crdb_list", crdb_list);
-        populateDatalist("crdbcsbkang_list", crdbcsbkang_list);
-        populateDatalist("crdbcsbkangexp_list", crdbcsbkangexp_list);
+        window.grp_list = [...grpSet].sort();
+        window.sp_list = [...spSet].sort();
+        window.allnames_list = [...nameSet].sort();
+        window.ttype_list = [...ttypeSet].sort();
+        window.sproduct_list = [...sproductSet].sort();
+        window.pproduct_list = [...pproductSet].sort();
+        window.crdb_list = [...crdbSet].sort();
+        window.crdbcsbkang_list = [...crdbcsbkangSet].sort();
+        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort();
+
     }
+
+    function showCustomDropdown(inputElem, dataArray) {
+        const dropdownId = inputElem.id + '-dropdown';
+        const container = document.getElementById(dropdownId);
+        const query = inputElem.value.toLowerCase();
+
+        container.innerHTML = '';
+        container.style.border = '1px solid #ccc';
+        container.style.position = 'absolute';
+        container.style.backgroundColor = 'white';
+        container.style.zIndex = 1000;
+        container.style.width = inputElem.offsetWidth + 'px';
+        container.style.maxHeight = '150px';
+        container.style.overflowY = 'auto';
+
+        const matches = dataArray.filter(item => item.toLowerCase().includes(query));
+        matches.forEach(match => {
+            const div = document.createElement('div');
+            div.textContent = match;
+            div.style.padding = '6px';
+            div.style.cursor = 'pointer';
+            div.onclick = () => {
+                inputElem.value = match;
+                container.innerHTML = '';
+                inputElem.dispatchEvent(new Event("change"));  // trigger dependent logic
+            };
+            container.appendChild(div);
+        });
+
+        if (matches.length === 0) {
+            const div = document.createElement('div');
+            div.textContent = 'No match';
+            div.style.color = 'gray';
+            div.style.padding = '6px';
+            container.appendChild(div);
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        document.querySelectorAll('.dropdown-container').forEach(container => {
+            if (!container.contains(e.target)) container.innerHTML = '';
+        });
+    });
+
 
     async function populateDatalist(datalistId, items) {
         const datalist = document.getElementById(datalistId);
@@ -867,64 +917,60 @@
         const narInput = document.getElementById(prefix + "TranNar");
         const transactionErrors = document.getElementById(prefix + "-transaction-errors");
 
-        document.getElementById("UpdateTranTtype")
-            .dispatchEvent(new Event("change"));
-
+        // === Core logic to update dropdowns based on Transaction Type ===
         function applyTransactionTypeSettings(ttype, clearFields = false) {
-
             if (ttype === "Sales") {
-                fpartyInput.setAttribute("list", "sproduct_list");
-                tpartyInput.setAttribute("list", "crdb_list");
-                fpartyInput.placeholder = "Sales Party";
-                tpartyInput.placeholder = "Sales Product";
+                fpartyInput.oninput = () => showCustomDropdown(fpartyInput, sproduct_list);
+                tpartyInput.oninput = () => showCustomDropdown(tpartyInput, crdb_list);
+                fpartyInput.placeholder = "Sales Product";
+                tpartyInput.placeholder = "Sales Party";
                 amountInput.placeholder = "Sales Amount";
 
             } else if (ttype === "Purchase") {
-                fpartyInput.setAttribute("list", "crdb_list");
-                tpartyInput.setAttribute("list", "pproduct_list");
+                fpartyInput.oninput = () => showCustomDropdown(fpartyInput, crdb_list);
+                tpartyInput.oninput = () => showCustomDropdown(tpartyInput, pproduct_list);
                 fpartyInput.placeholder = "Purchase Party";
                 tpartyInput.placeholder = "Purchase Product";
                 amountInput.placeholder = "Purchase Amount";
 
             } else if (["Receipt", "Payment"].includes(ttype)) {
-                fpartyInput.setAttribute("list", "crdbcsbkang_list");
-                tpartyInput.setAttribute("list", "crdbcsbkangexp_list");
+                fpartyInput.oninput = () => showCustomDropdown(fpartyInput, crdbcsbkang_list);
+                tpartyInput.oninput = () => showCustomDropdown(tpartyInput, crdbcsbkangexp_list);
                 fpartyInput.placeholder = "Received From";
                 tpartyInput.placeholder = "Paid To";
                 amountInput.placeholder = "Amount";
+
             } else {
-                fpartyInput.removeAttribute("list");
-                tpartyInput.removeAttribute("list");
+                fpartyInput.oninput = () => {
+                };
+                tpartyInput.oninput = () => {
+                };
+                fpartyInput.placeholder = "From Party";
+                tpartyInput.placeholder = "To Party";
+                amountInput.placeholder = "Amount";
+            }
+
+            if (clearFields) {
+                fpartyInput.value = "";
+                tpartyInput.value = "";
+                amountInput.value = "";
             }
         }
 
+        // === Update when transaction type changes
         ttypeInput.addEventListener("change", () => {
             const ttype = ttypeInput.value.trim();
             applyTransactionTypeSettings(ttype, true);
         });
 
-        setupValidation(fpartyInput, "Party");
-        setupValidation(tpartyInput, "Product / Party");
-
-        function setupValidation(input, fieldLabel) {
+        // === Setup input validation based on selected list
+        function setupValidation(input, label, listSource) {
             input.addEventListener("blur", () => {
-                const datalistId = input.getAttribute("list");
-                if (!datalistId) {
-                    console.warn(`${fieldLabel}: No list assigned`);
-                    return;
-                }
-
-                const datalist = document.getElementById(datalistId);
-                if (!datalist) {
-                    return;
-                }
-
-                const value = input.value.trim();
-                const options = Array.from(datalist.options).map(opt => opt.value.toLowerCase());
-
-                if (value && !options.includes(value.toLowerCase())) {
-                    showError(`${fieldLabel}: "${value}" is not valid. Please choose from list.`);
-                    input.setCustomValidity("Invalid choice.");
+                const list = listSource.map(v => v.toLowerCase());
+                const value = input.value.trim().toLowerCase();
+                if (value && !list.includes(value)) {
+                    showError(`${label}: "${value}" is not valid.`);
+                    input.setCustomValidity("Invalid value");
                 } else {
                     clearError();
                     input.setCustomValidity("");
@@ -932,8 +978,8 @@
             });
         }
 
-        function showError(message) {
-            transactionErrors.textContent = message;
+        function showError(msg) {
+            transactionErrors.textContent = msg;
             transactionErrors.style.display = "block";
         }
 
@@ -942,6 +988,11 @@
             transactionErrors.style.display = "none";
         }
 
+        // === Setup initial validation for both party fields (basic fallback list)
+        setupValidation(fpartyInput, "From Party", crdb_list);
+        setupValidation(tpartyInput, "To Party", crdbcsbkangexp_list);
+
+        // === If value already filled (like in Update), apply settings
         const initialType = ttypeInput.value.trim();
         if (initialType) {
             applyTransactionTypeSettings(initialType, false);
