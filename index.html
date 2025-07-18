@@ -20,19 +20,16 @@
         }
 
         .sticky-header {
-            margin-top: 100px;
             position: sticky;
             top: 0;
             z-index: 1020;
             background-color: #f8f9fa;
-            padding: 10px;
             border-bottom: 1px solid #ccc;
         }
 
         #groupsTable thead th,
         #daybookTable thead th {
             position: sticky;
-            top: 80px; /* Adjust this based on Main Menu height */
             background: #f8f9fa;
             z-index: 10;
         }
@@ -71,8 +68,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" data-bs-target="#collapseMain" data-bs-toggle="collapse"
-                            onclick="hideAllViews()" type="button">
-                        Main Menu
+                            onclick="hideAllViews()" type="button" style="height: 40px">Main Menu
                     </button>
                 </h2>
                 <div class="accordion-collapse collapse" data-bs-parent="#menuAccordion" id="collapseMain">
@@ -238,7 +234,7 @@
             responsive: true,
             pageLength: 10,
             dom: 'Bfrtip',
-            buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+            buttons: ['excel', 'pdf', 'print'],
             columnDefs: options.columnDefs || []
         });
     }
