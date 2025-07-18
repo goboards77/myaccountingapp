@@ -517,7 +517,11 @@
             pageLength: 10,
             dom: 'Bfrtip',
             buttons: ['excel', 'pdf', 'print'],
-            columnDefs: options.columnDefs || []
+            columnDefs: options.columnDefs || [],
+            language: {
+                search: "",
+                searchPlaceholder: "Search..."
+            }
         });
     }
 
