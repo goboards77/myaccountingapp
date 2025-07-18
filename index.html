@@ -85,7 +85,7 @@
         .sub-button {
             background-color: #03dac5;
             border-radius: 6px;
-            padding: 1px 1px 1px 1px;
+            padding: 1px 1px 1px 10px;
             margin: 1px 0;
             cursor: pointer;
             font-size: 17px;
@@ -102,9 +102,9 @@
             background-color: #28a745;
             cursor: pointer;
             color: #fff;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 16px;
-            margin-top: 20px;
+            margin-top: 15px;
             height: 40px;
             width: 100%;
             float: right;
@@ -143,7 +143,6 @@
             border-radius: 8px;
             padding: 10px;
             margin: 45px 2px 2px 2px;
-            max-width: 330px;
             display: none;
             border: 2px solid #ddd;
         }
@@ -152,7 +151,9 @@
             border-collapse: collapse;
             margin-top: 15px;
             table-layout: fixed;
-            font-size: 20px;
+            overflow-y: auto;
+            overflow-x: auto;
+            width: 100%;
         }
 
         table th, table td {
@@ -161,9 +162,9 @@
         }
 
         table th {
-            background-color: #28a745;
+            background-color: #129c0b;
             position: sticky;
-            top: 40px;
+            top: 40;
             z-index: 999;
         }
 
@@ -197,25 +198,29 @@
 
         .del-action-button {
             background-color: #ba0612;
+            border-radius: 8px;
         }
 
         .dropdown-container {
             position: absolute;
-            background-color: white;
+            background-color: black;
             border: 1px solid #ccc;
             font-size: 20px;
             overflow-y: auto;
             z-index: 999;
-            width: 200px;
+            color: #FFFFFF;
+            border-radius: 8px;
         }
 
         .dropdown-container div {
             padding: 6px;
             cursor: pointer;
+            width: 320px;
+            border-radius: 8px;
         }
 
         .dropdown-container div:hover {
-            background-color: #f0f0f0;
+            background-color: #5a5c46;
         }
 
     </style>
@@ -246,6 +251,7 @@
         messagingSenderId: "247308606105",
         appId: "1:247308606105:web:9bfc179368524244bf3608"
     };
+
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore();
@@ -253,10 +259,12 @@
         document.getElementById("loginContainer").style.display = "block";
         document.getElementById("registerContainer").style.display = "none";
     };
+
     window.showRegister = function () {
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("registerContainer").style.display = "block";
     };
+
     window.login = async function () {
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
@@ -266,6 +274,7 @@
             document.getElementById("loginError").textContent = error.message;
         }
     };
+
     window.register = async function () {
         const email = document.getElementById("registerEmail").value;
         const password = document.getElementById("registerPassword").value;
@@ -275,12 +284,14 @@
             document.getElementById("registerError").textContent = error.message;
         }
     };
+
     window.logout = async function () {
         await signOut(auth);
         document.getElementById("widget-area").style.display = "none";
         document.getElementById("loginContainer").style.display = "block";
         document.getElementById("registerContainer").style.display = "none";
     };
+
     document.addEventListener("DOMContentLoaded", () => {
         const hamburgerBtn = document.getElementById("hamburgerBtn");
         const accordionMenu = document.getElementById("accordionMenu");
@@ -335,8 +346,6 @@
 
         // 👇 Firebase auth state change listener
         onAuthStateChanged(auth, (user) => {
-            console.log("🔁 Auth state changed:", user);
-
             const loginDiv = document.getElementById("loginContainer");
             const registerDiv = document.getElementById("registerContainer");
             const logoutBtn = document.getElementById("logoutbtn");
@@ -356,13 +365,6 @@
                         input.setSelectionRange(cursorPos, cursorPos);
                     });
                 });
-                viewGroupsAndAccounts();
-                viewProducts();
-                viewReceivables();
-                viewPayables();
-                loadDropdownData();
-                profit_loss()
-                viewDaybook()
             } else {
                 if (loginDiv) loginDiv.style.display = "block";
                 if (registerDiv) registerDiv.style.display = "none";
@@ -541,44 +543,41 @@
     }
 
 
-    window.showCustomDropdown = function (inputElem, dataArray) {
+    window.showCustomDropdown = function (inputElem, dataArray, onSelectCallback = null) {
         const dropdownId = inputElem.id + '-dropdown';
         const container = document.getElementById(dropdownId);
-        const query = inputElem.value.toLowerCase().trim();
+        const query = inputElem.value.trim().toLowerCase();
 
-        // Clear previous suggestions
-        container.innerHTML = '';
+        container.innerHTML = ''; // clear old items
         container.style.display = 'none';
 
-        if (!query || !Array.isArray(dataArray) || dataArray.length === 0) {
-            return;
-        }
+        if (!Array.isArray(dataArray)) return;
 
-        const matches = dataArray.filter(item => item.toLowerCase().includes(query));
-        if (matches.length === 0) return;
+        const filtered = query
+            ? dataArray.filter(item => item.toLowerCase().includes(query))
+            : dataArray;
 
-        container.style.display = 'block';
-        container.style.border = '1px solid #ccc';
-        container.style.position = 'absolute';
-        container.style.backgroundColor = 'white';
-        container.style.zIndex = 1000;
-        container.style.width = inputElem.offsetWidth + 'px';
-        container.style.maxHeight = '150px';
-        container.style.overflowY = 'auto';
+        if (!filtered.length) return;
 
-        matches.forEach(match => {
-            const div = document.createElement('div');
-            div.textContent = match;
-            div.style.padding = '6px';
-            div.style.cursor = 'pointer';
-            div.onmousedown = () => {
-                inputElem.value = match;
+        filtered.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "dropdown-item";
+            div.textContent = item;
+
+            div.onclick = () => {
+                inputElem.value = item;
                 container.innerHTML = '';
                 container.style.display = 'none';
-                inputElem.dispatchEvent(new Event("change")); // Useful for form logic
+
+                if (typeof onSelectCallback === 'function') {
+                    onSelectCallback(item);  // ✅ Trigger the callback
+                }
             };
+
             container.appendChild(div);
         });
+
+        container.style.display = 'block';
     };
 
 
@@ -605,7 +604,53 @@
     }
 
 
-    window.handleProductDropdown = function(inputElem, groupInputId) {
+    window.handleLedgerDropdown = function (inputElem, groupInputId) {
+        const groupName = document.getElementById(groupInputId)?.value.trim();
+        const dropdownList = window.crdbcsbkangexp_list || [];
+
+        // Show dropdown
+        showCustomDropdown(inputElem, dropdownList, async (selectedLedger) => {
+            if (!groupName || !selectedLedger) return;
+
+            try {
+                const q = query(
+                    collection(db, "tran"),
+                    where("ttype", "==", "Op Bal"),
+                    where("grp", "==", groupName),
+                    where("name", "==", selectedLedger)
+                );
+
+                const snap = await getDocs(q);
+
+                if (snap.empty) {
+                    console.warn("❌ No Opening Balance found.");
+                    document.getElementById("UpdatedOBJ").value = "";
+                    document.getElementById("UpdatedOBK").value = "";
+                    return;
+                }
+
+                const data = snap.docs[0].data();
+                const {fparty, tparty, amt} = data;
+
+                // Clear both fields before setting
+                document.getElementById("UpdatedOBJ").value = "";
+                document.getElementById("UpdatedOBK").value = "";
+
+                if (fparty === selectedLedger) {
+                    document.getElementById("UpdatedOBJ").value = amt;
+                } else if (tparty === selectedLedger) {
+                    document.getElementById("UpdatedOBK").value = amt;
+                } else {
+                    console.warn("⚠️ Selected ledger name not found in fparty or tparty.");
+                }
+            } catch (err) {
+                console.error("🔥 Firestore error while fetching Op Bal:", err);
+            }
+        });
+    };
+
+
+    window.handleProductDropdown = function (inputElem, groupInputId) {
         const groupName = capitalizeWords(document.getElementById(groupInputId)?.value.trim() || "");
         let list = [];
 
@@ -615,8 +660,30 @@
             list = window.pproduct_list || [];
         }
 
-        showCustomDropdown(inputElem, list);
-    }
+        showCustomDropdown(inputElem, list, async (selectedName) => {
+            if (inputElem.id === "OldProductName") {
+                try {
+                    const q = query(
+                        collection(db, "tran"),
+                        where("grp", "==", groupName),
+                        where("name", "==", selectedName),
+                        where("ttype", "==", "Op Stock")
+                    );
+
+                    const snap = await getDocs(q);
+
+                    if (!snap.empty) {
+                        const data = snap.docs[0].data();
+                        document.getElementById("NewOpStock").value = data.amt || "";
+                    } else {
+                        document.getElementById("NewOpStock").value = "";
+                    }
+                } catch (err) {
+                    console.error("🔥 Error fetching Op Stock:", err);
+                }
+            }
+        });
+    };
 
 
     // New Names Added To Update Datalist /////////////////////////////////////////////////////////
@@ -656,30 +723,18 @@
             if (ttype === "Sales") {
                 newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, sproduct_list));
                 newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, crdb_list));
-                newFpartyInput.placeholder = "Sales Product";
-                newTpartyInput.placeholder = "Sales Party";
-                amountInput.placeholder = "Sales Amount";
 
             } else if (ttype === "Purchase") {
                 newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, crdb_list));
                 newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, pproduct_list));
-                newFpartyInput.placeholder = "Purchase Party";
-                newTpartyInput.placeholder = "Purchase Product";
-                amountInput.placeholder = "Purchase Amount";
 
             } else if (["Receipt", "Payment"].includes(ttype)) {
                 newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, crdbcsbkang_list));
                 newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, crdbcsbkangexp_list));
-                newFpartyInput.placeholder = "Received From";
-                newTpartyInput.placeholder = "Paid To";
-                amountInput.placeholder = "Amount";
 
             } else {
                 newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, allnames_list));
                 newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, allnames_list));
-                newFpartyInput.placeholder = "From Party";
-                newTpartyInput.placeholder = "To Party";
-                amountInput.placeholder = "Amount";
             }
         }
 
@@ -864,6 +919,7 @@
                 collection(db, "tran"),
                 where("name", "==", newLedgerName)
             );
+
             const existsSnap = await getDocs(existsQuery);
             if (!existsSnap.empty) {
                 alert("Ledger with this name already exists.");
@@ -940,7 +996,6 @@
 
         } catch (error) {
             alert("An error occurred while updating the ledger.");
-            console.error("update_ledger error:", error);
         }
     }
 
@@ -1106,7 +1161,6 @@
             clearInputsById(["OldProductGroup", "OldProductName", "NewProductGroup", "NewProductName", "NewOpStock"]);
 
         } catch (error) {
-            console.error("Update Error:", error);
             alert("An error occurred while updating the product.");
         }
     }
@@ -1179,13 +1233,6 @@
                 errorElem.style.display = "none";
             }
 
-            // ✅ Flip parties if Sales
-            if (values.ttype.toLowerCase() === "sales") {
-                const temp = values.fparty;
-                values.fparty = values.tparty;
-                values.tparty = temp;
-            }
-
             const tranCol = collection(db, "tran");
 
             // Find max id
@@ -1256,7 +1303,6 @@
                 const el = document.getElementById(elementId);
                 if (el) {
                     el.value = data[firestoreField] != null ? String(data[firestoreField]) : "";
-                    console.log(`Set ${elementId} →`, el.value);
                 } else {
                     console.warn("⚠️ Element not found:", elementId);
                 }
@@ -1267,7 +1313,6 @@
             const ttypeInput = document.getElementById(prefix + "TranTtype");
             if (ttypeInput) {
                 ttypeInput.dispatchEvent(new Event("change"));
-                console.log("✅ Dispatched change event on", prefix + "TranTtype");
             }
 
             if (idInput) {
@@ -1363,8 +1408,6 @@
 
 
     //  VIEWS  ////////////////////////////////////////////////////////////////////////////////////
-
-
     // Custom Table ///////////////////////////////////////////////////////////////////////////////
     function renderTable(containerId, columns, rows, widths, aligns) {
         const container = document.getElementById(containerId);
@@ -1401,6 +1444,7 @@
             });
             tbody.appendChild(tr);
         });
+
         table.appendChild(tbody);
         container.appendChild(table);
     }
@@ -1411,7 +1455,6 @@
         const tranCol = collection(db, "tran");
         const snapshot = await getDocs(tranCol);
 
-        // get filter values from UI fields
         const type = document.getElementById("typeField").value.trim().toLowerCase();
         const party = document.getElementById("apartyfield").value.trim().toLowerCase();
         const amount = document.getElementById("amountField").value.trim();
@@ -1432,10 +1475,16 @@
             };
 
             let include = true;
+            const ttype = (record.TranType || "").toLowerCase();
 
-            if (type && record.TranType.toLowerCase() !== type) {
+            if (type && ttype !== type) {
                 include = false;
             }
+
+            if (ttype === "" || ttype === "op bal") {
+                include = false;
+            }
+
             if (party) {
                 const f = (record.From || "").toLowerCase();
                 const t = (record.To || "").toLowerCase();
@@ -1443,6 +1492,7 @@
                     include = false;
                 }
             }
+
             if (amount) {
                 const recordAmt = Number(record.Amount || 0);
                 if (recordAmt !== Number(amount)) {
@@ -1450,7 +1500,6 @@
                 }
             }
 
-            // ✅ NEW CONDITION: skip rows where amount is 0
             if (Number(record.Amount) === 0) {
                 include = false;
             }
@@ -1460,16 +1509,14 @@
             }
         });
 
-        // sort descending by date
         rows.sort(
             (a, b) =>
                 new Date(b.Date.split("-").reverse().join("-")) -
                 new Date(a.Date.split("-").reverse().join("-"))
         );
 
-        // define columns, widths, and alignments
         const columns = ["Date", "TranType", "From", "To", "Narattion", "Amount", "Id"];
-        const widths = ["100px", "100px", "120px", "120px", "200px", "80px", "60px"];
+        const widths = ["150px", "150px", "250px", "250px", "300px", "100px", "60px"];
         const aligns = ["left", "left", "left", "left", "left", "right", "right"];
 
         renderTable("daybookTable", columns, rows, widths, aligns);
@@ -1494,9 +1541,11 @@
                 rows.push({Groups: data.grp || "", Accounts: data.name || ""});
             }
         });
+
         rows.sort((a, b) => {
             return a.Accounts.toLowerCase().localeCompare(b.Accounts.toLowerCase());
         });
+
         renderTable("viewGroupsLadgersTable", ["Groups", "Accounts"], rows, ["150px", "200px"], ["left", "left"]);
     }
 
@@ -1509,6 +1558,7 @@
 
         snapshot.forEach(doc => {
             const data = doc.data();
+
             // Only include if grp is "Sales" or "Purchase"
             if (
                 data.grp &&
@@ -1518,6 +1568,7 @@
                 rows.push({Group: data.grp || "", Product: data.name || ""});
             }
         });
+
         // Sort alphabetically by product name
         rows.sort((a, b) => a.Product.toLowerCase().localeCompare(b.Product.toLowerCase()));
         renderTable("productsTable", ["Group", "Product"], rows, ["150px", "200px"], ["left", "left"]);
@@ -1556,6 +1607,7 @@
                 balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
             }
         });
+
         // Prepare rows for receivables
         const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
         const rows = [];
@@ -1569,6 +1621,7 @@
                 });
             }
         }
+
         rows.sort((a, b) => b.Amount - a.Amount);
         renderTable("viewRecTable", ["Party", "Amount"], rows, ["200px", "100px"], ["left", "right"]);
     }
@@ -1592,6 +1645,7 @@
                 ledgerGroups[name] = grp;
             }
         });
+
         // Sum amounts for all parties
         snapshot.forEach(doc => {
             const data = doc.data();
@@ -1600,11 +1654,13 @@
                 const party = data.fparty.trim().toLowerCase();
                 balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
             }
+
             if (data.tparty) {
                 const party = data.tparty.trim().toLowerCase();
                 balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
             }
         });
+
         // Prepare payables list
         const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
         const rows = [];
@@ -1948,7 +2004,6 @@
 
 <!-- Login Form -->
 <div id="loginContainer" style="display: none;">
-    <br><br>
     <h2>Login</h2>
     <input id="loginEmail" placeholder="Email" type="email">
     <input id="loginPassword" placeholder="Password" type="password">
@@ -2041,199 +2096,224 @@
 
 
     <!-- Add Group -->
-    <div class="widget-area" id="GroupWidgets" style="height: 190px;">
-        <br>
+    <div class="widget-area" id="GroupWidgets" style="height: 190px; width: 330px">
         <label for="GroupName">Group Name:</label>
-        <input autocomplete="off" id="GroupName" oninput="showCustomDropdown(this, grp_list)" placeholder="Group Name" type="text"><br>
+        <input autocomplete="off" id="GroupName" oninput="showCustomDropdown(this, grp_list)" type="text"><br>
         <div class="dropdown-container" id="GroupName-dropdown"></div>
         <br><br>
-        <button class="action-button" id="SaveGroupButton">📏 Save Group</button>
+
+        <button class="action-button" id="SaveGroupButton">💾 Save Group</button>
     </div>
 
 
     <!-- Add Ledger -->
-    <div class="widget-area" id="LedgerWidgets" style="height: 400px;">
-        <br>
+    <div class="widget-area" id="LedgerWidgets" style="height: 400px; width: 330px">
         <label for="LedgerGroup">Ledger Group:</label>
-        <input autocomplete="off" id="LedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Ledger Group" type="text">
+        <input autocomplete="off" id="LedgerGroup" oninput="showCustomDropdown(this, grp_list)" type="text">
         <div class="dropdown-container" id="LedgerGroup-dropdown"></div>
         <br><br>
+
         <label for="LedgerName">Ledger Name:</label>
-        <input autocomplete="off" id="LedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Ledger Name" type="text">
+        <input autocomplete="off" id="LedgerName" oninput="showCustomDropdown(this, crdbcsbkangexp_list)" type="text">
         <div class="dropdown-container" id="LedgerName-dropdown"></div>
         <br><br>
+
         <label for="OBJ">Opening Balance Jama:</label>
         <input autocomplete="off" id="OBJ" placeholder="Op Bal Jama" type="number">
         <br><br>
+
         <label for="OBK">Opening Balance Khate:</label>
         <input autocomplete="off" id="OBK" placeholder="Op Bal Khate" type="number">
         <br>
-        <button class="action-button" id="SaveLedgerButton">📏 Save Ledger</button>
-    </div>
 
-
-    <!-- Add Product -->
-    <div class="widget-area" id="ProductWidgets" style="height: 310px;">
-        <label for="ProductGroup">Product Group:</label>
-        <input autocomplete="off" id="ProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Product Group" type="text">
-        <div class="dropdown-container" id="ProductGroup-dropdown"></div>
-        <br><br>
-        <label for="ProductName">Product Name:</label>
-        <input autocomplete="off" id="ProductName" oninput="showCustomDropdown(this, allnames_list)" placeholder="New Product Name" type="text">
-        <div class="dropdown-container" id="ProductName-dropdown"></div>
-        <br><br>
-        <label for="ProductOPSTK">Opening Stock:</label>
-        <input autocomplete="off" id="ProductOPSTK" placeholder="Product Op Stock" type="number">
-        <br><br>
-        <button class="action-button" id="SaveProductButton">📏 Save Product</button>
+        <button class="action-button" id="SaveLedgerButton">💾 Save Ledger</button>
     </div>
 
 
     <!-- Update Ledger -->
-    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 560px;">
+    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 560px; width: 330px">
         <label for="OldLedgerGroup">Old Ledger Group:</label>
-        <input autocomplete="off" id="OldLedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Old Ledger Group" type="text">
+        <input autocomplete="off" id="OldLedgerGroup" oninput="showCustomDropdown(this, grp_list)" type="text">
         <div class="dropdown-container" id="OldLedgerGroup-dropdown"></div>
         <br><br>
+
         <label for="OldLedgerName">Old Ledger Name:</label>
-        <input autocomplete="off" id="OldLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Old Ledger Name" type="text">
+        <input autocomplete="off" id="OldLedgerName" oninput="handleLedgerDropdown(this, 'OldLedgerGroup')" type="text">
         <div class="dropdown-container" id="OldLedgerName-dropdown"></div>
         <br><br>
+
         <label for="UpdatedLedgerGroup">New Ledger Group:</label>
-        <input autocomplete="off" id="UpdatedLedgerGroup" oninput="showCustomDropdown(this, grp_list)" placeholder="Updated Ledger Group" type="text">
+        <input autocomplete="off" id="UpdatedLedgerGroup" oninput="showCustomDropdown(this, grp_list)" type="text">
         <div class="dropdown-container" id="UpdatedLedgerGroup-dropdown"></div>
         <br><br>
+
         <label for="UpdatedLedgerName">New Ledger Name:</label>
-        <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, allnames_list)" placeholder="Updated Ledger Name"
-               type="text">
+        <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, crdbcsbkangexp_list)" type="text">
         <div class="dropdown-container" id="UpdatedLedgerName-dropdown"></div>
         <br><br>
-        <label for="UpdatedOBJ">Updated Opening Balance Jama:</label>
-        <input autocomplete="off" id="UpdatedOBJ" placeholder="Updated Op Bal Jama" type="number">
+
+        <label for="UpdatedOBJ">Opening Balance Jama:</label>
+        <input autocomplete="off" id="UpdatedOBJ" type="number">
         <br><br>
-        <label for="UpdatedOBK">Updated Opening Balance Khate:</label>
-        <input autocomplete="off" id="UpdatedOBK" placeholder="Updated Op Bal Khate" type="number">
+
+        <label for="UpdatedOBK">Opening Balance Khate:</label>
+        <input autocomplete="off" id="UpdatedOBK" type="number">
         <br><br>
+
         <button class="action-button" id="UpdateLedgerButton">✏️ Update Ledger</button>
     </div>
 
 
-    <!-- Update Product -->
-    <div class="widget-area" id="UpdateProductWidgets" style="height: 480px;">
-        <label for="OldProductGroup">Old Product Group:</label>
-        <input autocomplete="off" id="OldProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Select Product Group" type="text">
-        <div class="dropdown-container" id="OldProductGroup-dropdown"></div>
+    <!-- Add Product -->
+    <div class="widget-area" id="ProductWidgets" style="height: 310px; width: 330px">
+        <label for="ProductGroup">Product Group:</label>
+        <input autocomplete="off" id="ProductGroup" oninput="showCustomDropdown(this, sp_list)" type="text">
+        <div class="dropdown-container" id="ProductGroup-dropdown"></div>
+        <br><br>
 
+        <label for="ProductName">Product Name:</label>
+        <input autocomplete="off" id="ProductName" oninput="handleProductDropdown(this, 'ProductGroup')" type="text">
+        <div class="dropdown-container" id="ProductName-dropdown"></div>
+        <br><br>
+
+        <label for="ProductOPSTK">Opening Stock:</label>
+        <input autocomplete="off" id="ProductOPSTK" type="number">
+        <br><br>
+
+        <button class="action-button" id="SaveProductButton">💾 Save Product</button>
+    </div>
+
+
+    <!-- Update Product -->
+    <div class="widget-area" id="UpdateProductWidgets" style="height: 480px; width: 330px">
+        <label for="OldProductGroup">Old Product Group:</label>
+        <input autocomplete="off" id="OldProductGroup" oninput="showCustomDropdown(this, window.sp_list)" type="text">
+        <div class="dropdown-container" id="OldProductGroup-dropdown"></div>
         <br><br>
 
         <label for="OldProductName">Old Product Name:</label>
-        <input autocomplete="off" id="OldProductName" oninput="handleProductDropdown(this, 'OldProductGroup')" placeholder="Old Product Name"
-               type="text">
+        <input autocomplete="off" id="OldProductName" oninput="handleProductDropdown(this, 'OldProductGroup')" type="text">
         <div class="dropdown-container" id="OldProductName-dropdown"></div>
-
         <br><br>
 
         <label for="NewProductGroup">New Product Group:</label>
-        <input autocomplete="off" id="NewProductGroup" oninput="showCustomDropdown(this, sp_list)" placeholder="Updated Product Group" type="text">
+        <input autocomplete="off" id="NewProductGroup" oninput="showCustomDropdown(this, window.sp_list)" type="text">
         <div class="dropdown-container" id="NewProductGroup-dropdown"></div>
-
         <br><br>
 
         <label for="NewProductName">New Product Name:</label>
-        <input autocomplete="off" id="NewProductName" oninput="handleProductDropdown(this, 'NewProductGroup')" placeholder="New Product Name"
-               type="text">
+        <input autocomplete="off" id="NewProductName" oninput="handleProductDropdown(this, 'NewProductGroup')" type="text">
         <div class="dropdown-container" id="NewProductName-dropdown"></div>
         <br><br>
-        <label for="NewOpStock">New Opening Stock:</label>
-        <input autocomplete="off" id="NewOpStock" placeholder="Product Op Stock" type="number">
+
+        <label for="NewOpStock">Opening Stock:</label>
+        <input autocomplete="off" id="NewOpStock" type="number">
         <br><br>
+
         <button class="action-button" id="UpdateProductButton">✏️ Update Product</button>
     </div>
 
 
     <!-- Add Transaction -->
-    <div class="widget-area" id="Transaction" style="height: 560px;">
+    <div class="widget-area" id="Transaction" style="height: 560px; width: 330px">
         <label for="AddTranTtype">Transaction Type:</label>
-        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)" placeholder="Transaction Type" type="text">
+        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)" type="text">
         <div class="dropdown-container" id="AddTranTtype-dropdown"></div>
         <br><br>
+
         <label for="AddTranDate">Transaction Date:</label>
         <input autocomplete="off" id="AddTranDate" placeholder="Transaction Date" type="date">
         <br><br>
+
         <label for="AddTranFparty">From Party:</label>
-        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, crdb_list)" placeholder="From Party" type="text">
+        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, crdb_list)" type="text">
         <div class="dropdown-container" id="AddTranFparty-dropdown"></div>
         <br><br>
+
         <label for="AddTranTparty">To Party:</label>
-        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, crdb_list)" placeholder="To Party" type="text">
+        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, crdb_list)" type="text">
         <div class="dropdown-container" id="AddTranTparty-dropdown"></div>
         <br><br>
+
         <label for="AddTranAmount">Amount:</label>
-        <input autocomplete="off" id="AddTranAmount" placeholder="Amount" type="number">
+        <input autocomplete="off" id="AddTranAmount" type="number">
         <br><br>
+
         <label for="AddTranNar">Narration:</label>
-        <input autocomplete="off" id="AddTranNar" placeholder="Narration" type="text">
+        <input id="AddTranNar" type="text">
         <br><br>
-        <button class="action-button" id="AddTranSaveButton">📏 Save Transaction</button>
+
+        <button class="action-button" id="AddTranSaveButton">💾 Save Transaction</button>
     </div>
 
 
     <!-- Update Transaction -->
-    <div class="widget-area" id="UpdateTransaction" style="height: 700px;">
+    <div class="widget-area" id="UpdateTransaction" style="height: 700px; width: 330px">
         <input autocomplete="off" id="UpdateId" placeholder="Id To Update" type="number">
         <button class="action-button" id="UpdateSearchButton">🔍 Search & Insert</button>
         <br><br><br><br><br><br>
+
         <label for="UpdateTranTtype">Transaction Type:</label>
-        <input autocomplete="off" id="UpdateTranTtype" placeholder="Transaction Type" readonly type="text">
+        <input autocomplete="off" id="UpdateTranTtype" readonly type="text">
         <br><br>
+
         <label for="UpdateTranDate">Transaction Date:</label>
         <input autocomplete="off" id="UpdateTranDate" type="date">
         <br><br>
+
         <label for="UpdateTranFparty">From Party:</label>
-        <input autocomplete="off" id="UpdateTranFparty" list="" placeholder="" type="text">
+        <input autocomplete="off" id="UpdateTranFparty" list="" type="text">
         <div class="dropdown-container" id="UpdateTranFparty-dropdown"></div>
         <br><br>
+
         <label for="UpdateTranTparty">To Party:</label>
-        <input autocomplete="off" id="UpdateTranTparty" list="" placeholder="" type="text">
+        <input autocomplete="off" id="UpdateTranTparty" list="" type="text">
         <div class="dropdown-container" id="UpdateTranTparty-dropdown"></div>
         <br><br>
+
         <label for="UpdateTranAmount">Amount:</label>
-        <input autocomplete="off" id="UpdateTranAmount" placeholder="" type="number">
+        <input autocomplete="off" id="UpdateTranAmount" type="number">
         <br><br>
+
         <label for="UpdateTranNar">Narration:</label>
-        <input autocomplete="off" id="UpdateTranNar" placeholder="Naration" type="text">
+        <input id="UpdateTranNar" type="text">
         <br><br>
+
         <button class="action-button" id="UpdateTranButton">✏️ Update Transaction</button>
     </div>
 
 
     <!-- Delete Transaction -->
-    <div class="widget-area" id="DeleteTransaction" style="height: 150px;">
+    <div class="widget-area" id="DeleteTransaction" style="height: 150px; width: 330px">
         <label for="DeleteId">Transaction ID to Delete:</label>
-        <input autocomplete="off" id="DeleteId" placeholder="Id To Delete" type="number">
+        <input autocomplete="off" id="DeleteId" type="number">
         <br><br>
+
         <button class="action-button del-action-button" id="DeleteTranButton">🚨 Delete Transaction</button>
         <div id="delete-error" style="color: red; margin-top: 5px;"></div>
     </div>
 
 
-    <!-- Views ----------------------------------------------------------------------------------->
+    <!-- View Widgets ----------------------------------------------------------------------------->
 
 
     <!-- Daybook --------------->
-    <div class="widget-area" id="vdb" style="height: 290px;">
+    <div class="widget-area" id="vdb" style="height: 295px;">
         <label for="typeField">Transaction Type:</label>
         <input autocomplete="off" id="typeField" oninput="showCustomDropdown(this, ttype_list)" placeholder="Filter By Transaction Type" type="text">
         <div class="dropdown-container" id="typeField-dropdown"></div>
         <br><br>
+
         <label for="apartyfield">Party / Product:</label>
         <input autocomplete="off" id="apartyfield" oninput="showCustomDropdown(this, allnames_list)" placeholder="Filter By Party / Product"
                type="text">
         <div class="dropdown-container" id="apartyfield-dropdown"></div>
         <br><br>
+
         <label for="amountField">Amount:</label>
         <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number">
         <br>
+
         <button class="action-button" id="filterBtn">⏳ Filter</button>
         <br><br><br><br>
         <div id="daybookTable"></div>
@@ -2241,21 +2321,21 @@
 
 
     <!-- Groups & Ledgers --------------->
-    <div class="widget-area" id="vgl" style="height: 15px;">
+    <div class="widget-area" id="vgl" style="height: 15px; width: 330px">
         <Label>View Groups Ledgers</Label>
         <div id="viewGroupsLadgersTable"></div>
     </div>
 
 
     <!-- Product --------------->
-    <div class="widget-area" id="vprod" style="height: 15px;">
+    <div class="widget-area" id="vprod" style="height: 15px; width: 330px">
         <Label>View Products</Label>
         <div id="productsTable"></div>
     </div>
 
 
     <!-- Receivable --------------->
-    <div class="widget-area" id="vrec" style="height: 15px;">
+    <div class="widget-area" id="vrec" style="height: 15px; width: 330px">
         <Label>View Receivables</Label>
         <div id="viewRecTable"></div>
     </div>
@@ -2273,13 +2353,16 @@
         <label for="romDate">Start Date:</label>
         <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date">
         <br><br>
+
         <label for="toDate">End Date:</label>
         <input autocomplete="off" id="toDate" placeholder="End Date" type="date">
         <br><br>
+
         <label for="closingstock">Closing Stock:</label>
-        <input autocomplete="off" id="closingStock" placeholder="Cosing Stock" type="number">
+        <input autocomplete="off" id="closingStock" type="number">
         <br>
-        <button class="action-button" id="calculateProfitbtn">Calculate Profit & Loss</button>
+
+        <button class="action-button" id="calculateProfitbtn">Cal. Profit & Loss</button>
         <br><br><br><br>
         <div id="plTable"></div>
     </div>
@@ -2288,15 +2371,18 @@
     <!-- Khaatavahi -->
     <div class="widget-area" id="vkha" style="height: 290px;">
         <label for="kfromDate">Start Date:</label>
-        <input autocomplete="off" id="kfromDate" placeholder="Start Date" type="date">
+        <input autocomplete="off" id="kfromDate" type="date">
         <br><br>
+
         <label for="ktoDate">End Date:</label>
-        <input autocomplete="off" id="ktoDate" placeholder="End Date" type="date">
+        <input autocomplete="off" id="ktoDate" type="date">
         <br><br>
+
         <label for="kparty">Party / Product / Expense:</label>
-        <input autocomplete="off" id="kparty" oninput="showCustomDropdown(this, allnames_list)" placeholder="Party Product Expense" type="text">
+        <input autocomplete="off" id="kparty" oninput="showCustomDropdown(this, allnames_list)" type="text">
         <div class="dropdown-container" id="kparty-dropdown"></div>
         <br>
+
         <button class="action-button" id="calkhabtn">⏳ Show Transactions</button>
         <br><br><br><br>
         <div id="khaTable"></div>
@@ -2304,23 +2390,25 @@
 
 
     <!-- Export Section -->
-    <div class="widget-area" id="export" style="height: 440px;">
-        <label>Export - PDF Export</label>
-        <br><br>
+    <div class="widget-area" id="export" style="height: 370px; width: 330px">
         <label for="exportStartDate">Start Date:</label>
-        <input autocomplete="off" id="exportStartDate" placeholder="Start Date" type="date">
+        <input autocomplete="off" id="exportStartDate" type="date">
         <br><br>
+
         <label for="exportEndDate">End Date:</label>
-        <input autocomplete="off" id="exportEndDate" placeholder="End Date" type="date">
+        <input autocomplete="off" id="exportEndDate" type="date">
         <br><br>
+
         <label for="exportParty">Party:</label>
-        <input autocomplete="off" id="exportParty" oninput="showCustomDropdown(this, allnames_list)" placeholder="Party" type="text">
+        <input autocomplete="off" id="exportParty" oninput="showCustomDropdown(this, allnames_list)" type="text">
         <div class="dropdown-container" id="exportParty-dropdown"></div>
         <br><br>
+
         <label for="exportTType">Transaction Type:</label>
-        <input autocomplete="off" id="exportTType" oninput="showCustomDropdown(this, ttype_list)" placeholder="Tran Type" type="text">
+        <input autocomplete="off" id="exportTType" oninput="showCustomDropdown(this, ttype_list)" type="text">
         <div class="dropdown-container" id="exportTType-dropdown"></div>
-        <br><br>
+        <br>
+
         <button class="action-button" id="exportBtn">✈️ Export Data</button>
         <div class="error" id="exportError"></div>
     </div>
