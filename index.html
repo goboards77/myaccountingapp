@@ -1,248 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Index</title>
-
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Firebase Login UI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css" rel="stylesheet"/>
+    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet"/>
     <style>
-        body {
-            font-family: "Courier New", Courier, monospace;
-            margin: 0;
+        .error {
+            color: red;
+            margin-top: 10px;
         }
 
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: fixed;
-            z-index: 1000;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 40px;
-            background-color: #343541;
-            padding: 1px 1px 1px 10px;
-            border-bottom: 1px solid #ccc;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .hamburger {
-            font-size: 20px;
-            cursor: pointer;
-            background: none;
-            color: #FFFFFF;
-            border: none;
-            font-family: inherit;
-        }
-
-        .accordion-container {
-            background-color: #2b1727;
-            display: none;
-            width: 100%;
-            max-width: 317px;
-            padding: 5px 20px 20px 20px;
-            margin: 45px 2px 2px 2px;
-            border-radius: 1px 1px 15px 15px;
-        }
-
-        .accordion {
-            width: 100%;
-            height: 50px;
-            border-radius: 8px;
-            text-align: left;
-            font-family: inherit;
-            font-size: 20px;
-            color: #fff;
-            background-color: #0c7508;
-            cursor: pointer;
-            margin: 3px;
-        }
-
-        .accordion.active {
-            background-color: #071b54;
-        }
-
-        .accordion:hover {
-            background-color: #a67b05;
-        }
-
-        .panel {
-            display: none;
-            background-color: #3d3215;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin: 1px 1px 5px 40px;
-            padding: 1px;
-            width: 100%;
-            max-width: 272px;
-        }
-
-        .panel.show {
+        .small-link {
+            margin-top: 10px;
             display: block;
         }
 
-        .sub-button {
-            background-color: #03dac5;
-            border-radius: 6px;
-            padding: 1px 1px 1px 10px;
-            margin: 1px 0;
-            cursor: pointer;
-            font-size: 17px;
-            width: 100%;
-            height: 40px;
-            text-align: left;
-        }
-
-        .sub-button:hover {
-            background-color: #a67b05;
-        }
-
-        .action-button {
-            background-color: #28a745;
-            cursor: pointer;
-            color: #fff;
-            border-radius: 8px;
-            font-size: 16px;
-            margin-top: 15px;
-            height: 40px;
-            width: 100%;
-            float: right;
-            font-family: inherit;
-        }
-
-        .action-button:hover {
-            background-color: #a67b05;
-        }
-
-        input {
-            margin-top: 5px;
-            padding: 8px;
-            width: 100%;
-            box-sizing: border-box;
-            border-radius: 5px;
-            height: 40px;
-            border: 2px solid #ccc;
-            font-size: 20px;
-            font-family: inherit;
-        }
-
-        label {
-            padding: 8px;
-            font-weight: bold;
-        }
-
-        .cash-label {
-            color: #fff;
-            font-weight: bold;
-            margin: 1px 20px;
-        }
-
-        .widget-area {
-            background: #fff;
-            border-radius: 8px;
-            padding: 10px;
-            margin: 45px 2px 2px 2px;
-            display: none;
-            border: 2px solid #ddd;
-        }
-
-        table {
-            border-collapse: collapse;
-            margin-top: 15px;
-            table-layout: fixed;
-            overflow-y: auto;
-            overflow-x: auto;
-            width: 100%;
-        }
-
-        table th, table td {
-            border: 2px solid #ccc;
-            padding: 8px;
-        }
-
-        table th {
-            background-color: #129c0b;
+        .sticky-header {
+            margin-top: 100px;
             position: sticky;
-            top: 40;
-            z-index: 999;
+            top: 0;
+            z-index: 1020;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
         }
 
-        .groups-accordion {
-            background-color: #dd42f5;
-        }
-
-        .ledgers-accordion {
-            background-color: #d10daa;
-        }
-
-        .products-accordion {
-            background-color: #91066c;
-        }
-
-        .tran-accordion {
-            background-color: #138005;
-        }
-
-        .view-accordion {
-            background-color: #9748d9;
-        }
-
-        .export-accordion {
-            background-color: #069178;
-        }
-
-        .logout-accordion {
-            background-color: #94093c;
-        }
-
-        .del-action-button {
-            background-color: #ba0612;
-            border-radius: 8px;
-        }
-
-        .dropdown-container {
-            position: absolute;
-            background-color: black;
-            border: 1px solid #ccc;
-            font-size: 20px;
-            overflow-y: auto;
-            z-index: 999;
-            color: #FFFFFF;
-            border-radius: 8px;
-        }
-
-        .dropdown-container div {
-            padding: 6px;
-            cursor: pointer;
-            width: 320px;
-            border-radius: 8px;
-        }
-
-        .dropdown-container div:hover {
-            background-color: #5a5c46;
+        #groupsTable thead th,
+        #daybookTable thead th {
+            position: sticky;
+            top: 80px; /* Adjust this based on Main Menu height */
+            background: #f8f9fa;
+            z-index: 10;
         }
 
     </style>
-
 </head>
 
 <body>
+<!-- 🔐 LOGIN FORM -->
+<div class="container mt-5" id="loginContainer" style="display: none;">
+    <h2>Login</h2>
+    <input class="form-control mb-2" id="loginEmail" placeholder="Email" type="email">
+    <input class="form-control mb-2" id="loginPassword" placeholder="Password" type="password">
+    <button class="btn btn-primary" onclick="login()">Login</button>
+    <div class="error" id="loginError"></div>
+    <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+</div>
 
+<!-- 🆕 REGISTER FORM -->
+<div class="container mt-5" id="registerContainer" style="display: none;">
+    <h2>Register</h2>
+    <input class="form-control mb-2" id="registerEmail" placeholder="Email" type="email">
+    <input class="form-control mb-2" id="registerPassword" placeholder="Password" type="password">
+    <button class="btn btn-success" onclick="register()">Register</button>
+    <div class="error" id="registerError"></div>
+    <div class="small-link">
+        <a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
+    </div>
+</div>
 
-<!-- Firebase ------------------------------------------------------------------------------------>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+<!-- ✅ MAIN APP CONTENT -->
+<div class="container mt-3" id="appContent" style="display: none;">
+    <!-- MENU -->
+    <div class="sticky-header">
+        <div class="accordion" id="menuAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" data-bs-target="#collapseMain" data-bs-toggle="collapse"
+                            onclick="hideAllViews()" type="button">
+                        Main Menu
+                    </button>
+                </h2>
+                <div class="accordion-collapse collapse" data-bs-parent="#menuAccordion" id="collapseMain">
+                    <div class="accordion-body">
+                        <button class="btn btn-outline-primary w-100 mb-2" onclick="loadGroupsAndLedgers()">Groups & Ledgers</button>
+                        <button class="btn btn-outline-success w-100 mb-2" onclick="loadDaybook()">Daybook</button>
+                        <button class="btn btn-danger w-100" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container mt-3">
+        <!-- Groups & Ledgers -->
+        <div class="view-section d-none" id="groupsView">
+            <h4>Groups & Ledgers</h4>
+            <table class="table table-striped table-bordered w-100 display nowrap" id="groupsTable">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- Daybook -->
+        <div class="view-section d-none" id="daybookView">
+            <h4>Daybook Entries</h4>
+            <table class="table table-striped table-bordered w-100 display nowrap" id="daybookTable">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery & Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables -->
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+
+<!-- 🔌 Firebase & App Logic -->
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-
     import {
-        getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        signOut
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
     import {
-        getFirestore, collection, getDocs, updateDoc, deleteDoc, addDoc, query, where, orderBy, limit, doc
+        getFirestore, collection, getDocs
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
         authDomain: "accounts-19d08.firebaseapp.com",
@@ -254,2173 +146,154 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore();
-    window.showLogin = function () {
-        document.getElementById("loginContainer").style.display = "block";
-        document.getElementById("registerContainer").style.display = "none";
-    };
+    const db = getFirestore(app);
 
-    window.showRegister = function () {
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("registerContainer").style.display = "block";
-    };
+    const loginContainer = document.getElementById('loginContainer');
+    const registerContainer = document.getElementById('registerContainer');
+    const appContent = document.getElementById('appContent');
+
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'none';
+            appContent.style.display = 'block';
+        } else {
+            loginContainer.style.display = 'block';
+            registerContainer.style.display = 'none';
+            appContent.style.display = 'none';
+        }
+    });
 
     window.login = async function () {
-        const email = document.getElementById("loginEmail").value;
-        const password = document.getElementById("loginPassword").value;
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const errorDiv = document.getElementById('loginError');
+        errorDiv.textContent = '';
+
         try {
             await signInWithEmailAndPassword(auth, email, password);
         } catch (error) {
-            document.getElementById("loginError").textContent = error.message;
+            errorDiv.textContent = error.message;
         }
-    };
+    }
 
     window.register = async function () {
-        const email = document.getElementById("registerEmail").value;
-        const password = document.getElementById("registerPassword").value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const errorDiv = document.getElementById('registerError');
+        errorDiv.textContent = '';
+
         try {
             await createUserWithEmailAndPassword(auth, email, password);
         } catch (error) {
-            document.getElementById("registerError").textContent = error.message;
+            errorDiv.textContent = error.message;
         }
-    };
+    }
 
     window.logout = async function () {
         await signOut(auth);
-        document.getElementById("widget-area").style.display = "none";
-        document.getElementById("loginContainer").style.display = "block";
-        document.getElementById("registerContainer").style.display = "none";
-    };
+    }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const hamburgerBtn = document.getElementById("hamburgerBtn");
-        const accordionMenu = document.getElementById("accordionMenu");
-        const accordions = document.querySelectorAll(".accordion");
-        const panels = document.querySelectorAll(".panel");
-        const subButtons = document.querySelectorAll(".sub-button");
-        const contentArea = document.getElementById("widget-Area");
+    window.showRegister = function () {
+        loginContainer.style.display = 'none';
+        registerContainer.style.display = 'block';
+    }
 
-        hamburgerBtn.addEventListener("click", () => {
-            accordionMenu.style.display =
-                accordionMenu.style.display === "block" ? "none" : "block";
-            document.querySelectorAll(".widget-area").forEach(div => {
-                div.style.display = "none";
-            });
-        });
+    window.showLogin = function () {
+        loginContainer.style.display = 'block';
+        registerContainer.style.display = 'none';
+    }
 
-        accordions.forEach((btn) => {
-            btn.addEventListener("click", () => {
-                const panel = btn.nextElementSibling;
-                const isActive = btn.classList.contains("active");
+    window.hideAllViews = function () {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.add('d-none'));
+    }
 
-                closeAll();
-                if (!isActive) {
-                    btn.classList.add("active");
-                    panel.classList.add("show");
-                }
-            });
-        });
-        subButtons.forEach((btn) => {
-            btn.addEventListener("click", (e) => {
-                e.stopPropagation();
+    function showView(viewId) {
+        hideAllViews();
+        document.getElementById(viewId).classList.remove('d-none');
+        const collapseMenu = bootstrap.Collapse.getOrCreateInstance(document.getElementById('collapseMain'));
+        collapseMenu.hide();
+    }
 
-                accordionMenu.style.display = "none";
+    function renderTable(targetId, columns, data, options = {}) {
+        const table = $('#' + targetId);
 
-                document.querySelectorAll(".widget-area").forEach(div => {
-                    div.style.display = "none";
-                });
-
-                const widgetId = btn.getAttribute("widgets");
-                if (widgetId) {
-                    const widgetDiv = document.getElementById(widgetId);
-                    if (widgetDiv) {
-                        widgetDiv.style.display = "block";
-                    }
-                }
-                closeAll();
-            });
-        });
-
-        document.getElementById("loginContainer").style.display = "block";
-        document.getElementById("registerContainer").style.display = "none";
-
-        // 👇 Firebase auth state change listener
-        onAuthStateChanged(auth, (user) => {
-            const loginDiv = document.getElementById("loginContainer");
-            const registerDiv = document.getElementById("registerContainer");
-            const logoutBtn = document.getElementById("logoutbtn");
-
-            if (user) {
-                if (loginDiv) loginDiv.style.display = "none";
-                if (registerDiv) registerDiv.style.display = "none";
-                if (hamburgerBtn) hamburgerBtn.style.display = "block";
-
-                document.querySelectorAll(".widget-area").forEach(div => {
-                    div.style.display = "none";
-                });
-                document.querySelectorAll("input[type='text']").forEach(input => {
-                    input.addEventListener("input", (e) => {
-                        const cursorPos = input.selectionStart;
-                        input.value = capitalizeWords(input.value);
-                        input.setSelectionRange(cursorPos, cursorPos);
-                    });
-                });
-            } else {
-                if (loginDiv) loginDiv.style.display = "block";
-                if (registerDiv) registerDiv.style.display = "none";
-                if (logoutBtn) logoutBtn.style.display = "none";
-                if (hamburgerBtn) hamburgerBtn.style.display = "none";
-                if (accordionMenu) accordionMenu.style.display = "none";
-
-                document.querySelectorAll(".widget-area").forEach(div => {
-                    div.style.display = "none";
-                });
-            }
-        });
-        const filterBtn = document.getElementById("filterBtn");
-        if (filterBtn) {
-            filterBtn.addEventListener("click", () => {
-                viewDaybook(true);
-            });
+        if ($.fn.DataTable.isDataTable('#' + targetId)) {
+            table.DataTable().destroy();
         }
-        viewDaybook(false);
-    });
-    document.addEventListener("DOMContentLoaded", () => {
-        setupTransactionForm("Add");
-        setupTransactionForm("Update");
-    });
 
+        table.find('thead').empty();
+        table.find('tbody').empty();
 
-    // Close All Widgets //////////////////////////////////////////////////////////////////////////
-    function closeAll() {
-        document.querySelectorAll(".accordion").forEach(btn => btn.classList.remove("active"));
-        document.querySelectorAll(".panel").forEach(panel => panel.classList.remove("show"));
-    }
+        let theadHtml = '<tr>' + columns.map(col => `<th>${col}</th>`).join('') + '</tr>';
+        table.find('thead').html(theadHtml);
 
-    // Clear Field Values /////////////////////////////////////////////////////////////////////////
-    function clearInputsById(ids) {
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el && 'value' in el) {
-                el.value = "";
-            }
+        let tbodyHtml = '';
+        data.forEach(row => {
+            tbodyHtml += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+        table.find('tbody').html(tbodyHtml);
+
+        table.DataTable({
+            responsive: true,
+            pageLength: 10,
+            dom: 'Bfrtip',
+            buttons: ['copy', 'csv', 'excel', 'pdf', 'print'],
+            columnDefs: options.columnDefs || []
         });
     }
 
-
-    // Date Conversion ////////////////////////////////////////////////////////////////////////////
-    function formatDate(d) {
-        if (!d) return "";
-        const parts = d.split("-");
-        if (parts.length === 3) {
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        return d;
-    }
-
-
-    // Converts yyyy-mm-dd -> dd-mm-yyyy //////////////////////////////////////////////////////////
-    function toYMD(d) {
-        return d;
-    }
-
-
-    // To Capitalize Words ////////////////////////////////////////////////////////////////////////
-    function capitalizeWords(str) {
-        return str.replace(/\b\w/g, c => c.toUpperCase());
-    }
-
-
-    // Cash Label /////////////////////////////////////////////////////////////////////////////////
-    async function updateCashLabel() {
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-
-        let inflow = 0;   // tparty = 'Cash On Hand'
-        let outflow = 0;  // fparty = 'Cash On Hand'
+    window.loadGroupsAndLedgers = async function () {
+        const snapshot = await getDocs(collection(db, "tran"));
+        const columns = ['Group', 'Name'];
+        const data = [];
 
         snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.tparty === "Cash On Hand") {
-                inflow += Number(data.amt || 0);
-            }
-            if (data.fparty === "Cash On Hand") {
-                outflow += Number(data.amt || 0);
+            const d = doc.data();
+            if (d.grp && d.name) {
+                data.push([d.grp, d.name]);
             }
         });
 
-        const balance = inflow - outflow;
-        document.getElementById("cashLabel").textContent = `Cash: ₹${balance.toFixed(0)}`;
+        showView('groupsView');
+        renderTable("groupsTable", columns, data)
     }
 
+    function formatDateToDDMMYYYY(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        return `${dd}-${mm}-${yyyy}`;
+    }
 
-    // All Dropdown Lists /////////////////////////////////////////////////////////////////////////
-    async function loadDropdownData() {
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-
-        const grpSet = new Set();           // All groups except Sales & Purchase
-        const spSet = new Set();            // Only Sales and Purchase
-        const nameSet = new Set();          // All names where grp ≠ Sales/Purchase
-        const ttypeSet = new Set();
-        const sproductSet = new Set();
-        const pproductSet = new Set();
-        const crdbSet = new Set();
-        const crdbcsbkangSet = new Set();
-        const crdbcsbkangexpSet = new Set();
-
-        // Groups defining your special lists
-        const crdbGroups = ["Creditors", "Debitors"];
-        const crdbcsbkangGroups = ["Creditors", "Debitors", "Cash", "Bank", "Angadiya"];
-        const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
+    window.loadDaybook = async function () {
+        const snapshot = await getDocs(collection(db, "tran"));
+        const columns = ['ID', 'Date', 'Type', 'From Party', 'To Party', 'Narration', 'Amount'];
+        const data = [];
 
         snapshot.forEach(doc => {
-            const data = doc.data();
-            const grp = (data.grp || "").trim();
-            const name = (data.name || "").trim();
-            if (grp.length === 0) return;
-
-            if (["Sales", "Purchase", "Receipt", "Payment"].includes(grp)) {
-                ttypeSet.add(grp);
-            }
-
-            if (["Sales", "Purchase"].includes(grp)) {
-                spSet.add(grp);
-            } else if (!["Receipt", "Payment"].includes(grp)) {
-                grpSet.add(grp);
-            }
-
-            if (name.length > 0) {
-                nameSet.add(name);
-            }
-
-            // Sales products
-            if (grp === "Sales" && name.length > 0) {
-                sproductSet.add(name);
-            }
-
-            // Purchase products
-            if (grp === "Purchase" && name.length > 0) {
-                pproductSet.add(name);
-            }
-
-            // crdb list
-            if (crdbGroups.includes(grp) && name.length > 0) {
-                crdbSet.add(name);
-            }
-
-            // crdbcsbkang list
-            if (crdbcsbkangGroups.includes(grp) && name.length > 0) {
-                crdbcsbkangSet.add(name);
-            }
-
-            // crdbcsbkangexp list
-            if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {
-                crdbcsbkangexpSet.add(name);
+            const d = doc.data();
+            if (d.id !== undefined) {
+                data.push([
+                    d.id,
+                    formatDateToDDMMYYYY(d.date || ''),
+                    d.ttype || '',
+                    d.fparty || '',
+                    d.tparty || '',
+                    d.nar || '',
+                    d.amt || '',
+                ]);
             }
         });
 
-        // Convert Sets to sorted arrays
-        window.grp_list = [];
-        window.sp_list = [];
-        window.allnames_list = [];
-        window.ttype_list = [];
-        window.sproduct_list = [];
-        window.pproduct_list = [];
-        window.crdb_list = [];
-        window.crdbcsbkang_list = [];
-        window.crdbcsbkangexp_list = [];
-
-        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
-        window.sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
-        window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
-        window.ttype_list = [...ttypeSet].sort((a, b) => a.localeCompare(b));
-        window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
-        window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
-        window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
-        window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
-        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
+        showView('daybookView');
+        renderTable("daybookTable", columns, data)
     }
 
-
-    window.showCustomDropdown = function (inputElem, dataArray, onSelectCallback = null) {
-        const dropdownId = inputElem.id + '-dropdown';
-        const container = document.getElementById(dropdownId);
-        const query = inputElem.value.trim().toLowerCase();
-
-        container.innerHTML = ''; // clear old items
-        container.style.display = 'none';
-
-        if (!Array.isArray(dataArray)) return;
-
-        const filtered = query
-            ? dataArray.filter(item => item.toLowerCase().includes(query))
-            : dataArray;
-
-        if (!filtered.length) return;
-
-        filtered.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "dropdown-item";
-            div.textContent = item;
-
-            div.onclick = () => {
-                inputElem.value = item;
-                container.innerHTML = '';
-                container.style.display = 'none';
-
-                if (typeof onSelectCallback === 'function') {
-                    onSelectCallback(item);  // ✅ Trigger the callback
-                }
-            };
-
-            container.appendChild(div);
-        });
-
-        container.style.display = 'block';
-    };
-
-
-    document.addEventListener('click', (e) => {
-        document.querySelectorAll('.dropdown-container').forEach(container => {
-            if (!container.contains(e.target)) container.innerHTML = '';
-        });
-    });
-
-
-    async function populateDatalist(datalistId, items) {
-        const datalist = document.getElementById(datalistId);
-        if (!datalist) {
-            showError("⚠️ Datalist element not found:", datalistId);
-            return;
-        }
-
-        datalist.innerHTML = "";
-        items.forEach(item => {
-            const option = document.createElement("option");
-            option.value = item;
-            datalist.appendChild(option);
-        });
-    }
-
-
-    window.handleLedgerDropdown = function (inputElem, groupInputId) {
-        const groupName = document.getElementById(groupInputId)?.value.trim();
-        const dropdownList = window.crdbcsbkangexp_list || [];
-
-        // Show dropdown
-        showCustomDropdown(inputElem, dropdownList, async (selectedLedger) => {
-            if (!groupName || !selectedLedger) return;
-
-            try {
-                const q = query(
-                    collection(db, "tran"),
-                    where("ttype", "==", "Op Bal"),
-                    where("grp", "==", groupName),
-                    where("name", "==", selectedLedger)
-                );
-
-                const snap = await getDocs(q);
-
-                if (snap.empty) {
-                    console.warn("❌ No Opening Balance found.");
-                    document.getElementById("UpdatedOBJ").value = "";
-                    document.getElementById("UpdatedOBK").value = "";
-                    return;
-                }
-
-                const data = snap.docs[0].data();
-                const {fparty, tparty, amt} = data;
-
-                // Clear both fields before setting
-                document.getElementById("UpdatedOBJ").value = "";
-                document.getElementById("UpdatedOBK").value = "";
-
-                if (fparty === selectedLedger) {
-                    document.getElementById("UpdatedOBJ").value = amt;
-                } else if (tparty === selectedLedger) {
-                    document.getElementById("UpdatedOBK").value = amt;
-                } else {
-                    console.warn("⚠️ Selected ledger name not found in fparty or tparty.");
-                }
-            } catch (err) {
-                console.error("🔥 Firestore error while fetching Op Bal:", err);
-            }
-        });
-    };
-
-
-    window.handleProductDropdown = function (inputElem, groupInputId) {
-        const groupName = capitalizeWords(document.getElementById(groupInputId)?.value.trim() || "");
-        let list = [];
-
-        if (groupName === "Sales") {
-            list = window.sproduct_list || [];
-        } else if (groupName === "Purchase") {
-            list = window.pproduct_list || [];
-        }
-
-        showCustomDropdown(inputElem, list, async (selectedName) => {
-            if (inputElem.id === "OldProductName") {
-                try {
-                    const q = query(
-                        collection(db, "tran"),
-                        where("grp", "==", groupName),
-                        where("name", "==", selectedName),
-                        where("ttype", "==", "Op Stock")
-                    );
-
-                    const snap = await getDocs(q);
-
-                    if (!snap.empty) {
-                        const data = snap.docs[0].data();
-                        document.getElementById("NewOpStock").value = data.amt || "";
-                    } else {
-                        document.getElementById("NewOpStock").value = "";
-                    }
-                } catch (err) {
-                    console.error("🔥 Error fetching Op Stock:", err);
-                }
-            }
-        });
-    };
-
-
-    // New Names Added To Update Datalist /////////////////////////////////////////////////////////
-    function addToDatalist(datalistId, value) {
-        const dataList = document.getElementById(datalistId);
-        if (!dataList) return;
-
-        const option = document.createElement("option");
-        option.value = value;
-        dataList.appendChild(option);
-    }
-
-
-    // List Selector //////////////////////////////////////////////////////////////////////////////
-    function setupTransactionForm(prefix) {
-        const dateInput = document.getElementById(prefix + "TranDate");
-        const ttypeInput = document.getElementById(prefix + "TranTtype");
-        const fpartyInput = document.getElementById(prefix + "TranFparty");
-        const tpartyInput = document.getElementById(prefix + "TranTparty");
-        const amountInput = document.getElementById(prefix + "TranAmount");
-        const narInput = document.getElementById(prefix + "TranNar");
-        const transactionErrors = document.getElementById(prefix + "-transaction-errors");
-
-        // === Core logic to update dropdowns based on Transaction Type ===
-        function applyTransactionTypeSettings(ttype) {
-            const fpartyInput = document.getElementById(prefix + "TranFparty");
-            const tpartyInput = document.getElementById(prefix + "TranTparty");
-            const amountInput = document.getElementById(prefix + "TranAmount");
-
-            // Remove previous event listeners if needed (optional)
-            fpartyInput.replaceWith(fpartyInput.cloneNode(true));
-            tpartyInput.replaceWith(tpartyInput.cloneNode(true));
-
-            const newFpartyInput = document.getElementById(prefix + "TranFparty");
-            const newTpartyInput = document.getElementById(prefix + "TranTparty");
-
-            if (ttype === "Sales") {
-                newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, sproduct_list));
-                newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, crdb_list));
-
-            } else if (ttype === "Purchase") {
-                newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, crdb_list));
-                newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, pproduct_list));
-
-            } else if (["Receipt", "Payment"].includes(ttype)) {
-                newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, crdbcsbkang_list));
-                newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, crdbcsbkangexp_list));
-
-            } else {
-                newFpartyInput.addEventListener("input", () => showCustomDropdown(newFpartyInput, allnames_list));
-                newTpartyInput.addEventListener("input", () => showCustomDropdown(newTpartyInput, allnames_list));
-            }
-        }
-
-        // === Update when transaction type changes
-        ttypeInput.addEventListener("change", () => {
-            const ttype = ttypeInput.value.trim();
-            applyTransactionTypeSettings(ttype, true);
-        });
-
-        // === Setup input validation based on selected list
-        function setupValidation(input, label, listSource) {
-            input.addEventListener("blur", () => {
-                const list = listSource.map(v => v.toLowerCase());
-                const value = input.value.trim().toLowerCase();
-                if (value && !list.includes(value)) {
-                    showError(`${label}: "${value}" is not valid.`);
-                    input.setCustomValidity("Invalid value");
-                } else {
-                    clearError();
-                    input.setCustomValidity("");
-                }
-            });
-        }
-
-        function showError(msg) {
-            transactionErrors.textContent = msg;
-            transactionErrors.style.display = "block";
-        }
-
-        function clearError() {
-            transactionErrors.textContent = "";
-            transactionErrors.style.display = "none";
-        }
-
-        // === Setup initial validation for both party fields (basic fallback list)
-        setupValidation(fpartyInput, "From Party", window.crdb_list);
-        setupValidation(tpartyInput, "To Party", window.crdbcsbkangexp_list);
-
-        // === If value already filled (like in Update), apply settings
-        const initialType = ttypeInput.value.trim();
-        if (initialType) {
-            applyTransactionTypeSettings(initialType, false);
-        }
-    }
-
-
-    // Groups Ledgers Products/////////////////////////////////////////////////////////////////////
-
-
-    // Save Group /////////////////////////////////////////////////////////////////////////////////
-    async function saveGroup() {
-        const inputField = document.getElementById("GroupName");
-        const groupName = inputField.value.trim();
-
-        if (!groupName) {
-            alert("Please enter a Group Name!");
-            inputField.value = "";
-            return;
-        }
-
-        const tranCol = collection(db, "tran");
-        const q = query(tranCol, where("grp", "==", groupName));
-        const querySnapshot = await getDocs(q);
-
-        if (!querySnapshot.empty) {
-            alert("Group name already exists!");
-            return;
-        }
-
-        await addDoc(tranCol, {grp: groupName});
-        if (!window.grp_list.includes(groupName)) {
-            window.grp_list.push(groupName);
-            window.grp_list.sort((a, b) => a.localeCompare(b));
-        }
-        inputField.value = "";
-    }
-
-    document.getElementById("SaveGroupButton").addEventListener("click", saveGroup);
-
-
-    // Save Ledger Account ////////////////////////////////////////////////////////////////////////
-    async function saveLedger() {
-        const group = capitalizeWords(document.getElementById("LedgerGroup").value.trim());
-        const newacname = capitalizeWords(document.getElementById("LedgerName").value.trim());
-        const opbaljama = document.getElementById("OBJ").value.trim();
-        const opbalkhate = document.getElementById("OBK").value.trim();
-
-        if (!group || !newacname) {
-            return alert("Please select Group and enter Account Name.");
-        }
-
-        if (opbaljama !== "" && opbalkhate !== "") {
-            return alert("Please enter value in only one of Old Bal Jama or Old Bal Khate, not both.");
-        }
-
-        if (!window.grp_list.includes(group)) {
-            return alert("Ledger Group is not valid. Add this group first.");
-        }
-
-        const q = query(collection(db, "tran"), where("name", "==", newacname));
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-            return alert("Ledger already exists in this group.");
-        }
-
-        const tranCol = collection(db, "tran");
-        const allDocs = await getDocs(tranCol);
-
-        let maxId = 0;
-        allDocs.forEach(doc => {
-            const data = doc.data();
-            const idNum = Number(data.id);
-            if (!isNaN(idNum) && idNum > maxId) {
-                maxId = idNum;
-            }
-        });
-
-        const newId = maxId + 1;
-
-        let fparty = "", tparty = "", amt = 0;
-
-        if (opbaljama !== "") {
-            fparty = newacname;
-            amt = Number(opbaljama);
-        } else if (opbalkhate !== "") {
-            tparty = newacname;
-            amt = Number(opbalkhate);
-        } else {
-            fparty = newacname;
-            amt = 0;
-        }
-
-        await addDoc(tranCol, {
-            id: newId,
-            date: new Date().toISOString().split("T")[0],
-            ttype: "Op Bal",
-            fparty,
-            tparty,
-            amt,
-            grp: group,
-            name: newacname
-        });
-
-        if (!window.allnames_list.includes(newacname)) {
-            window.allnames_list.push(newacname);
-            window.allnames_list.sort((a, b) => a.localeCompare(b));
-        }
-
-        clearInputsById(["LedgerGroup", "LedgerName", "OBJ", "OBK"]);
-    }
-
-    document.getElementById("SaveLedgerButton").addEventListener("click", saveLedger);
-
-
-    // Update Ledger //////////////////////////////////////////////////////////////////////////////
-    async function update_ledger() {
-        const usoledgrp = capitalizeWords(document.getElementById("OldLedgerGroup")?.value.trim() || "");
-        const oledn = capitalizeWords(document.getElementById("OldLedgerName")?.value.trim() || "");
-        const usledgrp = capitalizeWords(document.getElementById("UpdatedLedgerGroup")?.value.trim() || "");
-        const uledn = capitalizeWords(document.getElementById("UpdatedLedgerName")?.value.trim() || "");
-        const unobj = document.getElementById("UpdatedOBJ")?.value.trim() || "";
-        const unobk = document.getElementById("UpdatedOBK")?.value.trim() || "";
-
-        const oldLedgerName = oledn;
-        const newLedgerName = uledn;
-
-        if (!usoledgrp || !oldLedgerName || !usledgrp || !newLedgerName) {
-            alert("Please enter both old and updated group and ledger names.");
-            return;
-        }
-
-        // ✅ Use in-memory window.grp_list
-        if (!window.grp_list.includes(usledgrp)) {
-            alert("New Ledger Group is not valid. Add this group first.");
-            return;
-        }
-
-        // ✅ Only check for duplicate if the new name is different
-        if (oldLedgerName !== newLedgerName) {
-            const existsQuery = query(
-                collection(db, "tran"),
-                where("name", "==", newLedgerName)
-            );
-
-            const existsSnap = await getDocs(existsQuery);
-            if (!existsSnap.empty) {
-                alert("Ledger with this name already exists.");
-                return;
-            }
-        }
-
-        try {
-            const tranCol = collection(db, "tran");
-            const snapshot = await getDocs(tranCol);
-
-            if (snapshot.empty) {
-                alert("No documents found in the tran collection.");
-                return;
-            }
-
-            const updatePromises = [];
-
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const docRef = doc(db, "tran", docSnap.id);
-
-                const matchOpBal =
-                    data.grp === usoledgrp &&
-                    data.name === oldLedgerName &&
-                    data.ttype === "Op Bal";
-
-                const matchOther = ["fparty", "tparty", "name"].some(field => data[field] === oldLedgerName);
-
-                const updatedData = {};
-                let needsUpdate = false;
-
-                if (matchOpBal) {
-                    updatedData.grp = usledgrp;
-                    updatedData.name = newLedgerName;
-
-                    if (unobj !== "") {
-                        updatedData.fparty = newLedgerName;
-                        updatedData.tparty = "";
-                        updatedData.amt = Number(unobj);
-                    } else if (unobk !== "") {
-                        updatedData.fparty = "";
-                        updatedData.tparty = newLedgerName;
-                        updatedData.amt = Number(unobk);
-                    } else {
-                        updatedData.fparty = newLedgerName;
-                        updatedData.tparty = "";
-                        updatedData.amt = 0;
-                    }
-
-                    needsUpdate = true;
-                } else if (matchOther && data.grp !== usoledgrp) {
-                    ["fparty", "tparty", "name"].forEach(field => {
-                        if (data[field] === oldLedgerName) {
-                            updatedData[field] = newLedgerName;
-                            needsUpdate = true;
-                        }
-                    });
-                }
-
-                if (needsUpdate) {
-                    updatePromises.push(updateDoc(docRef, updatedData));
-                }
-            });
-
-            await Promise.all(updatePromises);
-
-            if (!window.allnames_list.includes(newLedgerName)) {
-                window.allnames_list.push(newLedgerName);
-                window.allnames_list.sort((a, b) => a.localeCompare(b));
-            }
-
-            clearInputsById(["OldLedgerGroup", "OldLedgerName", "UpdatedLedgerGroup", "UpdatedLedgerName", "UpdatedOBJ", "UpdatedOBK"]);
-
-        } catch (error) {
-            alert("An error occurred while updating the ledger.");
-        }
-    }
-
-    document.getElementById("UpdateLedgerButton").addEventListener("click", update_ledger);
-
-
-    // Save Product ///////////////////////////////////////////////////////////////////////////////
-    async function saveProduct() {
-        const spgroup = capitalizeWords(document.getElementById("ProductGroup").value.trim());
-        const productname = capitalizeWords(document.getElementById("ProductName").value.trim());
-        const opstk = document.getElementById("ProductOPSTK").value.trim();
-
-        if (!spgroup || !productname) {
-            alert("Please fill both Group and Product Name.");
-            return;
-        }
-
-        // Check for duplicate product name in Firestore
-        const q = query(collection(db, "tran"), where("name", "==", productname));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-            alert("Product already exists.");
-            return;
-        }
-
-        // Get new ID
-        const tranCol = collection(db, "tran");
-        const allDocs = await getDocs(tranCol);
-
-        let maxId = 0;
-        allDocs.forEach(doc => {
-            const data = doc.data();
-            const idNum = Number(data.id);
-            if (!isNaN(idNum) && idNum > maxId) {
-                maxId = idNum;
-            }
-        });
-
-        const newId = maxId + 1;
-        const amt = opstk === "" ? 0 : Number(opstk);
-
-        // Add product entry to Firestore
-        await addDoc(tranCol, {
-            id: newId,
-            date: new Date().toISOString().split("T")[0],
-            ttype: "Op Stock",
-            fparty: productname,
-            amt,
-            grp: spgroup,
-            name: productname
-        });
-
-        if (spgroup === "Sales") {
-            if (!window.sproduct_list.includes(productname)) {
-                window.sproduct_list.push(productname);
-                window.sproduct_list.sort((a, b) => a.localeCompare(b));
-            }
-        } else if (spgroup === "Purchase") {
-            if (!window.pproduct_list.includes(productname)) {
-                window.pproduct_list.push(productname);
-                window.pproduct_list.sort((a, b) => a.localeCompare(b));
-            }
-        }
-
-        clearInputsById(["ProductGroup", "ProductName", "ProductOPSTK"]);
-    }
-
-    document.getElementById("SaveProductButton").addEventListener("click", saveProduct);
-
-
-    // Update Product /////////////////////////////////////////////////////////////////////////////
-    async function updateProduct() {
-        const oldProdGrp = capitalizeWords(document.getElementById("OldProductGroup")?.value.trim() || "");
-        const oldProdName = capitalizeWords(document.getElementById("OldProductName")?.value.trim() || "");
-        const newProdGrp = capitalizeWords(document.getElementById("NewProductGroup")?.value.trim() || "");
-        const newProdName = capitalizeWords(document.getElementById("NewProductName")?.value.trim() || "");
-        const newOpStock = document.getElementById("NewOpStock")?.value.trim() || "";
-
-        if (!oldProdGrp || !oldProdName || !newProdName) {
-            alert("Please enter old and new product group and names.");
-            return;
-        }
-
-        const finalProdGrp = newProdGrp || oldProdGrp;
-
-        try {
-            const existsQuery = query(
-                collection(db, "tran"),
-                where("grp", "==", finalProdGrp),
-                where("name", "==", newProdName)
-            );
-            const existsSnap = await getDocs(existsQuery);
-            if (!existsSnap.empty) {
-                alert("Product with this name already exists in the selected group.");
-                return;
-            }
-
-            const tranCol = collection(db, "tran");
-            const snapshot = await getDocs(tranCol);
-
-            if (snapshot.empty) {
-                alert("No documents found in the tran collection.");
-                return;
-            }
-
-            const updatePromises = [];
-
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-                const docRef = doc(db, "tran", docSnap.id);
-
-                const matchOpStock =
-                    data.grp === oldProdGrp &&
-                    data.name === oldProdName &&
-                    data.ttype === "Op Stock";
-
-                const matchOther = ["fparty", "tparty", "name"].some(field => data[field] === oldProdName);
-
-                const updatedData = {};
-                let needsUpdate = false;
-
-                if (matchOpStock) {
-                    updatedData.grp = finalProdGrp;
-                    updatedData.name = newProdName;
-                    updatedData.fparty = newProdName;
-                    updatedData.amt = newOpStock !== "" ? Number(newOpStock) : Number(data.amt || 0);
-                    needsUpdate = true;
-                } else if (matchOther) {
-                    if (data.grp === oldProdGrp && data.name === oldProdName) {
-                        updatedData.grp = finalProdGrp;
-                        updatedData.name = newProdName;
-                        needsUpdate = true;
-                    }
-
-                    ["fparty", "tparty"].forEach(field => {
-                        if (data[field] === oldProdName) {
-                            updatedData[field] = newProdName;
-                            needsUpdate = true;
-                        }
-                    });
-                }
-
-                if (needsUpdate) {
-                    updatePromises.push(updateDoc(docRef, updatedData));
-                }
-            });
-
-            await Promise.all(updatePromises);
-
-            if (finalProdGrp === "Sales") {
-                if (!window.sproduct_list.includes(newProdName)) {
-                    window.sproduct_list.push(newProdName);
-                    window.sproduct_list.sort((a, b) => a.localeCompare(b));
-                }
-
-            } else if (finalProdGrp === "Purchase") {
-                if (!window.pproduct_list.includes(newProdName)) {
-                    window.pproduct_list.push(newProdName);
-                    window.pproduct_list.sort((a, b) => a.localeCompare(b));
-                }
-            }
-
-            clearInputsById(["OldProductGroup", "OldProductName", "NewProductGroup", "NewProductName", "NewOpStock"]);
-
-        } catch (error) {
-            alert("An error occurred while updating the product.");
-        }
-    }
-
-    document.getElementById("UpdateProductButton").addEventListener("click", updateProduct);
-
-
-    // Transactions ///////////////////////////////////////////////////////////////////////////////
-
-
-    // Get Form Values ////////////////////////////////////////////////////////////////////////////
-    function getFormValues(prefix) {
-        return {
-            date: document.getElementById(prefix + "TranDate")?.value.trim() || "",
-            ttype: document.getElementById(prefix + "TranTtype")?.value.trim() || "",
-            fparty: document.getElementById(prefix + "TranFparty")?.value.trim() || "",
-            tparty: document.getElementById(prefix + "TranTparty")?.value.trim() || "",
-            amt: document.getElementById(prefix + "TranAmount")?.value.trim() || "",
-            nar: document.getElementById(prefix + "TranNar")?.value.trim() || "",
-            idd: document.getElementById(prefix + "Id")?.value.trim() || ""
-        };
-    }
-
-
-    // Clear Form Values //////////////////////////////////////////////////////////////////////////
-    function clearFormValues(prefix) {
-        const fields = ["date", "ttype", "fparty", "tparty", "amount", "nar", "id"];
-        fields.forEach(field => {
-            const el = document.getElementById(prefix + "Tran" + capitalizeWords(field));
-            if (el) el.value = "";
-        });
-
-        const idInput = document.getElementById(prefix + "Id");
-        if (idInput) {
-            idInput.value = "";
-            idInput.disabled = false;
-        }
-    }
-
-
-    // Save Transaction ///////////////////////////////////////////////////////////////////////////
-    async function saveTransaction() {
-        try {
-            const saveBtn = document.getElementById("AddTranSaveButton");
-            let errorElem = document.getElementById("AddTranError");
-            if (!errorElem) {
-                errorElem = document.createElement("small");
-                errorElem.id = "AddTranError";
-                errorElem.style.color = "red";
-                errorElem.style.display = "none";
-                saveBtn.insertAdjacentElement("afterend", errorElem);
-            }
-
-            // ✅ Fetch values
-            let values = getFormValues("Add");
-
-            // Check mandatory fields
-            const missingFields = [];
-            if (!values.ttype) missingFields.push("Transaction Type");
-            if (!values.date) missingFields.push("Date");
-            if (!values.fparty) missingFields.push("From Party");
-            if (!values.tparty) missingFields.push("To Party");
-            if (!values.amt) missingFields.push("Amount");
-
-            if (missingFields.length > 0) {
-                errorElem.textContent = "❌ Please fill: " + missingFields.join(", ");
-                errorElem.style.display = "block";
-                return;
-            } else {
-                errorElem.style.display = "none";
-            }
-
-            const tranCol = collection(db, "tran");
-
-            // Find max id
-            const snapshot = await getDocs(tranCol);
-            let maxId = 0;
-            snapshot.forEach(doc => {
-                const idVal = parseInt(doc.data().id, 10);
-                if (!isNaN(idVal) && idVal > maxId) maxId = idVal;
-            });
-            const newId = maxId + 1;
-
-            await addDoc(tranCol, {
-                id: Number(newId),
-                date: values.date,
-                ttype: values.ttype,
-                fparty: values.fparty,
-                tparty: values.tparty,
-                amt: Number(values.amt) || 0,
-                nar: values.nar,
-                grp: values.grp || "",
-                name: values.name || ""
-            });
-            clearFormValues("Add");
-
-        } catch (error) {
-            alert("❌ Failed to save.");
-        }
-    }
-
-    document.getElementById("AddTranSaveButton").addEventListener("click", saveTransaction);
-
-
-    // Search & Insert ////////////////////////////////////////////////////////////////////////////
-    async function searchAndInsert(prefix) {
-        const idInput = document.getElementById(prefix + "Id");
-        const searchId = idInput?.value.trim();
-
-        if (!searchId) {
-            alert("Please enter an ID to search.");
-            return;
-        }
-
-        try {
-            const tranCol = collection(db, "tran");
-            const q = query(tranCol, where("id", "==", Number(searchId)));
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                alert("❌ No document found with this ID.");
-                return;
-            }
-
-            const docSnap = querySnapshot.docs[0];
-            const data = docSnap.data();
-
-            // Define mapping from form field names → Firestore fields
-            const fieldMap = {
-                date: "date",
-                ttype: "ttype",
-                fparty: "fparty",
-                tparty: "tparty",
-                amount: "amt",
-                nar: "nar"
-            };
-
-            Object.entries(fieldMap).forEach(([formField, firestoreField]) => {
-                const elementId = prefix + "Tran" + capitalizeWords(formField);
-                const el = document.getElementById(elementId);
-                if (el) {
-                    el.value = data[firestoreField] != null ? String(data[firestoreField]) : "";
-                } else {
-                    console.warn("⚠️ Element not found:", elementId);
-                }
-            });
-
-            // ✅ CRITICAL STEP:
-            // After loading ttype, dispatch change so datalists get set
-            const ttypeInput = document.getElementById(prefix + "TranTtype");
-            if (ttypeInput) {
-                ttypeInput.dispatchEvent(new Event("change"));
-            }
-
-            if (idInput) {
-                idInput.disabled = true;
-            }
-
-        } catch (e) {
-            console.error(e);
-            alert("Error fetching data.");
-        }
-    }
-
-    document.getElementById("UpdateSearchButton").addEventListener("click", () => {
-        searchAndInsert("Update");
-    });
-
-
-    // Update Transaction /////////////////////////////////////////////////////////////////////////
-    async function updateTransaction() {
-        const idInput = document.getElementById("UpdateId");
-        const idValue = idInput?.value.trim() || "";
-
-        if (!idValue) {
-            alert("❌ Please enter an ID to update.");
-            return;
-        }
-
-        try {
-            const tranCol = collection(db, "tran");
-            const q = query(tranCol, where("id", "==", Number(idValue)));
-            const snapshot = await getDocs(q);
-
-            if (snapshot.empty) {
-                alert("❌ No transaction found with this ID.");
-                return;
-            }
-
-            const formData = getFormValues("Update");
-
-            for (const docSnap of snapshot.docs) {
-                const updates = {
-                    date: formData.date,
-                    ttype: formData.ttype,
-                    fparty: formData.fparty,
-                    tparty: formData.tparty,
-                    amt: formData.amt !== undefined && formData.amt !== ""
-                        ? Number(formData.amt)
-                        : 0,
-                    nar: formData.nar,
-                    id: Number(idValue)
-                };
-
-                await updateDoc(docSnap.ref, updates);
-            }
-            clearFormValues("Update");
-
-        } catch (error) {
-            alert("Error updating transaction: " + error.message);
-        }
-    }
-
-    document.getElementById("UpdateTranButton").addEventListener("click", updateTransaction);
-
-
-    // Delete Transaction /////////////////////////////////////////////////////////////////////////
-    async function deleteTransaction() {
-        const idVal = document.getElementById("DeleteId")?.value.trim();
-        const errorDiv = document.getElementById("delete-error");
-        if (errorDiv) {
-            errorDiv.textContent = "";
-        }
-
-        if (!idVal) {
-            errorDiv.textContent = "Please enter an ID to delete.";
-            return;
-        }
-        const tranCol = collection(db, "tran");
-        const q = query(tranCol, where("id", "==", Number(idVal)));
-        const snapshot = await getDocs(q);
-
-        if (snapshot.empty) {
-            errorDiv.textContent = "No transaction found with this ID.";
-            return;
-        }
-        for (const docSnap of snapshot.docs) {
-            await deleteDoc(docSnap.ref);
-        }
-        document.getElementById("DeleteId").value = "";
-        errorDiv.textContent = "";
-    }
-
-    document.getElementById("DeleteTranButton").addEventListener("click", deleteTransaction);
-
-
-    //  VIEWS  ////////////////////////////////////////////////////////////////////////////////////
-    // Custom Table ///////////////////////////////////////////////////////////////////////////////
-    function renderTable(containerId, columns, rows, widths, aligns) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-
-        if (!rows.length) {
-            container.textContent = "No data found.";
-            return;
-        }
-        const table = document.createElement("table");
-
-        // header
-        const thead = document.createElement("thead");
-        const trHead = document.createElement("tr");
-        columns.forEach((col, i) => {
-            const th = document.createElement("th");
-            th.textContent = col;
-            th.style.width = widths?.[i] || "auto";
-            th.style.textAlign = aligns?.[i] || "left";
-            trHead.appendChild(th);
-        });
-        thead.appendChild(trHead);
-        table.appendChild(thead);
-
-        // body
-        const tbody = document.createElement("tbody");
-        rows.forEach(row => {
-            const tr = document.createElement("tr");
-            columns.forEach((col, i) => {
-                const td = document.createElement("td");
-                td.textContent = row[col] || "";
-                td.style.textAlign = aligns?.[i] || "left";
-                tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-        });
-
-        table.appendChild(tbody);
-        container.appendChild(table);
-    }
-
-
-    // Daybook ////////////////////////////////////////////////////////////////////////////////////
-    async function viewDaybook(clearFields = false) {
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-
-        const type = document.getElementById("typeField").value.trim().toLowerCase();
-        const party = document.getElementById("apartyfield").value.trim().toLowerCase();
-        const amount = document.getElementById("amountField").value.trim();
-
-        let rows = [];
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-
-            const record = {
-                Date: formatDate(data.date || ""),
-                TranType: data.ttype || "",
-                From: data.fparty || "",
-                To: data.tparty || "",
-                Narattion: data.nar || "",
-                Amount: data.amt || "0",
-                Id: data.id || ""
-            };
-
-            let include = true;
-            const ttype = (record.TranType || "").toLowerCase();
-
-            if (type && ttype !== type) {
-                include = false;
-            }
-
-            if (ttype === "" || ttype === "op bal") {
-                include = false;
-            }
-
-            if (party) {
-                const f = (record.From || "").toLowerCase();
-                const t = (record.To || "").toLowerCase();
-                if (!f.includes(party) && !t.includes(party)) {
-                    include = false;
-                }
-            }
-
-            if (amount) {
-                const recordAmt = Number(record.Amount || 0);
-                if (recordAmt !== Number(amount)) {
-                    include = false;
-                }
-            }
-
-            if (Number(record.Amount) === 0) {
-                include = false;
-            }
-
-            if (include) {
-                rows.push(record);
-            }
-        });
-
-        rows.sort(
-            (a, b) =>
-                new Date(b.Date.split("-").reverse().join("-")) -
-                new Date(a.Date.split("-").reverse().join("-"))
-        );
-
-        const columns = ["Date", "TranType", "From", "To", "Narattion", "Amount", "Id"];
-        const widths = ["150px", "150px", "250px", "250px", "300px", "100px", "60px"];
-        const aligns = ["left", "left", "left", "left", "left", "right", "right"];
-
-        renderTable("daybookTable", columns, rows, widths, aligns);
-
-        if (clearFields) {
-            document.getElementById("typeField").value = "";
-            document.getElementById("apartyfield").value = "";
-            document.getElementById("amountField").value = "";
-        }
-    }
-
-
-    // Groups & Accounts //////////////////////////////////////////////////////////////////////////
-    async function viewGroupsAndAccounts() {
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-        let rows = [];
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.grp && data.name) {
-                rows.push({Groups: data.grp || "", Accounts: data.name || ""});
-            }
-        });
-
-        rows.sort((a, b) => {
-            return a.Accounts.toLowerCase().localeCompare(b.Accounts.toLowerCase());
-        });
-
-        renderTable("viewGroupsLadgersTable", ["Groups", "Accounts"], rows, ["150px", "200px"], ["left", "left"]);
-    }
-
-
-    // Products ///////////////////////////////////////////////////////////////////////////////////
-    async function viewProducts() {
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-        let rows = [];
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-
-            // Only include if grp is "Sales" or "Purchase"
-            if (
-                data.grp &&
-                data.name &&
-                (data.grp.toLowerCase() === "sales" || data.grp.toLowerCase() === "purchase")
-            ) {
-                rows.push({Group: data.grp || "", Product: data.name || ""});
-            }
-        });
-
-        // Sort alphabetically by product name
-        rows.sort((a, b) => a.Product.toLowerCase().localeCompare(b.Product.toLowerCase()));
-        renderTable("productsTable", ["Group", "Product"], rows, ["150px", "200px"], ["left", "left"]);
-    }
-
-
-    // Receivable /////////////////////////////////////////////////////////////////////////////////
-    async function viewReceivables() {
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-
-        const ledgerGroups = {};
-        const balances = {};
-
-        // Build ledger group mappings
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const name = (data.name || "").trim().toLowerCase();
-            const grp = (data.grp || "").trim().toLowerCase();
-
-            if (name && grp) {
-                ledgerGroups[name] = grp;
-            }
-        });
-
-        // Calculate balances from fparty/tparty
-        snapshot.forEach(doc => {
-            const data = doc.data();
-
-            if (data.fparty) {
-                const party = data.fparty.trim().toLowerCase();
-                balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
-            }
-            if (data.tparty) {
-                const party = data.tparty.trim().toLowerCase();
-                balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
-            }
-        });
-
-        // Prepare rows for receivables
-        const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
-        const rows = [];
-
-        for (const [party, amount] of Object.entries(balances)) {
-            const grp = ledgerGroups[party];
-            if (amount < 0 && grp && allowedGroups.includes(grp)) {
-                rows.push({
-                    Party: capitalizeWords(party),
-                    Amount: Math.abs(amount).toFixed(0)
-                });
-            }
-        }
-
-        rows.sort((a, b) => b.Amount - a.Amount);
-        renderTable("viewRecTable", ["Party", "Amount"], rows, ["200px", "100px"], ["left", "right"]);
-    }
-
-
-    // Payable ////////////////////////////////////////////////////////////////////////////////////
-    async function viewPayables() {
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-
-        const ledgerGroups = {};
-        const balances = {};
-
-        // Capture ledger definitions
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const name = (data.name || "").trim().toLowerCase();
-            const grp = (data.grp || "").trim().toLowerCase();
-
-            if (name && grp) {
-                ledgerGroups[name] = grp;
-            }
-        });
-
-        // Sum amounts for all parties
-        snapshot.forEach(doc => {
-            const data = doc.data();
-
-            if (data.fparty) {
-                const party = data.fparty.trim().toLowerCase();
-                balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
-            }
-
-            if (data.tparty) {
-                const party = data.tparty.trim().toLowerCase();
-                balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
-            }
-        });
-
-        // Prepare payables list
-        const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
-        const rows = [];
-
-        for (const [party, amount] of Object.entries(balances)) {
-            const grp = ledgerGroups[party];
-            if (amount > 0 && grp && allowedGroups.includes(grp)) {
-                rows.push({
-                    Party: capitalizeWords(party),
-                    Amount: amount.toFixed(0)
-                });
-            }
-        }
-        rows.sort((a, b) => b.Amount - a.Amount);
-        renderTable("viewPayTable", ["Party", "Amount"], rows, ["200px", "100px"], ["left", "right"]);
-    }
-
-
-    // Khatavahi //////////////////////////////////////////////////////////////////////////////////
-    async function khatavahi() {
-        const fromDate = document.getElementById("kfromDate").value;
-        const toDate = document.getElementById("ktoDate").value;
-        const partyName = capitalizeWords(document.getElementById("kparty").value.trim());
-
-        if (!fromDate || !toDate || !partyName) {
-            alert("Please select both dates and party.");
-            return;
-        }
-        const fDate = fromDate;
-        const tDate = toDate;
-
-        try {
-            const tranCol = collection(db, "tran");
-            const snapshot = await getDocs(tranCol);
-            let opBal = 0;
-            let transRows = [];
-
-            snapshot.forEach(docSnap => {
-                const data = docSnap.data();
-
-                const date = data.date || "";
-                const fparty = (data.fparty || "").trim().toLowerCase();
-                const tparty = (data.tparty || "").trim().toLowerCase();
-                const party = partyName.trim().toLowerCase();
-
-                // Calculate opening balance
-                if (date < fDate) {
-                    if (fparty === party) {
-                        opBal += Number(data.amt);
-                    } else if (tparty === party) {
-                        opBal -= Number(data.amt);
-                    }
-                }
-
-                // Filter transactions between dates
-                if (
-                    date >= fDate &&
-                    date <= tDate &&
-                    (fparty === party || tparty === party)
-                ) {
-
-                    transRows.push({
-                        Date: formatDate(data.date || ""),
-                        TranType: data.ttype || "",
-                        From: data.fparty || "",
-                        To: data.tparty || "",
-                        Narration: data.nar || "",
-                        Amount: Math.abs(Number(data.amt)).toFixed(0),
-                        ID: data.id?.toString() || ""
-                    });
-                }
-            });
-
-            let runningBal = opBal;
-            let finalRows = [];
-
-            // Opening balance row
-            let opLabel = "Opening Balance";
-            if (opBal < 0) opLabel += " Dr";
-            else if (opBal > 0) opLabel += " Cr";
-
-            finalRows.push({
-                Date: "",
-                TranType: "",
-                From: opLabel,
-                To: "",
-                Narration: "",
-                Amount: Math.abs(opBal).toFixed(0),
-                ID: ""
-            });
-
-            // Transaction rows
-            transRows.forEach(tran => {
-                if (tran.From?.toLowerCase() === partyName.toLowerCase()) {
-                    runningBal += Number(tran.Amount);
-                } else if (tran.To?.toLowerCase() === partyName.toLowerCase()) {
-                    runningBal -= Number(tran.Amount);
-                }
-                finalRows.push(tran);
-            });
-
-            // Closing balance row
-            let clLabel = "Closing Balance";
-            if (runningBal < 0) clLabel += " Dr";
-            else if (runningBal > 0) clLabel += " Cr";
-
-            finalRows.push({
-                Date: "",
-                TranType: "",
-                From: clLabel,
-                To: "",
-                Narration: "",
-                Amount: Math.abs(runningBal).toFixed(0),
-                ID: ""
-            });
-
-            const header = ["Date", "TranType", "From", "To", "Narration", "Amount", "ID"];
-            const widths = ["100px", "100px", "120px", "120px", "200px", "80px", "60px"];
-            const aligns = ["left", "left", "left", "left", "left", "right", "right"];
-
-            const targetDiv = document.getElementById("khaTable");
-            if (!targetDiv) {
-                alert("Cannot render table because khaTable does not exist.");
-                return;
-            }
-            renderTable("khaTable", header, finalRows, widths, aligns);
-
-        } catch (error) {
-            alert("An error occurred while loading the khatavahi.");
-        }
-    }
-
-    document.getElementById("calkhabtn").addEventListener("click", khatavahi);
-
-
-    // Profit Loss ////////////////////////////////////////////////////////////////////////////////
-    document.getElementById("calculateProfitbtn").addEventListener("click", () => {
-        const fromDate = document.getElementById("fromDate").value;
-        const toDate = document.getElementById("toDate").value;
-        profit_loss(fromDate, toDate);
-    });
-
-    async function profit_loss(fromDate = "", toDate = "") {
-        const closingStock = parseFloat(document.getElementById("closingStock").value || 0);
-
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-
-        let openingStock = 0;
-        let purchase = 0;
-        let expense = 0;
-        let sales = 0;
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const tranDate = data.date || "";
-            const amount = parseFloat(data.amt || 0);
-            const ttype = (data.ttype || "").toLowerCase();
-
-            if (fromDate && toDate) {
-                if (tranDate < fromDate || tranDate > toDate) {
-                    return;
-                }
-            }
-
-            if (ttype === "op stock") {
-                openingStock += amount;
-            } else if (ttype === "purchase") {
-                purchase += amount;
-            } else if (ttype === "expense") {
-                expense += amount;
-            } else if (ttype === "sales") {
-                sales += amount;
-            }
-        });
-
-        const debitTotal = openingStock + purchase + expense;
-        const creditTotal = sales + closingStock;
-        const profit = creditTotal - debitTotal;
-
-        const rows = [
-            {Description: "Opening Stock", Amount: openingStock.toFixed(0)},
-            {Description: "Purchase", Amount: purchase.toFixed(0)},
-            {Description: "Expense", Amount: expense.toFixed(0)},
-            {Description: "Total (Op+Pur+Exp)", Amount: debitTotal.toFixed(0)},
-            {Description: "Sales", Amount: sales.toFixed(0)},
-            {Description: "Closing Stock", Amount: closingStock.toFixed(0)},
-            {Description: "Total (Sales+Clo)", Amount: creditTotal.toFixed(0)},
-            {Description: "Profit / Loss", Amount: profit.toFixed(0)},
-        ];
-
-        renderTable("plTable", ["Description", "Amount"], rows, ["70%", "30%"], ["left", "right"]);
-    }
-
-
-    // Export Data To CSV PDF /////////////////////////////////////////////////////////////////////
-    async function exportData() {
-        const startDateStr = document.getElementById("exportStartDate").value;
-        const endDateStr = document.getElementById("exportEndDate").value;
-        const party = document.getElementById("exportParty").value.trim();
-        const ttype = document.getElementById("exportTType").value.trim();
-        const errorDiv = document.getElementById("exportError");
-        errorDiv.textContent = "";
-
-        // Validate required fields
-        if (!startDateStr || !endDateStr) {
-            errorDiv.textContent = "❌ Please fill start and end dates!";
-            return;
-        }
-
-        if (!party && !ttype) {
-            errorDiv.textContent = "❌ Please enter either Party or Transaction Type (or both).";
-            return;
-        }
-
-        const startDate = toYMD(startDateStr);
-        const endDate = toYMD(endDateStr);
-        const tranCol = collection(db, "tran");
-        const snapshot = await getDocs(tranCol);
-
-        let rows = [];
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const recordDate = data.date || "";
-
-            if (!recordDate) return;
-
-            if (recordDate >= startDate && recordDate <= endDate) {
-                let matches = true;
-
-                if (ttype) {
-                    if ((data.ttype || "").toLowerCase() !== ttype.toLowerCase()) {
-                        matches = false;
-                    }
-                }
-
-                if (party) {
-                    const f = (data.fparty || "").toLowerCase();
-                    const t = (data.tparty || "").toLowerCase();
-                    if (f !== party.toLowerCase() && t !== party.toLowerCase()) {
-                        matches = false;
-                    }
-                }
-
-                if (matches) {
-                    rows.push({
-                        Date: formatDate(data.date),
-                        TransactionType: data.ttype || "",
-                        From: data.fparty || "",
-                        To: data.tparty || "",
-                        Narration: data.nar || "",
-                        Amount: data.amt || "0",
-                        Id: data.id || ""
-                    });
-                }
-            }
-        });
-
-        if (!rows.length) {
-            errorDiv.textContent = "⚠️ No data found for selected filters.";
-            return;
-        }
-        exportToCSV(rows);
-        exportToPDF(rows);
-    }
-
-
-    function exportToCSV(rows) {
-        const headers = Object.keys(rows[0]);
-        let csv = headers.join(",") + "\n";
-
-        rows.forEach(row => {
-            const line = headers
-                .map(h => `"${String(row[h] || "").replace(/"/g, '""')}"`)
-                .join(",");
-            csv += line + "\n";
-        });
-
-        const blob = new Blob([csv], {type: "text/csv"});
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `Export_${new Date().getTime()}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-
-
-    function exportToPDF(rows) {
-        if (!rows || !rows.length) {
-            showError("No rows to export to PDF.");
-            return;
-        }
-        const {jsPDF} = window.jspdf;
-        const doc = new jsPDF();
-
-        const columns = Object.keys(rows[0]);
-        const data = rows.map(row =>
-            columns.map(col => String(row[col] || ""))
-        );
-
-        doc.text("Export Data", 14, 14);
-        doc.autoTable({
-            startY: 20,
-            head: [columns],
-            body: data
-        });
-        doc.save(`Export_${new Date().getTime()}.pdf`);
-    }
-
-
-    document.getElementById("exportBtn").addEventListener("click", exportData);
-
-
-    // On Page Load Functions /////////////////////////////////////////////////////////////////////
-    window.onload = async () => {
-        await loadDropdownData();
-        setupTransactionForm("Add");
-
-        updateCashLabel();
-        viewGroupsAndAccounts();
-        viewProducts();
-        viewReceivables();
-        viewPayables();
-        profit_loss();
-        viewDaybook();
-    };
-
+    window.showView = showView;
 
 </script>
-
-
-<div class="topbar">
-    <button class="hamburger" id="hamburgerBtn">☰ App</button>
-    <label class="cash-label" id="cashLabel">Cash: ₹0</label>
-</div>
-
-
-<!-- Login Form -->
-<div id="loginContainer" style="display: none;">
-    <h2>Login</h2>
-    <input id="loginEmail" placeholder="Email" type="email">
-    <input id="loginPassword" placeholder="Password" type="password">
-    <button class="action-button" onclick="login()">Login</button>
-    <div class="error" id="loginError"></div>
-    <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
-</div>
-
-
-<!-- Register Form -->
-<div id="registerContainer" style="display:none;">
-    <h2>Register</h2>
-    <input id="registerEmail" placeholder="Email" type="email">
-    <input id="registerPassword" placeholder="Password" type="password">
-    <button class="action-button" onclick="register()">Register</button>
-    <div class="error" id="registerError"></div>
-    <div class="small-link"><a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a></div>
-</div>
-
-
-<div id="widget-area">
-
-    <!-- All Sub-Menu Buttons -------------------------------------------------------------------->
-
-
-    <div class="accordion-container" id="accordionMenu">
-
-        <!-- Group Sub-Button -------------------------------------------------------------------->
-        <button class="accordion groups-accordion">👥 Groups</button>
-        <div class="panel">
-            <button class="sub-button" widgets="GroupWidgets">👥 New Group</button>
-        </div>
-
-
-        <!-- Ledger  Sub-Button ------------------------------------------------------------------>
-        <button class="accordion ledgers-accordion">📖 Ledgers</button>
-        <div class="panel">
-            <button class="sub-button" widgets="LedgerWidgets">📖 New Ledger</button>
-            <button class="sub-button" widgets="UpdateLedgerWidgets">✏️ Update Ledger</button>
-        </div>
-
-
-        <!-- Product  Sub-Button ----------------------------------------------------------------->
-        <button class="accordion products-accordion">🛍️ Products</button>
-        <div class="panel">
-            <button class="sub-button" widgets="ProductWidgets">🛍️ New Product</button>
-            <button class="sub-button" widgets="UpdateProductWidgets">✏️ Update Product</button>
-        </div>
-
-
-        <!-- transaction Sub-Button -------------------------------------------------------------->
-        <button class="accordion tran-accordion">➕ Transactions</button>
-        <div class="panel">
-            <button class="sub-button" widgets="Transaction">🛒 New Transaction</button>
-            <button class="sub-button" widgets="UpdateTransaction">✏️ Update Transaction</button>
-            <button class="sub-button" widgets="DeleteTransaction">🗑️ Delete Transaction</button>
-        </div>
-
-
-        <!-- View Sub-Button --------------------------------------------------------------------->
-        <button class="accordion view-accordion">👁️ View</button>
-        <div class="panel">
-            <button class="sub-button" id="vdbbtn" widgets="vdb">📖 Daybook</button>
-            <button class="sub-button" id="vglbtn" widgets="vgl">👥 Groups & 📖 Ledgers</button>
-            <button class="sub-button" id="vprodbtn" widgets="vprod">🛍️ Products</button>
-            <button class="sub-button" id="vrecbtn" widgets="vrec">💰 Receivables</button>
-            <button class="sub-button" id="vpaybtn" widgets="vpay">💵 Payables</button>
-            <button class="sub-button" id="profitbtn" widgets="vprofit">📈 Profit & 📉 Loss</button>
-            <button class="sub-button" id="khabtn" widgets="vkha">📒 Khatavahi</button>
-        </div>
-
-
-        <!-- Export Sub-Button ------------------------------------------------------------------->
-        <button class="accordion export-accordion">✈️ Export</button>
-        <div class="panel">
-            <button class="sub-button" widgets="export">📤 Export CSV PDF</button>
-        </div>
-
-
-        <!-- Logout Sub-Button ------------------------------------------------------------------->
-        <button class="accordion logout-accordion">🔒Logout</button>
-        <div class="panel">
-            <button class="sub-button" id="logoutbtn" onclick="logout()" widgets="logout">↩️ Logout</button>
-        </div>
-
-    </div>
-
-
-    <!-- Widgets --------------------------------------------------------------------------------->
-
-
-    <!-- Add Group -->
-    <div class="widget-area" id="GroupWidgets" style="height: 190px; width: 330px">
-        <label for="GroupName">Group Name:</label>
-        <input autocomplete="off" id="GroupName" oninput="showCustomDropdown(this, grp_list)" type="text"><br>
-        <div class="dropdown-container" id="GroupName-dropdown"></div>
-        <br><br>
-
-        <button class="action-button" id="SaveGroupButton">💾 Save Group</button>
-    </div>
-
-
-    <!-- Add Ledger -->
-    <div class="widget-area" id="LedgerWidgets" style="height: 400px; width: 330px">
-        <label for="LedgerGroup">Ledger Group:</label>
-        <input autocomplete="off" id="LedgerGroup" oninput="showCustomDropdown(this, grp_list)" type="text">
-        <div class="dropdown-container" id="LedgerGroup-dropdown"></div>
-        <br><br>
-
-        <label for="LedgerName">Ledger Name:</label>
-        <input autocomplete="off" id="LedgerName" oninput="showCustomDropdown(this, crdbcsbkangexp_list)" type="text">
-        <div class="dropdown-container" id="LedgerName-dropdown"></div>
-        <br><br>
-
-        <label for="OBJ">Opening Balance Jama:</label>
-        <input autocomplete="off" id="OBJ" placeholder="Op Bal Jama" type="number">
-        <br><br>
-
-        <label for="OBK">Opening Balance Khate:</label>
-        <input autocomplete="off" id="OBK" placeholder="Op Bal Khate" type="number">
-        <br>
-
-        <button class="action-button" id="SaveLedgerButton">💾 Save Ledger</button>
-    </div>
-
-
-    <!-- Update Ledger -->
-    <div class="widget-area" id="UpdateLedgerWidgets" style="height: 560px; width: 330px">
-        <label for="OldLedgerGroup">Old Ledger Group:</label>
-        <input autocomplete="off" id="OldLedgerGroup" oninput="showCustomDropdown(this, grp_list)" type="text">
-        <div class="dropdown-container" id="OldLedgerGroup-dropdown"></div>
-        <br><br>
-
-        <label for="OldLedgerName">Old Ledger Name:</label>
-        <input autocomplete="off" id="OldLedgerName" oninput="handleLedgerDropdown(this, 'OldLedgerGroup')" type="text">
-        <div class="dropdown-container" id="OldLedgerName-dropdown"></div>
-        <br><br>
-
-        <label for="UpdatedLedgerGroup">New Ledger Group:</label>
-        <input autocomplete="off" id="UpdatedLedgerGroup" oninput="showCustomDropdown(this, grp_list)" type="text">
-        <div class="dropdown-container" id="UpdatedLedgerGroup-dropdown"></div>
-        <br><br>
-
-        <label for="UpdatedLedgerName">New Ledger Name:</label>
-        <input autocomplete="off" id="UpdatedLedgerName" oninput="showCustomDropdown(this, crdbcsbkangexp_list)" type="text">
-        <div class="dropdown-container" id="UpdatedLedgerName-dropdown"></div>
-        <br><br>
-
-        <label for="UpdatedOBJ">Opening Balance Jama:</label>
-        <input autocomplete="off" id="UpdatedOBJ" type="number">
-        <br><br>
-
-        <label for="UpdatedOBK">Opening Balance Khate:</label>
-        <input autocomplete="off" id="UpdatedOBK" type="number">
-        <br><br>
-
-        <button class="action-button" id="UpdateLedgerButton">✏️ Update Ledger</button>
-    </div>
-
-
-    <!-- Add Product -->
-    <div class="widget-area" id="ProductWidgets" style="height: 310px; width: 330px">
-        <label for="ProductGroup">Product Group:</label>
-        <input autocomplete="off" id="ProductGroup" oninput="showCustomDropdown(this, sp_list)" type="text">
-        <div class="dropdown-container" id="ProductGroup-dropdown"></div>
-        <br><br>
-
-        <label for="ProductName">Product Name:</label>
-        <input autocomplete="off" id="ProductName" oninput="handleProductDropdown(this, 'ProductGroup')" type="text">
-        <div class="dropdown-container" id="ProductName-dropdown"></div>
-        <br><br>
-
-        <label for="ProductOPSTK">Opening Stock:</label>
-        <input autocomplete="off" id="ProductOPSTK" type="number">
-        <br><br>
-
-        <button class="action-button" id="SaveProductButton">💾 Save Product</button>
-    </div>
-
-
-    <!-- Update Product -->
-    <div class="widget-area" id="UpdateProductWidgets" style="height: 480px; width: 330px">
-        <label for="OldProductGroup">Old Product Group:</label>
-        <input autocomplete="off" id="OldProductGroup" oninput="showCustomDropdown(this, window.sp_list)" type="text">
-        <div class="dropdown-container" id="OldProductGroup-dropdown"></div>
-        <br><br>
-
-        <label for="OldProductName">Old Product Name:</label>
-        <input autocomplete="off" id="OldProductName" oninput="handleProductDropdown(this, 'OldProductGroup')" type="text">
-        <div class="dropdown-container" id="OldProductName-dropdown"></div>
-        <br><br>
-
-        <label for="NewProductGroup">New Product Group:</label>
-        <input autocomplete="off" id="NewProductGroup" oninput="showCustomDropdown(this, window.sp_list)" type="text">
-        <div class="dropdown-container" id="NewProductGroup-dropdown"></div>
-        <br><br>
-
-        <label for="NewProductName">New Product Name:</label>
-        <input autocomplete="off" id="NewProductName" oninput="handleProductDropdown(this, 'NewProductGroup')" type="text">
-        <div class="dropdown-container" id="NewProductName-dropdown"></div>
-        <br><br>
-
-        <label for="NewOpStock">Opening Stock:</label>
-        <input autocomplete="off" id="NewOpStock" type="number">
-        <br><br>
-
-        <button class="action-button" id="UpdateProductButton">✏️ Update Product</button>
-    </div>
-
-
-    <!-- Add Transaction -->
-    <div class="widget-area" id="Transaction" style="height: 560px; width: 330px">
-        <label for="AddTranTtype">Transaction Type:</label>
-        <input autocomplete="off" id="AddTranTtype" oninput="showCustomDropdown(this, ttype_list)" type="text">
-        <div class="dropdown-container" id="AddTranTtype-dropdown"></div>
-        <br><br>
-
-        <label for="AddTranDate">Transaction Date:</label>
-        <input autocomplete="off" id="AddTranDate" placeholder="Transaction Date" type="date">
-        <br><br>
-
-        <label for="AddTranFparty">From Party:</label>
-        <input autocomplete="off" id="AddTranFparty" oninput="showCustomDropdown(this, crdb_list)" type="text">
-        <div class="dropdown-container" id="AddTranFparty-dropdown"></div>
-        <br><br>
-
-        <label for="AddTranTparty">To Party:</label>
-        <input autocomplete="off" id="AddTranTparty" oninput="showCustomDropdown(this, crdb_list)" type="text">
-        <div class="dropdown-container" id="AddTranTparty-dropdown"></div>
-        <br><br>
-
-        <label for="AddTranAmount">Amount:</label>
-        <input autocomplete="off" id="AddTranAmount" type="number">
-        <br><br>
-
-        <label for="AddTranNar">Narration:</label>
-        <input id="AddTranNar" type="text">
-        <br><br>
-
-        <button class="action-button" id="AddTranSaveButton">💾 Save Transaction</button>
-    </div>
-
-
-    <!-- Update Transaction -->
-    <div class="widget-area" id="UpdateTransaction" style="height: 700px; width: 330px">
-        <input autocomplete="off" id="UpdateId" placeholder="Id To Update" type="number">
-        <button class="action-button" id="UpdateSearchButton">🔍 Search & Insert</button>
-        <br><br><br><br><br><br>
-
-        <label for="UpdateTranTtype">Transaction Type:</label>
-        <input autocomplete="off" id="UpdateTranTtype" readonly type="text">
-        <br><br>
-
-        <label for="UpdateTranDate">Transaction Date:</label>
-        <input autocomplete="off" id="UpdateTranDate" type="date">
-        <br><br>
-
-        <label for="UpdateTranFparty">From Party:</label>
-        <input autocomplete="off" id="UpdateTranFparty" list="" type="text">
-        <div class="dropdown-container" id="UpdateTranFparty-dropdown"></div>
-        <br><br>
-
-        <label for="UpdateTranTparty">To Party:</label>
-        <input autocomplete="off" id="UpdateTranTparty" list="" type="text">
-        <div class="dropdown-container" id="UpdateTranTparty-dropdown"></div>
-        <br><br>
-
-        <label for="UpdateTranAmount">Amount:</label>
-        <input autocomplete="off" id="UpdateTranAmount" type="number">
-        <br><br>
-
-        <label for="UpdateTranNar">Narration:</label>
-        <input id="UpdateTranNar" type="text">
-        <br><br>
-
-        <button class="action-button" id="UpdateTranButton">✏️ Update Transaction</button>
-    </div>
-
-
-    <!-- Delete Transaction -->
-    <div class="widget-area" id="DeleteTransaction" style="height: 150px; width: 330px">
-        <label for="DeleteId">Transaction ID to Delete:</label>
-        <input autocomplete="off" id="DeleteId" type="number">
-        <br><br>
-
-        <button class="action-button del-action-button" id="DeleteTranButton">🚨 Delete Transaction</button>
-        <div id="delete-error" style="color: red; margin-top: 5px;"></div>
-    </div>
-
-
-    <!-- View Widgets ----------------------------------------------------------------------------->
-
-
-    <!-- Daybook --------------->
-    <div class="widget-area" id="vdb" style="height: 295px;">
-        <label for="typeField">Transaction Type:</label>
-        <input autocomplete="off" id="typeField" oninput="showCustomDropdown(this, ttype_list)" placeholder="Filter By Transaction Type" type="text">
-        <div class="dropdown-container" id="typeField-dropdown"></div>
-        <br><br>
-
-        <label for="apartyfield">Party / Product:</label>
-        <input autocomplete="off" id="apartyfield" oninput="showCustomDropdown(this, allnames_list)" placeholder="Filter By Party / Product"
-               type="text">
-        <div class="dropdown-container" id="apartyfield-dropdown"></div>
-        <br><br>
-
-        <label for="amountField">Amount:</label>
-        <input autocomplete="off" id="amountField" placeholder="Filter By Amount" type="number">
-        <br>
-
-        <button class="action-button" id="filterBtn">⏳ Filter</button>
-        <br><br><br><br>
-        <div id="daybookTable"></div>
-    </div>
-
-
-    <!-- Groups & Ledgers --------------->
-    <div class="widget-area" id="vgl" style="height: 15px; width: 330px">
-        <Label>View Groups Ledgers</Label>
-        <div id="viewGroupsLadgersTable"></div>
-    </div>
-
-
-    <!-- Product --------------->
-    <div class="widget-area" id="vprod" style="height: 15px; width: 330px">
-        <Label>View Products</Label>
-        <div id="productsTable"></div>
-    </div>
-
-
-    <!-- Receivable --------------->
-    <div class="widget-area" id="vrec" style="height: 15px; width: 330px">
-        <Label>View Receivables</Label>
-        <div id="viewRecTable"></div>
-    </div>
-
-
-    <!-- Payable --------------->
-    <div class="widget-area" id="vpay" style="height: 15px;">
-        <Label>View Payables</Label>
-        <div id="viewPayTable"></div>
-    </div>
-
-
-    <!-- Profit & Loss -->
-    <div class="widget-area" id="vprofit" style="height: 290px;">
-        <label for="romDate">Start Date:</label>
-        <input autocomplete="off" id="fromDate" placeholder="Start Date" type="date">
-        <br><br>
-
-        <label for="toDate">End Date:</label>
-        <input autocomplete="off" id="toDate" placeholder="End Date" type="date">
-        <br><br>
-
-        <label for="closingstock">Closing Stock:</label>
-        <input autocomplete="off" id="closingStock" type="number">
-        <br>
-
-        <button class="action-button" id="calculateProfitbtn">Cal. Profit & Loss</button>
-        <br><br><br><br>
-        <div id="plTable"></div>
-    </div>
-
-
-    <!-- Khaatavahi -->
-    <div class="widget-area" id="vkha" style="height: 290px;">
-        <label for="kfromDate">Start Date:</label>
-        <input autocomplete="off" id="kfromDate" type="date">
-        <br><br>
-
-        <label for="ktoDate">End Date:</label>
-        <input autocomplete="off" id="ktoDate" type="date">
-        <br><br>
-
-        <label for="kparty">Party / Product / Expense:</label>
-        <input autocomplete="off" id="kparty" oninput="showCustomDropdown(this, allnames_list)" type="text">
-        <div class="dropdown-container" id="kparty-dropdown"></div>
-        <br>
-
-        <button class="action-button" id="calkhabtn">⏳ Show Transactions</button>
-        <br><br><br><br>
-        <div id="khaTable"></div>
-    </div>
-
-
-    <!-- Export Section -->
-    <div class="widget-area" id="export" style="height: 370px; width: 330px">
-        <label for="exportStartDate">Start Date:</label>
-        <input autocomplete="off" id="exportStartDate" type="date">
-        <br><br>
-
-        <label for="exportEndDate">End Date:</label>
-        <input autocomplete="off" id="exportEndDate" type="date">
-        <br><br>
-
-        <label for="exportParty">Party:</label>
-        <input autocomplete="off" id="exportParty" oninput="showCustomDropdown(this, allnames_list)" type="text">
-        <div class="dropdown-container" id="exportParty-dropdown"></div>
-        <br><br>
-
-        <label for="exportTType">Transaction Type:</label>
-        <input autocomplete="off" id="exportTType" oninput="showCustomDropdown(this, ttype_list)" type="text">
-        <div class="dropdown-container" id="exportTType-dropdown"></div>
-        <br>
-
-        <button class="action-button" id="exportBtn">✈️ Export Data</button>
-        <div class="error" id="exportError"></div>
-    </div>
-
-
-    <!-- Global Errors Space ----->
-    <div id="Add-transaction-errors"></div>
-    <div id="Update-transaction-errors"></div>
-
-
-</div>
-
 </body>
-
 </html>
