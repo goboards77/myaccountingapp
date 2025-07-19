@@ -1,164 +1,479 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="formManager">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Form Loader</title>
-  <script defer src="https://unpkg.com/alpinejs" type="module"></script>
-  <style>[x-cloak] { display: none !important; }</style>
+    <meta charset="UTF-8">
+    <title>Sidenav Menu</title>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
 </head>
-<body class="bg-gray-100 text-sm font-sans p-4" x-data="mainApp" x-init="init()">
+<body class="bg-gray-100 font-serif text-base sm:text-lg" x-data="formManager()">
 
-  <!-- 🔐 Login Form -->
-  <div x-show="!user" x-cloak class="max-w-sm mx-auto mt-10 p-6 bg-white rounded shadow">
-    <h2 class="text-lg font-bold mb-4">Login</h2>
-    <input x-model="email" placeholder="Email" class="w-full border mb-2 p-2 rounded" />
-    <input x-model="password" placeholder="Password" type="password" class="w-full border mb-4 p-2 rounded" />
-    <button @click="doLogin" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
-  </div>
+<!-- 🔐 Login/Register Section -->
+<div class="p-4" id="loginContainer" style="display: none;">
+    <h2 class="text-xl font-bold mb-4">Login</h2>
+    <input class="block w-full mb-2 p-3 border rounded" id="loginEmail" placeholder="Email" type="email">
+    <input class="block w-full mb-2 p-3 border rounded" id="loginPassword" placeholder="Password" type="password">
+    <button class="bg-blue-600 text-white px-4 py-2 rounded mb-2" onclick="login()">Login</button>
+    <div class="text-red-600" id="loginError"></div>
+    <a class="text-blue-700 underline" href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+</div>
 
-  <!-- ✅ Logged In Form UI -->
-  <div x-show="user" x-cloak class="max-w-xl mx-auto mt-10">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-lg font-bold">🔄 Transaction Form</h2>
-      <button @click="doLogout" class="text-red-600 underline text-sm">Logout</button>
-    </div>
+<div class="p-4" id="registerContainer" style="display:none;">
+    <h2 class="text-xl font-bold mb-4">Register</h2>
+    <input class="block w-full mb-2 p-3 border rounded" id="registerEmail" placeholder="Email" type="email">
+    <input class="block w-full mb-2 p-3 border rounded" id="registerPassword" placeholder="Password" type="password">
+    <button class="bg-green-600 text-white px-4 py-2 rounded mb-2" onclick="register()">Register</button>
+    <div class="text-red-600" id="registerError"></div>
+    <a class="text-blue-700 underline" href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
+</div>
 
-    <!-- ✅ Form Display -->
-    <div class="relative z-10" id="widget-area" x-cloak>
-      <template x-if="dataReady">
-        <div class="px-2 sm:px-4">
-          <template :key="field.name" x-for="field in visibleInputs">
-            <div class="mb-4">
-              <label class="block font-semibold mb-1 text-sm sm:text-base" x-text="field.label"></label>
+<!-- ✅ Top Navbar -->
+<div class="bg-blue-700 text-white shadow px-4 py-3 flex items-center fixed w-full top-0 z-40 h-14">
+    <button @click="menuOpen = !menuOpen" class="text-2xl focus:outline-none">
+        &#9776;
+    </button>
+    <span class="ml-4 text-lg sm:text-xl font-semibold">📘 MyApp</span>
+</div>
 
-              <!-- Dropdown -->
-              <template x-if="field.type === 'select' && getOptions(field).length > 1">
-                <select x-model="formValues[field.name]"
-                  class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 bg-white">
-                  <option disabled selected value="">Select...</option>
-                  <template x-for="opt in getOptions(field)" :key="opt">
-                    <option :value="opt" x-text="opt"></option>
-                  </template>
-                </select>
-              </template>
-
-              <!-- Single option (readonly) -->
-              <template x-if="field.type === 'select' && getOptions(field).length === 1">
-                <input type="text" disabled class="w-full border px-3 py-2 bg-gray-100"
-                  x-model="formValues[field.name]"/>
-              </template>
-
-              <!-- Other Inputs -->
-              <template x-if="field.type !== 'select'">
-                <input :type="field.type" x-model="formValues[field.name]"
-                  @input="capitalize(field.name)"
-                  class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 bg-white" />
-              </template>
-            </div>
-          </template>
-
-          <!-- 💾 Save Button -->
-          <div x-show="visibleInputs.length">
-            <button @click="handleSave"
-              class="bg-blue-600 text-white px-4 py-2.5 mt-2 rounded hover:bg-blue-700 text-sm">
-              💾 Save
-            </button>
-          </div>
+<!-- ✅ Sidebar -->
+<div class="fixed left-0 top-14 w-full sm:w-64 bg-white shadow-lg p-3 space-y-4 z-30 border-r border-gray-200 overflow-y-auto max-h-[calc(100vh-3.5rem)]"
+     x-show="menuOpen"
+     x-transition>
+    <div>
+        <button @click="submenu === 'new' ? submenu = null : submenu = 'new'"
+                class="w-full text-left px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded">
+            ➕ New
+        </button>
+        <div class="ml-4 mt-2 space-y-1 text-sm text-gray-800 flex flex-col gap-2" x-show="submenu === 'new'">
+            <a @click.prevent="showForm('group')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">📁
+                Group</a>
+            <a @click.prevent="showForm('ledger')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">📘
+                Ledger</a>
+            <a @click.prevent="showForm('product')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">📦
+                Product</a>
+            <a @click.prevent="showForm('sales')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">🛒
+                Sales</a>
+            <a @click.prevent="showForm('purchase')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">🧾
+                Purchase</a>
+            <a @click.prevent="showForm('receipt')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">💵
+                Receipt</a>
+            <a @click.prevent="showForm('payment')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">💳
+                Payment</a>
         </div>
-      </template>
     </div>
-  </div>
 
-  <!-- 🔧 Alpine Store -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, getDocs }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    <div>
+        <button @click="submenu === 'update' ? submenu = null : submenu = 'update'"
+                class="w-full text-left px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded">
+            ✏️ Update
+        </button>
+        <div class="ml-4 mt-2 space-y-1 text-sm text-gray-800 flex flex-col gap-2" x-show="submenu === 'update'">
+            <a @click.prevent="showForm('ledger')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">📘
+                Ledger</a>
+            <a @click.prevent="showForm('product')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">📦
+                Product</a>
+            <a @click.prevent="showForm('sales')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">🛒
+                Sales</a>
+            <a @click.prevent="showForm('purchase')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">🧾
+                Purchase</a>
+            <a @click.prevent="showForm('receipt')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">💵
+                Receipt</a>
+            <a @click.prevent="showForm('payment')" class="block px-2 py-2 rounded hover:bg-gray-100 font-semibold text-sm sm:text-base" href="#">💳
+                Payment</a>
+        </div>
+    </div>
+
+    <a class="block px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded" href="#">👁️ View</a>
+    <a class="block px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded" href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<!-- ✅ Form Display -->
+<div class="relative z-10" id="widget-area">
+    <template x-if="dataReady">
+        <div class="mt-20 px-4 sm:px-8 max-w-full sm:max-w-xl">
+            <template :key="field.name" x-for="field in visibleInputs">
+                <div class="mb-4">
+                    <label class="block font-semibold mb-1 text-sm sm:text-base" x-text="field.label"></label>
+
+                    <!-- Select dropdown if options > 1 -->
+                    <template x-if="field.type === 'select' && field.options.length > 1">
+                        <select
+                                class="w-full border border-gray-300 px-4 py-2.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                x-model="formValues[field.name]">
+                            <option disabled selected value="">Select...</option>
+                            <template :key="opt" x-for="opt in field.options">
+                                <option :value="opt" x-text="opt"></option>
+                            </template>
+                        </select>
+                    </template>
+
+                    <!-- Disabled input if only 1 option -->
+                    <template x-if="field.type === 'select' && field.options.length === 1">
+                        <input
+                                class="w-full border border-gray-300 px-4 py-2.5 rounded text-sm bg-gray-100 cursor-not-allowed"
+                                disabled type="text"
+                                x-model="formValues[field.name]"/>
+                    </template>
+
+                    <!-- Other inputs -->
+                    <template x-if="field.type !== 'select'">
+                        <input
+                                :type="field.type"
+                                @input="capitalize(field.name)"
+                                class="w-full border border-gray-300 px-4 py-2.5 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                x-model="formValues[field.name]"/>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Save button -->
+            <div x-show="visibleInputs.length">
+                <button @click="handleSave"
+                        class="bg-blue-600 text-white px-4 py-2.5 mt-2 rounded hover:bg-blue-700 text-sm">
+                    💾 Save
+                </button>
+            </div>
+        </div>
+    </template>
+</div>
+
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+        getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+        getFirestore, collection, getDocs, updateDoc, deleteDoc, addDoc, query, where, orderBy, limit, doc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID"
+        apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+        authDomain: "accounts-19d08.firebaseapp.com",
+        projectId: "accounts-19d08",
+        storageBucket: "accounts-19d08.appspot.com",
+        messagingSenderId: "247308606105",
+        appId: "1:247308606105:web:9bfc179368524244bf3608"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    window.db = db;
 
-    window.grp_list = [];
-    window.crdb_list = [];
-    window.sproduct_list = [];
-
-    const formLayouts = {
-      tran: [
-        { name: 'date', label: 'Date', type: 'date' },
-        { name: 'group', label: 'Group', type: 'select' },
-        { name: 'crdb', label: 'Cr/Dr', type: 'select' },
-        { name: 'product', label: 'Product', type: 'select' },
-        { name: 'amount', label: 'Amount', type: 'number' }
-      ]
+    window.showLogin = function () {
+        document.getElementById("loginContainer").style.display = "block";
+        document.getElementById("registerContainer").style.display = "none";
+        document.getElementById("widget-area").style.display = "none";
     };
 
-    window.mainApp = {
-      email: '',
-      password: '',
-      user: null,
-      dataReady: false,
-      formValues: {},
-      visibleInputs: [],
-      init() {
-        onAuthStateChanged(auth, user => {
-          this.user = user;
-          if (user) this.loadForm();
-        });
-      },
-      async doLogin() {
+    window.showRegister = function () {
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("registerContainer").style.display = "block";
+        document.getElementById("widget-area").style.display = "none";
+    };
+
+    window.login = async function () {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
         try {
-          await signInWithEmailAndPassword(auth, this.email, this.password);
-        } catch (err) {
-          alert("Login failed: " + err.message);
+            await signInWithEmailAndPassword(auth, email, password);
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("widget-area").style.display = "block";
+        } catch (error) {
+            document.getElementById("loginError").textContent = error.message;
         }
-      },
-      async doLogout() {
-        await signOut(auth);
-        this.user = null;
-        this.dataReady = false;
-      },
-      async loadForm() {
-        // Load dropdown data from Firebase
-        const [grpSnap, crdbSnap, prodSnap] = await Promise.all([
-          getDocs(collection(db, "group")),
-          getDocs(collection(db, "ledger")),
-          getDocs(collection(db, "product"))
-        ]);
-
-        window.grp_list = grpSnap.docs.map(doc => doc.data().name);
-        window.crdb_list = crdbSnap.docs.map(doc => doc.data().name);
-        window.sproduct_list = prodSnap.docs.map(doc => doc.data().name);
-
-        this.visibleInputs = formLayouts.tran;
-        this.formValues = {};
-        this.visibleInputs.forEach(f => this.formValues[f.name] = "");
-        this.dataReady = true;
-      },
-      getOptions(field) {
-        if (field.name === 'group') return window.grp_list;
-        if (field.name === 'crdb') return window.crdb_list;
-        if (field.name === 'product') return window.sproduct_list;
-        return field.options || [];
-      },
-      handleSave() {
-        alert('Data saved: ' + JSON.stringify(this.formValues));
-      },
-      capitalize(name) {
-        if (typeof this.formValues[name] === 'string') {
-          this.formValues[name] = this.formValues[name].toUpperCase();
-        }
-      }
     };
-  </script>
+
+    window.register = async function () {
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+            document.getElementById("registerContainer").style.display = "none";
+            document.getElementById("widget-area").style.display = "block";
+        } catch (error) {
+            document.getElementById("registerError").textContent = error.message;
+        }
+    };
+
+    window.logout = async function () {
+        try {
+            await signOut(auth);
+            document.getElementById("widget-area").style.display = "none";
+            document.getElementById("loginContainer").style.display = "block";
+            document.getElementById("registerContainer").style.display = "none";
+        } catch (e) {
+            console.error("Logout failed", e);
+        }
+    };
+
+
+    // All dropdown menu lists + extra named lists //
+    window.loadDropdownData = async function () {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+
+        const grpSet = new Set();           // All groups except Sales & Purchase
+
+
+        const crdbcsbkangexpSet = new Set();
+        const sproductSet = new Set();
+        const crdbGroups = ["Creditors", "Debitors"];
+        const spSet = new Set();            // Only Sales and Purchase
+        const nameSet = new Set();          // All names where grp ≠ Sales/Purchase
+        const pproductSet = new Set();
+        const crdbSet = new Set();
+        const crdbcsbkangSet = new Set();
+
+        const crdbcsbkangGroups = ["Creditors", "Debitors", "Cash", "Bank", "Angadiya"];
+        const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const grp = (data.grp || "").trim();
+            const name = (data.name || "").trim();
+            if (grp.length === 0) return;
+
+            if (["Sales", "Purchase"].includes(grp)) {
+                spSet.add(grp);
+            } else if (!["Receipt", "Payment"].includes(grp)) {
+                grpSet.add(grp);
+            }
+
+            if (name.length > 0) {
+                nameSet.add(name);
+            }
+
+            // Sales products
+            if (grp === "Sales" && name.length > 0) {
+                sproductSet.add(name);
+            }
+
+            // Purchase products
+            if (grp === "Purchase" && name.length > 0) {
+                pproductSet.add(name);
+            }
+
+            // crdb list
+            if (crdbGroups.includes(grp) && name.length > 0) {
+                crdbSet.add(name);
+            }
+
+            // crdbcsbkang list
+            if (crdbcsbkangGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangSet.add(name);
+            }
+
+            // crdbcsbkangexp list
+            if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangexpSet.add(name);
+            }
+        });
+
+        // Convert Sets to sorted arrays
+        window.grp_list = [];
+        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
+
+
+        window.crdbcsbkangexp_list = [];
+        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
+        window.sp_list = [];
+        window.allnames_list = [];
+        window.ttype_list = [];
+        window.sproduct_list = [];
+        window.pproduct_list = [];
+        window.crdb_list = [];
+        window.crdbcsbkang_list = [];
+
+
+        window.sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
+        window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
+        window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
+        window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
+        window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
+
+        window.formDataReady = true;
+
+    }
+</script>
+<!-- Make formManager globally accessible before AlpineJS loads -->
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('formManager', () => ({
+            dataReady: false,
+            menuOpen: false,
+            submenu: null,
+            currentForm: '',
+            formValues: {},
+            visibleInputs: [],
+
+            init() {
+                const wait = setInterval(() => {
+                    if (window.formDataReady) {
+                        this.dataReady = true;
+                        clearInterval(wait);
+                    }
+                }, 100);
+            },
+
+            showForm(formName) {
+                this.setForm(formName);
+                this.menuOpen = false;
+                this.submenu = null;
+            },
+
+            setForm(formName) {
+                const formLayouts = {
+                    group: [
+                        {name: 'grp', label: 'Group Name', type: 'text'}
+                    ],
+                    ledger: [
+                        {name: 'grp', label: 'Group Name', type: 'select', source: 'grp_list'},
+                        {name: 'name', label: 'Ledger Name', type: 'text'},
+                        {name: 'obj', label: 'Op Bal Jama', type: 'number'},
+                        {name: 'obk', label: 'Op Bal Khate', type: 'number'},
+                    ],
+                    product: [
+                        {name: 'grp', label: 'Group Name', type: 'select', options: ['Payment', 'Sales']},
+                        {name: 'name', label: 'Product Name', type: 'select', options: ['Payment', 'Sales']},
+                        {name: 'ostk', label: 'Op Stock', type: 'number'},
+                    ],
+                    sales: [
+                        {name: 'date', label: 'Sales Date', type: 'date'},
+                        {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Sales']},
+                        {name: 'fparty', label: 'Sales Product', type: 'select', options: ['Payment', 'Sales']},
+                        {name: 'tparty', label: 'Sold To Party', type: 'select', options: ['Payment', 'Sales']},
+                        {name: 'amt', label: 'Sales Amount', type: 'number'},
+                        {name: 'nar', label: 'Narration', type: 'text'}
+                    ],
+                    purchase: [
+                        {name: 'date', label: 'Purchase Date', type: 'date'},
+                        {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Purchase']},
+                        {name: 'fparty', label: 'Purchase Product', type: 'select', options: ['Purchase', 'Sales']},
+                        {name: 'tparty', label: 'Purchased From Party', type: 'select', options: ['Purchase', 'Sales']},
+                        {name: 'amt', label: 'Purchase Amount', type: 'number'},
+                        {name: 'nar', label: 'Narration', type: 'text'}
+                    ],
+                    receipt: [
+                        {name: 'date', label: 'Receipt Date', type: 'date'},
+                        {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Receipt']},
+                        {name: 'fparty', label: 'Received From', type: 'select', options: ['Receipt', 'Sales']},
+                        {name: 'tparty', label: 'Paid To', type: 'select', options: ['Receipt', 'Sales']},
+                        {name: 'amt', label: 'Receipt Amount', type: 'number'},
+                        {name: 'nar', label: 'Narration', type: 'text'},
+                    ],
+                    payment: [
+                        {name: 'date', label: 'Payment Date', type: 'date'},
+                        {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Payment']},
+                        {name: 'fparty', label: 'Received From', type: 'select', options: ['Payment', 'Sales']},
+                        {name: 'tparty', label: 'Paid To', type: 'select', options: ['Payment', 'Sales']},
+                        {name: 'amt', label: 'Receipt Amount', type: 'number'},
+                        {name: 'nar', label: 'Narration', type: 'text'},
+                    ]
+                };
+
+                this.currentForm = formName;
+                this.visibleInputs = (formLayouts[formName] || []).map(field => {
+                    if (field.type === 'select' && field.source && window[field.source]) {
+                        return {
+                            ...field,
+                            options: window[field.source] || []
+                        };
+                    }
+                    return field;
+                });
+
+                this.formValues = {};
+
+                this.visibleInputs.forEach(f => {
+                    if (f.type === 'select' && f.options.length === 1) {
+                        this.formValues[f.name] = f.options[0];
+                    }
+                });
+            },
+
+            capitalize(fieldName) {
+                if (typeof this.formValues[fieldName] === 'string') {
+                    this.formValues[fieldName] = this.formValues[fieldName].toUpperCase();
+                }
+            },
+
+            async getNextId() {
+                const snap = await getDocs(collection(window.db, 'tran'));
+                let maxId = 0;
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    if (data.id && typeof data.id === 'number') {
+                        maxId = Math.max(maxId, data.id);
+                    }
+                });
+                return maxId + 1;
+            },
+
+            async handleSave() {
+                const keys = Object.keys(this.formValues).filter(k => k !== 'nar');
+                const allFilled = keys.every(k => this.formValues[k] !== undefined && this.formValues[k] !== '');
+
+                if (!allFilled) {
+                    alert('⚠️ Please fill all fields (except Narration).');
+                    return;
+                }
+
+                if (this.currentForm === 'ledger') {
+                    if (this.formValues.obj && this.formValues.obk) {
+                        alert('⚠️ Only one of "Op Bal Jama" or "Op Bal Khate" can have a value.');
+                        return;
+                    }
+
+                    const docData = {
+                        grp: this.formValues.grp,
+                        id: await this.getNextId(),
+                        ttype: 'OpBal',
+                        amt: 0
+                    };
+
+                    if (this.formValues.obj) {
+                        docData.fparty = this.formValues.name;
+                        docData.amt = Number(this.formValues.obj);
+                    } else if (this.formValues.obk) {
+                        docData.tparty = this.formValues.name;
+                        docData.amt = Number(this.formValues.obk);
+                    }
+
+                    try {
+                        await addDoc(collection(window.db, 'tran'), docData);
+                        alert("✅ Ledger Opening Saved to 'tran' collection with ID " + docData.id);
+                        this.formValues = {};
+                    } catch (err) {
+                        console.error(err);
+                        alert("❌ Save failed");
+                    }
+                    return;
+                }
+
+                const docData = {...this.formValues};
+                docData.id = await this.getNextId();
+                if (docData.amt) docData.amt = Number(docData.amt);
+
+                try {
+                    await addDoc(collection(window.db, 'tran'), docData);
+                    alert("✅ Saved to 'tran' collection with ID " + docData.id);
+                    this.formValues = {};
+                } catch (err) {
+                    console.error(err);
+                    alert("❌ Save failed");
+                }
+            }
+        }));
+    });
+    window.addEventListener('load', () => {
+        loadDropdownData();
+    });
+
+</script>
 </body>
 </html>
