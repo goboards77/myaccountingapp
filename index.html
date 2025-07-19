@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Form Loader</title>
+  <script defer src="https://unpkg.com/alpinejs" type="module"></script>
+  <style>[x-cloak] { display: none !important; }</style>
+</head>
+<body class="bg-gray-100 text-sm font-sans p-4" x-data="mainApp" x-init="init()">
+
+  <!-- 🔐 Login Form -->
+  <div x-show="!user" x-cloak class="max-w-sm mx-auto mt-10 p-6 bg-white rounded shadow">
+    <h2 class="text-lg font-bold mb-4">Login</h2>
+    <input x-model="email" placeholder="Email" class="w-full border mb-2 p-2 rounded" />
+    <input x-model="password" placeholder="Password" type="password" class="w-full border mb-4 p-2 rounded" />
+    <button @click="doLogin" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
+  </div>
+
+  <!-- ✅ Logged In Form UI -->
+  <div x-show="user" x-cloak class="max-w-xl mx-auto mt-10">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-lg font-bold">🔄 Transaction Form</h2>
+      <button @click="doLogout" class="text-red-600 underline text-sm">Logout</button>
+    </div>
+
+    <!-- ✅ Form Display -->
+    <div class="relative z-10" id="widget-area" x-cloak>
+      <template x-if="dataReady">
+        <div class="px-2 sm:px-4">
+          <template :key="field.name" x-for="field in visibleInputs">
+            <div class="mb-4">
+              <label class="block font-semibold mb-1 text-sm sm:text-base" x-text="field.label"></label>
+
+              <!-- Dropdown -->
+              <template x-if="field.type === 'select' && getOptions(field).length > 1">
+                <select x-model="formValues[field.name]"
+                  class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 bg-white">
+                  <option disabled selected value="">Select...</option>
+                  <template x-for="opt in getOptions(field)" :key="opt">
+                    <option :value="opt" x-text="opt"></option>
+                  </template>
+                </select>
+              </template>
+
+              <!-- Single option (readonly) -->
+              <template x-if="field.type === 'select' && getOptions(field).length === 1">
+                <input type="text" disabled class="w-full border px-3 py-2 bg-gray-100"
+                  x-model="formValues[field.name]"/>
+              </template>
+
+              <!-- Other Inputs -->
+              <template x-if="field.type !== 'select'">
+                <input :type="field.type" x-model="formValues[field.name]"
+                  @input="capitalize(field.name)"
+                  class="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 bg-white" />
+              </template>
+            </div>
+          </template>
+
+          <!-- 💾 Save Button -->
+          <div x-show="visibleInputs.length">
+            <button @click="handleSave"
+              class="bg-blue-600 text-white px-4 py-2.5 mt-2 rounded hover:bg-blue-700 text-sm">
+              💾 Save
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- 🔧 Alpine Store -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.grp_list = [];
+    window.crdb_list = [];
+    window.sproduct_list = [];
+
+    const formLayouts = {
+      tran: [
+        { name: 'date', label: 'Date', type: 'date' },
+        { name: 'group', label: 'Group', type: 'select' },
+        { name: 'crdb', label: 'Cr/Dr', type: 'select' },
+        { name: 'product', label: 'Product', type: 'select' },
+        { name: 'amount', label: 'Amount', type: 'number' }
+      ]
+    };
+
+    window.mainApp = {
+      email: '',
+      password: '',
+      user: null,
+      dataReady: false,
+      formValues: {},
+      visibleInputs: [],
+      init() {
+        onAuthStateChanged(auth, user => {
+          this.user = user;
+          if (user) this.loadForm();
+        });
+      },
+      async doLogin() {
+        try {
+          await signInWithEmailAndPassword(auth, this.email, this.password);
+        } catch (err) {
+          alert("Login failed: " + err.message);
+        }
+      },
+      async doLogout() {
+        await signOut(auth);
+        this.user = null;
+        this.dataReady = false;
+      },
+      async loadForm() {
+        // Load dropdown data from Firebase
+        const [grpSnap, crdbSnap, prodSnap] = await Promise.all([
+          getDocs(collection(db, "group")),
+          getDocs(collection(db, "ledger")),
+          getDocs(collection(db, "product"))
+        ]);
+
+        window.grp_list = grpSnap.docs.map(doc => doc.data().name);
+        window.crdb_list = crdbSnap.docs.map(doc => doc.data().name);
+        window.sproduct_list = prodSnap.docs.map(doc => doc.data().name);
+
+        this.visibleInputs = formLayouts.tran;
+        this.formValues = {};
+        this.visibleInputs.forEach(f => this.formValues[f.name] = "");
+        this.dataReady = true;
+      },
+      getOptions(field) {
+        if (field.name === 'group') return window.grp_list;
+        if (field.name === 'crdb') return window.crdb_list;
+        if (field.name === 'product') return window.sproduct_list;
+        return field.options || [];
+      },
+      handleSave() {
+        alert('Data saved: ' + JSON.stringify(this.formValues));
+      },
+      capitalize(name) {
+        if (typeof this.formValues[name] === 'string') {
+          this.formValues[name] = this.formValues[name].toUpperCase();
+        }
+      }
+    };
+  </script>
+</body>
+</html>
