@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html lang="en" x-data="formManager">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Sidenav Menu</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" rel="stylesheet">
 
-    <!-- Define Alpine.js data component BEFORE Alpine.js CDN -->
+    <style>
+        [x-cloak] {display: none !important;}
+    </style>
+
+    <!-- Define Alpine.js data component inside alpine:init event listener -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('formManager', () => ({
@@ -15,33 +24,53 @@
                 currentForm: '',
                 formValues: {},
                 visibleInputs: [],
-                visibleTable: false, // State for Daybook table visibility
-                visibleReceivablesTable: false, // New state for Receivables table visibility
-                visibleAccountsTable: false, // New state for Accounts table visibility
+                isFormVisible: false,
+                visibleTable: false,
+                editMode: false,
+                currentDocId: null,
 
                 init() {
-                    // Wait for dropdown data to be loaded from Firebase
+                    window.alpineFormManager = this;
+
                     const wait = setInterval(() => {
                         if (window.formDataReady) {
                             this.dataReady = true;
-                            // Only show widget-area AFTER data is ready and Alpine has processed it
-                            document.getElementById("widget-area").style.display = "block";
                             clearInterval(wait);
                         }
                     }, 100);
                 },
 
-                // Function to show a specific form and hide all tables
-                showForm(formName) {
-                    this.setForm(formName);
+                setActiveView(activeViewProperty) {
+                    const viewProperties = [
+                        'isFormVisible',
+                        'visibleTable',
+                    ];
+
+                    viewProperties.forEach(prop => {
+                        if (prop === activeViewProperty) {
+                            this[prop] = true;
+                        } else {
+                            this[prop] = false;
+                        }
+                    });
                     this.menuOpen = false;
                     this.submenu = null;
-                    this.visibleTable = false; // Hide Daybook table
-                    this.visibleReceivablesTable = false; // Hide Receivables table
-                    this.visibleAccountsTable = false; // Hide Accounts table
                 },
 
-                setForm(formName) {
+                showForm(formName, initialValues = {}) {
+                    this.setActiveView('isFormVisible');
+
+                    if (Object.keys(initialValues).length === 0) {
+                        this.editMode = false;
+                        this.currentDocId = null;
+                        this.formValues = {};
+                        this.visibleInputs = [];
+                    }
+
+                    this.setForm(formName, initialValues);
+                },
+
+                setForm(formName, initialValues = {}) {
                     const formLayouts = {
                         group: [
                             {name: 'grp', label: 'Group Name', type: 'text'}
@@ -59,7 +88,7 @@
                         ],
                         sales: [
                             {name: 'date', label: 'Sales Date', type: 'date'},
-                            {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Sales']},
+                            {name: 'ttype', label: 'Transaction Type', type: 'text', options: ['Sales'], disabled: true},
                             {name: 'fparty', label: 'Sales Product', type: 'select', source: 'sproduct_list'},
                             {name: 'tparty', label: 'Sold To Party', type: 'select', source: 'crdb_list'},
                             {name: 'amt', label: 'Sales Amount', type: 'number'},
@@ -67,7 +96,7 @@
                         ],
                         purchase: [
                             {name: 'date', label: 'Purchase Date', type: 'date'},
-                            {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Purchase']},
+                            {name: 'ttype', label: 'Transaction Type', type: 'text', options: ['Purchase'], disabled: true},
                             {name: 'fparty', label: 'Purchased From', type: 'select', source: 'crdb_list'},
                             {name: 'tparty', label: 'Purchased Product', type: 'select', source: 'pproduct_list'},
                             {name: 'amt', label: 'Purchase Amount', type: 'number'},
@@ -75,7 +104,7 @@
                         ],
                         receipt: [
                             {name: 'date', label: 'Receipt Date', type: 'date'},
-                            {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Receipt']},
+                            {name: 'ttype', label: 'Transaction Type', type: 'text', options: ['Receipt'], disabled: true},
                             {name: 'fparty', label: 'Received From', type: 'select', source: 'crdbcsbkang_list'},
                             {name: 'tparty', label: 'Paid To', type: 'select', source: 'crdbcsbkangexp_list'},
                             {name: 'amt', label: 'Receipt Amount', type: 'number'},
@@ -83,7 +112,7 @@
                         ],
                         payment: [
                             {name: 'date', label: 'Payment Date', type: 'date'},
-                            {name: 'ttype', label: 'Transaction Type', type: 'select', options: ['Payment']},
+                            {name: 'ttype', label: 'Transaction Type', type: 'text', options: ['Payment'], disabled: true},
                             {name: 'fparty', label: 'Paid From', type: 'select', source: 'crdbcsbkang_list'},
                             {name: 'tparty', label: 'Paid To', type: 'select', source: 'crdbcsbkangexp_list'},
                             {name: 'amt', label: 'Payment Amount', type: 'number'},
@@ -93,36 +122,56 @@
 
                     this.currentForm = formName;
                     const layout = formLayouts[formName] || [];
-                    // Map fields and populate options for select types
                     this.visibleInputs = layout.map(field => {
                         if (field.type === 'select' && field.source) {
+                            const optionsFromSource = Array.isArray(window[field.source]) ? window[field.source] : [];
                             return {
                                 ...field,
-                                options: Array.isArray(window[field.source]) ? window[field.source] : []
+                                options: optionsFromSource
+                            };
+                        } else if (field.type === 'select' && field.options) {
+                            const hardcodedOptions = field.options;
+                            return {
+                                ...field,
+                                options: hardcodedOptions
                             };
                         }
                         return field;
                     });
-                    // Initialize form values, pre-filling single-option selects
-                    this.formValues = {};
-                    this.visibleInputs.forEach(f => {
-                        if (f.type === 'select' && f.options.length === 1) {
-                            this.formValues[f.name] = f.options[0];
-                        }
-                    });
-                },
 
-                // Capitalize input field values (e.g., Group Name)
-                capitalize(fieldName) {
-                    if (typeof this.formValues[fieldName] === 'string') {
-                        this.formValues[fieldName] = this.formValues[fieldName].toUpperCase();
+                    this.formValues = {...initialValues};
+
+                    if (Object.keys(initialValues).length === 0) {
+                        this.visibleInputs.forEach(f => {
+                            if (f.type === 'select' && f.options.length === 1) {
+                                this.formValues[f.name] = f.options[0];
+                            } else if (f.type === 'text' && f.disabled && f.options && f.options.length === 1) {
+                                this.formValues[f.name] = f.options[0];
+                            }
+                        });
+
+                        if (['sales', 'purchase', 'receipt', 'payment'].includes(formName)) {
+                            this.formValues.date = new Date().toISOString().slice(0, 10);
+                            this.formValues.amt = '';
+                            this.formValues.fparty = '';
+                            this.formValues.tparty = '';
+                            this.formValues.nar = '';
+                        }
                     }
                 },
 
-                // Get the next available ID for a new transaction
+                capitalize(fieldName) {
+                    const fieldDef = this.visibleInputs.find(f => f.name === fieldName);
+
+                    if (fieldDef && fieldDef.type === 'text' && typeof this.formValues[fieldName] === 'string') {
+                        this.formValues[fieldName] = this.formValues[fieldName].split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                            .join(' ');
+                    }
+                },
+
                 async getNextId() {
-                    // Use window.getDocs and window.collection
-                    const snap = await window.getDocs(window.collection(window.db, 'tran'));
+                    const snap = await window.getDocs(window.collection(window.db, `tran`));
                     let maxId = 0;
                     snap.forEach(doc => {
                         const data = doc.data();
@@ -133,75 +182,150 @@
                     return maxId + 1;
                 },
 
-                // Handle saving form data to Firestore
                 async handleSave() {
-                    const keys = Object.keys(this.formValues).filter(k => k !== 'nar');
-                    const allFilled = keys.every(k => this.formValues[k] !== undefined && this.formValues[k] !== '');
-
-                    if (!allFilled) {
-                        showModal('Validation Error', '⚠️ Please fill all fields (except Narration).', 'warning');
-                        return;
+                    let newIdentifier = '';
+                    if (this.currentForm === 'group') {
+                        newIdentifier = (this.formValues.grp || '').trim();
+                    } else if (this.currentForm === 'ledger' || this.currentForm === 'product') {
+                        newIdentifier = (this.formValues.name || '').trim();
                     }
 
-                    const docData = {...this.formValues};
-                    docData.id = await this.getNextId(); // Assign unique ID
-                    if (docData.amt) docData.amt = Number(docData.amt); // Convert amount to number
+                    if (newIdentifier) {
+                        const existingDocsSnapshot = await window.getDocs(window.collection(window.db, `tran`));
+                        let isDuplicate = false;
 
-                    // Specific logic for 'ledger' form
+                        existingDocsSnapshot.forEach(doc => {
+                            if (this.editMode && doc.id === this.currentDocId) {
+                                return;
+                            }
+
+                            const data = doc.data();
+                            if (data.name && (data.name || '').trim().toLowerCase() === newIdentifier.toLowerCase()) {
+                                isDuplicate = true;
+                                return;
+                            }
+                            if (data.grp && (data.grp || '').trim().toLowerCase() === newIdentifier.toLowerCase()) {
+                                isDuplicate = true;
+                                return;
+                            }
+                        });
+
+                        if (isDuplicate) {alert("⚠️ Duplicate name."); return;}
+                    }
+
+                    const keys = Object.keys(this.formValues).filter(k => k !== 'nar');
+                    let requiredKeys = keys;
+
+                    if (this.currentForm === 'ledger') {
+                        requiredKeys = requiredKeys.filter(k => k !== 'obj' && k !== 'obk');
+                    } else if (this.currentForm === 'product') {
+                        requiredKeys = requiredKeys.filter(k => k !== 'ostk');
+                    } else if (['sales', 'purchase', 'receipt', 'payment'].includes(this.currentForm)) {
+                        requiredKeys = ['date', 'fparty', 'tparty', 'amt'];
+                    }
+
+                    if (this.currentForm === 'ledger') {
+                        if (!this.formValues.grp?.trim() || !this.formValues.name?.trim()) return alert("⚠️ Please select group & fill name.");
+
+                        const objValue = Number(this.formValues.obj) || 0;
+                        const obkValue = Number(this.formValues.obk) || 0;
+                        if (objValue > 0 && obkValue > 0) {alert("⚠️ Fill Jama or Khate not both"); return;}
+                    } else if (this.currentForm === 'product') {
+                        if (!this.formValues.grp?.trim() || !this.formValues.name?.trim()) return alert("⚠️ Please select group & fill name.");
+                    }
+
+                    const allFilled = requiredKeys.every(k => this.formValues[k] !== undefined && this.formValues[k] !== '' && this.formValues[k] !== null);
+
+                    if (!allFilled) {alert("⚠️ Please fill all required fields."); return;}
+
+                    const docData = {...this.formValues};
+
+                    if (!this.editMode) {docData.id = await this.getNextId();}
+
+                    if (this.editMode && this.currentDocId) {
+                        const originalDoc = window.daybookDataMap.get(this.currentDocId);
+                        let oldValue = '';
+                        let newValue = '';
+
+                        if (this.currentForm === 'ledger' || this.currentForm === 'product') {
+                            oldValue = originalDoc.name;
+                            newValue = this.formValues.name;
+                        } else if (this.currentForm === 'group') {
+                            oldValue = originalDoc.grp;
+                            newValue = this.formValues.grp;
+                        }
+
+                        if (oldValue && newValue && oldValue.toLowerCase() !== newValue.toLowerCase()) {
+                            await window.updateRelatedNames(oldValue, newValue);
+                        }
+                    }
+
                     if (this.currentForm === 'ledger') {
                         const objValue = Number(this.formValues.obj) || 0;
                         const obkValue = Number(this.formValues.obk) || 0;
-
-                        if (objValue > 0 && obkValue > 0) {
-                            showModal('Validation Error', '⚠️ Only one of "Op Bal Jama" or "Op Bal Khate" can have a value for Ledger.', 'warning');
-                            return;
-                        }
-
                         if (objValue > 0) {
-                            docData.fparty = this.formValues.name; // If obj has value, save ledger name to fparty
-                            delete docData.obk; // Remove obk if obj is used
+                            docData.fparty = this.formValues.name;
+                            docData.tparty = '';
+                            docData.amt = objValue;
                         } else if (obkValue > 0) {
-                            docData.tparty = this.formValues.name; // If obk has value, save ledger name to tparty
-                            delete docData.obj; // Remove obj if obk is used
+                            docData.tparty = this.formValues.name;
+                            docData.fparty = '';
+                            docData.amt = obkValue;
+                        } else {
+                            docData.fparty = '';
+                            docData.tparty = '';
+                            docData.amt = 0;
                         }
-                        // Ensure 'amt' is set to the balance value for ledger
-                        docData.amt = objValue > 0 ? objValue : obkValue;
-                        // For ledger, 'ttype' could be 'Opening Balance' or similar, depending on your schema.
-                        // Assuming it's not explicitly set by user, we can default it or derive it.
-                        // For simplicity, let's add a default if not present or let it be handled by form layout if needed.
-                        docData.ttype = docData.ttype || 'Op Bal'; // Default for ledger
+                        docData.ttype = 'Opening Balance';
+                        delete docData.obj;
+                        delete docData.obk;
+
+                    } else if (this.currentForm === 'product') {
+                        docData.ttype = 'Opening Stock';
+                        docData.amt = Number(this.formValues.ostk) || 0;
+                        docData.name = this.formValues.name;
+                        docData.grp = this.formValues.grp;
+                        delete docData.ostk;
+
+                    } else if (this.currentForm === 'group') {
+                        docData.ttype = 'Group';
+                        docData.grp = this.formValues.grp;
+                        docData.name = '';
+                        docData.amt = 0;
+                        docData.nar = '';
+                        docData.date = '';
+                        docData.fparty = '';
+                        docData.tparty = '';
                     }
 
-
-                    try {
-                        // Use window.addDoc and window.collection
-                        await window.addDoc(window.collection(window.db, 'tran'), docData);
-                        showModal('Success', "✅ Saved to 'tran' collection with ID " + docData.id, 'success');
-                        this.formValues = {}; // Clear form after successful save
-                    } catch (err) {
-                        console.error(err);
-                        showModal('Error', "❌ Save failed: " + err.message, 'error');
+                    if (this.editMode && this.currentDocId) {
+                        await window.updateDoc(window.doc(window.db, `tran`, this.currentDocId), docData);
+                    } else {
+                        await window.addDoc(window.collection(window.db, `tran`), docData);
                     }
+                    this.formValues = {};
+                    this.editMode = false;
+                    this.currentDocId = null;
+                    this.setForm(this.currentForm, {});
+
+                    window.updateCashLabel();
                 },
 
-                // Function to load and display Daybook table
                 async loadDaybook() {
-                    this.visibleInputs = []; // Hide the form
-                    this.visibleReceivablesTable = false; // Hide Receivables table
-                    this.visibleAccountsTable = false; // Hide Accounts table
-                    this.visibleTable = true; // Show Daybook table
-
-                    // Use window.getDocs and window.collection
-                    const snapshot = await window.getDocs(window.collection(window.db, "tran"));
-                    const columns = ['ID', 'Date', 'Type', 'From Party', 'To Party', 'Narration', 'Amount'];
+                    this.setActiveView('visibleTable');
+                    const snapshot = await window.getDocs(window.collection(window.db, `tran`));
+                    const columns = ['FirestoreID', 'ID', 'Date', 'Type', 'From Party', 'To Party', 'Narration', 'Amount'];
                     const data = [];
+                    window.daybookDataMap = new Map();
 
                     snapshot.forEach(doc => {
                         const d = doc.data();
+                        window.daybookDataMap.set(doc.id, {...d, firestoreDocId: doc.id});
                         if (d.id !== undefined) {
                             data.push([
+                                doc.id,
                                 d.id,
-                                window.formatDate(d.date || ''), // Use window.formatDate
+                                window.formatDate(d.date || ''),
                                 d.ttype || '',
                                 d.fparty || '',
                                 d.tparty || '',
@@ -210,209 +334,81 @@
                             ]);
                         }
                     });
-
-                    window.renderTable("daybookTable", columns, data) // Use window.renderTable
+                    window.renderTable("Table", columns, data, {
+                        columnDefs: [{targets: 0, visible: false}]
+                    });
                 },
 
-                // New Alpine method to show Receivables table
                 async showReceivables() {
-                    this.visibleInputs = []; // Hide the form
-                    this.visibleTable = false; // Hide Daybook table
-                    this.visibleAccountsTable = false; // Hide Accounts table
-                    this.visibleReceivablesTable = true; // Show Receivables table
-                    await window.showReceivables(); // Call the global function
+                    this.setActiveView('visibleTable');
+                    await window.showReceivables();
                 },
 
-                // New Alpine method to show Accounts table
-                async showAccounts() {
-                    this.visibleInputs = []; // Hide the form
-                    this.visibleTable = false; // Hide Daybook table
-                    this.visibleReceivablesTable = false; // Hide Receivables table
-                    this.visibleAccountsTable = true; // Show Accounts table
-                    await window.loadAccounts(); // Call the global function
+                async showGroupsAndAccounts() {
+                    this.setActiveView('visibleTable');
+                    await window.viewGroupsAndAccounts();
+                },
+
+                async showProducts() {
+                    this.setActiveView('visibleTable');
+                    await window.viewProducts();
                 }
             }));
         });
     </script>
 
-    <!-- Alpine.js CDN (now with defer) -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- External CSS Libraries -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600&display=swap" rel="stylesheet">
-
-    <style>
-        /* Custom styles for DataTables buttons */
-        .dt-buttons .dt-button {
-            @apply bg-blue-600 text-white px-5 py-2.5 shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 ease-in-out font-semibold text-sm;
-            border: none;
-            margin-right: 0.75rem; /* Space between buttons */
-            background-color: #3b82f6; /* Default blue for generic buttons */
-            border-radius: 0.5rem !important; /* Added rounded corners with !important */
-        }
-
-        /* Specific styles for Excel, PDF, Print buttons */
-        .dt-buttons .buttons-excel {
-            background-color: #10b981 !important; /* Green */
-            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2) !important; /* Green shadow */
-        }
-
-        .dt-buttons .buttons-pdf {
-            background-color: #ef4444 !important; /* Red */
-            box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2) !important; /* Red shadow */
-        }
-
-        .dt-buttons .buttons-print {
-            background-color: #8b5cf6 !important; /* Purple */
-            box-shadow: 0 4px 6px rgba(139, 92, 246, 0.2) !important; /* Purple shadow */
-        }
-
-        /* Adjust search input styling */
-        .dataTables_filter input {
-            @apply border border-gray-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
-        }
-
-        /* Adjust pagination styling */
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            @apply px-3 py-1 border border-gray-300 rounded-md mx-1 hover:bg-gray-200;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            @apply bg-blue-600 text-white hover:bg-blue-700;
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
-            @apply opacity-50 cursor-not-allowed;
-        }
-
-        /* Table styling */
-        #daybookTable, #viewRecTable, #accountsTable { /* Apply to all tables */
-            width: 100% !important; /* Ensure DataTables takes full width */
-            margin-top: 1rem;
-            border-collapse: collapse;
-        }
-
-        #daybookTable th, #daybookTable td,
-        #viewRecTable th, #viewRecTable td,
-        #accountsTable th, #accountsTable td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0; /* Tailwind's border-gray-200 */
-        }
-
-        #daybookTable th, #viewRecTable th, #accountsTable th {
-            background-color: #f8fafc; /* Tailwind's bg-gray-50 */
-            font-weight: 600;
-            color: #4a5568; /* Tailwind's text-gray-700 */
-        }
-
-        #daybookTable tbody tr:hover,
-        #viewRecTable tbody tr:hover,
-        #accountsTable tbody tr:hover {
-            background-color: #f0f4f8; /* A light hover effect */
-        }
-
-        /* Ensure content is below fixed navbar */
-        body {
-            padding-top: 3.5rem; /* Height of the navbar */
-            font-family: 'Baloo 2', sans-serif; /* Explicitly set global font */
-        }
-
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .modal-header h2 {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .modal-body {
-            margin-bottom: 20px;
-        }
-
-        .modal-footer button {
-            @apply bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700;
-        }
-    </style>
 </head>
-<body class="font-[Baloo 2] antialiased bg-gray-100 text-base sm:text-lg" x-data="formManager()">
+<body style="font-family: 'Arial', Tahoma, Geneva, Verdana, sans-serif;" class="antialiased bg-gray-100 text-base sm:text-lg lg:text-xl" x-cloak x-data="formManager()">
 
 <!-- 🔐 Login/Register Section -->
-<div class="p-4 mt-14" id="authContainer" style="display: none;">
-    <div id="loginContainer" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+<div class="p-4 mt-16" id="authContainer" style="display: none;">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md" id="loginContainer">
         <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">Login</h2>
-        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginEmail" placeholder="Email" type="email">
-        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginPassword" placeholder="Password" type="password">
-        <button class="w-full bg-blue-600 text-white px-4 py-3 rounded-md mb-4 hover:bg-blue-700 transition duration-200" onclick="login()">Login</button>
+        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginEmail"
+               placeholder="Email" type="email">
+        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginPassword"
+               placeholder="Password" type="password">
+        <button class="w-full bg-blue-600 text-white px-4 py-3 rounded-md mb-4 hover:bg-blue-700 transition duration-200" onclick="login()">Login
+        </button>
         <div class="text-red-600 text-center mb-4" id="loginError"></div>
-        <p class="text-center text-gray-600">Don’t have an account? <a class="text-blue-700 underline hover:text-blue-800" href="#" onclick="event.preventDefault(); showRegister();">Register</a></p>
+        <p class="text-center text-gray-600">Don’t have an account? <a class="text-blue-700 underline hover:text-blue-800" href="#"
+                                                                       onclick="event.preventDefault(); showRegister();">Register</a></p>
     </div>
 
-    <div id="registerContainer" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md" style="display:none;">
+    <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md" id="registerContainer" style="display:none;">
         <h2 class="text-2xl font-bold mb-6 text-center text-green-700">Register</h2>
-        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" id="registerEmail" placeholder="Email" type="email">
-        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" id="registerPassword" placeholder="Password" type="password">
-        <button class="w-full bg-green-600 text-white px-4 py-3 rounded-md mb-4 hover:bg-green-700 transition duration-200" onclick="register()">Register</button>
+        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" id="registerEmail"
+               placeholder="Email" type="email">
+        <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+               id="registerPassword" placeholder="Password" type="password">
+        <button class="w-full bg-green-600 text-white px-4 py-3 rounded-md mb-4 hover:bg-green-700 transition duration-200" onclick="register()">
+            Register
+        </button>
         <div class="text-red-600 text-center mb-4" id="registerError"></div>
-        <p class="text-center text-gray-600">Already have an account? <a class="text-blue-700 underline hover:text-blue-800" href="#" onclick="event.preventDefault(); showLogin();">Login</a></p>
+        <p class="text-center text-gray-600">Already have an account? <a class="text-blue-700 underline hover:text-blue-800" href="#"
+                                                                         onclick="event.preventDefault(); showLogin();">Login</a></p>
     </div>
 </div>
 
 <!-- ✅ Top Navbar -->
 <div class="bg-blue-700 text-white shadow px-4 py-3 flex items-center fixed w-full top-0 z-40 h-14">
-    <button @click="menuOpen = !menuOpen" class="text-2xl focus:outline-none">
-        &#9776;
-    </button>
+    <button @click="menuOpen = !menuOpen" class="text-2xl focus:outline-none">&#9776;</button>
     <span class="ml-4 text-lg sm:text-xl font-semibold">📘 MyApp</span>
+    <span class="ml-4 text-lg sm:text-xl font-semibold" id="cashLabel"></span>
 </div>
 
-<!-- ✅ Sidebar -->
-<div class="fixed left-0 top-14 w-full sm:w-64 bg-white shadow-lg p-3 space-y-4 z-30 border-r border-gray-200 overflow-y-auto max-h-[calc(100vh-3.5rem)]"
-     x-show="menuOpen"
+<!-- ✅ Sidebar And Subbuttons-->
+<div @click.away="menuOpen = false"
+     class="fixed left-0 top-14 w-full sm:w-64 bg-white shadow-lg p-3 space-y-4 z-30 border-r border-gray-200 overflow-y-auto max-h-[calc(100vh-3.5rem)]"
+     x-show="menuOpen && dataReady"
      x-transition:enter="transition ease-out duration-300 transform"
-     x-transition:enter-start="-translate-x-full"
      x-transition:enter-end="translate-x-0"
+     x-transition:enter-start="-translate-x-full"
      x-transition:leave="transition ease-in duration-300 transform"
-     x-transition:leave-start="translate-x-0"
      x-transition:leave-end="-translate-x-full"
-     @click.away="menuOpen = false">
+     x-transition:leave-start="translate-x-0">
     <div>
         <button @click="submenu === 'new' ? submenu = null : submenu = 'new'"
                 class="w-full text-left px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded-md transition duration-150 ease-in-out">
@@ -420,21 +416,28 @@
         </button>
         <div class="ml-4 mt-2 space-y-1 text-sm text-gray-800 flex flex-col gap-2" x-show="submenu === 'new'"
              x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 transform -translate-y-2"
-             x-transition:enter-end="opacity-100 transform translate-y-0">
-            <a @click.prevent="showForm('group')" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">📁
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:enter-start="opacity-0 transform -translate-y-2">
+            <a @click.prevent="showForm('group')"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">📁
                 Group</a>
-            <a @click.prevent="showForm('ledger')" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">📘
+            <a @click.prevent="showForm('ledger')"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">📘
                 Ledger</a>
-            <a @click.prevent="showForm('product')" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">📦
+            <a @click.prevent="showForm('product')"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">📦
                 Product</a>
-            <a @click.prevent="showForm('sales')" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">🛒
+            <a @click.prevent="showForm('sales')"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">🛒
                 Sales</a>
-            <a @click.prevent="showForm('purchase')" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">🧾
+            <a @click.prevent="showForm('purchase')"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">🧾
                 Purchase</a>
-            <a @click.prevent="showForm('receipt')" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">💵
+            <a @click.prevent="showForm('receipt')"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">💵
                 Receipt</a>
-            <a @click.prevent="showForm('payment')" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">💳
+            <a @click.prevent="showForm('payment')"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">💳
                 Payment</a>
         </div>
     </div>
@@ -446,43 +449,59 @@
         </button>
         <div class="ml-4 mt-2 space-y-1 text-sm text-gray-800 flex flex-col gap-2" x-show="submenu === 'view'"
              x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 transform -translate-y-2"
-             x-transition:enter-end="opacity-100 transform translate-y-0">
-            <a @click="menuOpen = false; loadDaybook()" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:enter-start="opacity-0 transform -translate-y-2">
+            <a @click="loadDaybook()"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">
                 📘 Daybook</a>
-            <a @click="menuOpen = false; showReceivables()" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">
+            <a @click="showReceivables()"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">
                 💰 Receivables</a>
-            <a @click="menuOpen = false; showAccounts()" class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">
-                📊 Accounts</a>
+            <a @click="showGroupsAndAccounts()"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">
+                👥 Groups & Accounts</a>
+            <a @click="showProducts()"
+               class="block px-2 py-2 rounded-md hover:bg-gray-100 font-semibold text-sm sm:text-base transition duration-150 ease-in-out" href="#">
+                📦 Products</a>
         </div>
     </div>
 
-    <a @click="menuOpen = false; submenu = null; window.logout()" class="block px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded-md transition duration-150 ease-in-out" href="#">🚪
+    <a @click="menuOpen = false; submenu = null; window.logout()"
+       class="block px-4 py-3 bg-blue-100 hover:bg-blue-200 text-blue-800 font-semibold rounded-md transition duration-150 ease-in-out" href="#">🚪
         Logout</a>
 
 </div>
 
 <!-- ✅ Form & Table Display Area -->
-<div class="relative z-10 p-4 sm:p-8 mt-14" id="widget-area" style="display: none;">
+<div class="relative z-10 p-4 mt-8 sm:p-8" id="widget-area" style="display: none;">
+    <template x-if="!dataReady">
+        <div class="flex justify-center items-center h-64">
+            <p class="text-xl text-gray-600">Loading application data...</p>
+        </div>
+    </template>
     <template x-if="dataReady">
         <div class="max-w-full lg:max-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
 
             <!-- FORM INPUT BLOCK -->
-            <template x-if="visibleInputs.length">
+            <template x-if="isFormVisible">
                 <div>
-                    <h2 class="text-2xl font-bold mb-6 text-center text-blue-700" x-text="currentForm.charAt(0).toUpperCase() + currentForm.slice(1) + ' Entry'"></h2>
+                    <h2 class="text-2xl font-bold mb-6 text-center text-blue-700"
+                        x-text="currentForm.charAt(0).toUpperCase() + currentForm.slice(1) + ' Entry'"></h2>
                     <template :key="field.name" x-for="field in visibleInputs">
-                        <div class="mb-4">
+                        <div class="mb-4 max-w-md mx-auto">
                             <label class="block font-semibold mb-1 text-sm sm:text-base text-gray-700" x-text="field.label"></label>
 
                             <!-- Select dropdown -->
                             <template x-if="field.type === 'select'">
                                 <select
-                                        class="w-full border border-gray-300 px-4 py-2.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                        x-model="formValues[field.name]">
+                                        --}} :id="field.name + 'Select'" Added DOM ID
+                                        class="w-full border border-gray-300 px-4 py-2.5 rounded-md text-base sm:text-lg lg:text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        dynamic easier for querying
+                                        x-model="formValues[field.name]"
+                                        {{-->
                                     <option value="">Select...</option>
                                     <template :key="opt" x-for="opt in field.options">
-                                        <option :value="opt" x-text="opt"></option>
+                                        <option :selected="opt === formValues[field.name]" :value="opt" x-text="opt"></option>
                                     </template>
                                 </select>
                             </template>
@@ -490,47 +509,32 @@
                             <!-- Other inputs -->
                             <template x-if="field.type !== 'select'">
                                 <input
-                                        :type="field.type"
-                                        @input="capitalize(field.name)"
-                                        class="w-full border border-gray-300 px-4 py-2.5 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                        x-model="formValues[field.name]"/>
+                                        --}}
+                                        :disabled="field.disabled || false"
+                                        :type="field.type" @input="capitalize(field.name)" Bind attribute
+                                        class="w-full border border-gray-300 px-4 py-2.5 rounded-md text-base sm:text-lg lg:text-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                                        disabled
+                                        x-model="formValues[field.name]"
+                                        {{--/>
                             </template>
                         </div>
                     </template>
 
                     <!-- Save Button -->
-                    <div x-show="visibleInputs.length">
+                    <div class="max-w-md mx-auto">
                         <button @click="handleSave"
                                 class="w-full bg-blue-600 text-white px-4 py-3 mt-4 rounded-md hover:bg-blue-700 text-base font-semibold transition duration-200">
-                            💾 Save
+                            <span x-text="editMode ? '💾 Update' : '💾 Save'"></span>
                         </button>
                     </div>
 
                 </div>
             </template>
 
-            <!-- Daybook Table -->
+            <!-- Table -->
             <div x-show="visibleTable">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">Daybook</h2>
-                <table class="display nowrap" id="daybookTable" style="width:100%">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <!-- Receivables Table -->
-            <div x-show="visibleReceivablesTable">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">Receivables</h2>
-                <table class="display nowrap" id="viewRecTable" style="width:100%">
-                    <thead></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <!-- Accounts Table -->
-            <div x-show="visibleAccountsTable">
-                <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">Accounts</h2>
-                <table class="display nowrap" id="accountsTable" style="width:100%">
+                <h2 class="text-2xl font-bold mb-6 text-center text-blue-700"></h2>
+                <table class="display nowrap" id="Table" style="width:100%">
                     <thead></thead>
                     <tbody></tbody>
                 </table>
@@ -540,42 +544,27 @@
     </template>
 </div>
 
-<!-- Custom Modal for Alerts -->
-<div id="customModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modalTitle"></h2>
-        </div>
-        <div class="modal-body">
-            <p id="modalMessage"></p>
-        </div>
-        <div class="modal-footer">
-            <button onclick="closeModal()">OK</button>
-        </div>
-    </div>
-</div>
-
 <!-- External JavaScript Libraries -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
 
 <!-- Firebase SDK -->
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {
-        getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
+        getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInWithCustomToken
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {
-        getFirestore, collection, getDocs, updateDoc, deleteDoc, addDoc, query, where, orderBy, limit, doc
+        getFirestore, collection, getDocs, updateDoc, deleteDoc, addDoc, query, where, orderBy, limit, doc, writeBatch // Added writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // Firebase configuration (replace with your actual config if different)
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
         authDomain: "accounts-19d08.firebaseapp.com",
@@ -584,303 +573,397 @@
         messagingSenderId: "247308606105",
         appId: "1:247308606105:web:9bfc179368524244bf3608"
     };
+    window.appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    window.db = db; // Make db globally accessible for Alpine.js
+    let app;
+    let auth;
+    let db;
 
-    // Make Firestore functions globally accessible
-    window.collection = collection;
-    window.getDocs = getDocs;
-    window.updateDoc = updateDoc;
-    window.deleteDoc = deleteDoc;
-    window.addDoc = addDoc;
-    window.query = query;
-    window.where = where;
-    window.orderBy = orderBy;
-    window.limit = limit;
-    window.doc = doc;
+    if (firebaseConfig && firebaseConfig.apiKey) {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        window.db = db;
 
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.updateDoc = updateDoc;
+        window.deleteDoc = deleteDoc;
+        window.addDoc = addDoc;
+        window.query = query;
+        window.where = where;
+        window.orderBy = orderBy;
+        window.limit = limit;
+        window.doc = doc;
+        window.writeBatch = writeBatch;
 
-    // Authentication state listener
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            // User is signed in
-            document.getElementById("authContainer").style.display = "none";
-            // widget-area display is now handled by Alpine's init() once dataReady is true
-            window.loadDropdownData(); // Load dropdown data once authenticated
-        } else {
-            // User is signed out
-            document.getElementById("authContainer").style.display = "block";
+        async function authenticateFirebase() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    document.getElementById("authContainer").style.display = "block";
+                    document.getElementById("loginContainer").style.display = "block";
+                    document.getElementById("registerContainer").style.display = "none";
+                    document.getElementById("widget-area").style.display = "none";
+                }
+            } catch (error) {
+                let errorMessage = "An unexpected authentication error occurred. Please try logging in with email/password.";
+                if (error.code === "auth/network-request-failed") {
+                    errorMessage = "Network error. Please check your internet connection and try again.";
+                }
+                alert( errorMessage);
+                document.getElementById("authContainer").style.display = "block";
+                document.getElementById("loginContainer").style.display = "block";
+                document.getElementById("registerContainer").style.display = "none";
+                document.getElementById("widget-area").style.display = "none";
+            }
+        }
+
+        authenticateFirebase();
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById("authContainer").style.display = "none";
+                document.getElementById("widget-area").style.display = "block";
+                window.loadDropdownData();
+                window.updateCashLabel();
+            } else {
+                document.getElementById("authContainer").style.display = "block";
+                document.getElementById("loginContainer").style.display = "block";
+                document.getElementById("registerContainer").style.display = "none";
+                document.getElementById("widget-area").style.display = "none";
+            }
+        });
+
+        window.showLogin = function () {
             document.getElementById("loginContainer").style.display = "block";
             document.getElementById("registerContainer").style.display = "none";
-            document.getElementById("widget-area").style.display = "none"; // Ensure widget-area is hidden
-        }
-    });
+        };
 
-    // Function to show the login form
-    window.showLogin = function () {
+        window.showRegister = function () {
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("registerContainer").style.display = "block";
+        };
+
+        window.login = async function () {
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                document.getElementById("loginError").textContent = "";
+            } catch (error) {
+                document.getElementById("loginError").textContent = error.message;
+            }
+        };
+
+        window.register = async function () {
+            const email = document.getElementById("registerEmail").value;
+            const password = document.getElementById("registerPassword").value;
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                document.getElementById("registerError").textContent = "";
+            } catch (error) {
+                document.getElementById("registerError").textContent = error.message;
+            }
+        };
+
+        window.logout = async function () {try {await signOut(auth);} catch (e) {alert("Logout failed");}};
+
+        window.loadDropdownData = async function () {
+            const tranCol = collection(db, "tran");
+            const snapshot = await getDocs(tranCol);
+
+            const grpSet = new Set();
+            const spSet = new Set();
+            const nameSet = new Set();
+            const ttypeSet = new Set();
+            const sproductSet = new Set();
+            const pproductSet = new Set();
+            const crdbSet = new Set();
+            const crdbcsbkangSet = new Set();
+            const crdbcsbkangexpSet = new Set();
+
+            const crdbGroups = ["Creditors", "Debitors"];
+            const crdbcsbkangGroups = ["Creditors", "Debitors", "Cash", "Bank", "Angadiya"];
+            const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const grp = (data.grp || "").trim();
+                const name = (data.name || "").trim();
+                if (grp.length === 0) return;
+
+                if (["Sales", "Purchase", "Receipt", "Payment"].includes(grp)) {ttypeSet.add(grp);}
+
+                if (["Sales Products", "Purchase Products"].includes(grp)) {spSet.add(grp);}
+
+                if (name.length > 0) {nameSet.add(name);}
+
+                if (grp === "Sales Products" && name.length > 0) {sproductSet.add(name);}
+
+                if (grp === "Purchase Products" && name.length > 0) {pproductSet.add(name);}
+
+                if (crdbGroups.includes(grp) && name.length > 0) {crdbSet.add(name);}
+
+                if (crdbcsbkangGroups.includes(grp) && name.length > 0) {crdbcsbkangSet.add(name);}
+
+                if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {crdbcsbkangexpSet.add(name);}
+            });
+
+            window.grp_list = [];
+            window.sp_list = [];
+            window.allnames_list = [];
+            window.ttype_list = [];
+            window.sproduct_list = [];
+            window.pproduct_list = [];
+            window.crdb_list = [];
+            window.crdbcsbkang_list = [];
+            window.crdbcsbkangexp_list = [];
+
+            window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
+            window.sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
+            window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
+            window.ttype_list = [...ttypeSet].sort((a, b) => a.localeCompare(b));
+            window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
+            window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
+            window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
+            window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
+            window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
+
+            window.formDataReady = true;
+        }
+
+        window.renderTable = function (containerId, columns, data, options = {}) {
+            const table = $('#' + containerId);
+
+            if ($.fn.DataTable.isDataTable('#' + containerId)) {
+                table.DataTable().destroy();
+            }
+
+            table.find('thead').empty();
+            table.find('tbody').empty();
+
+            const theadHtml = '<tr>' + columns.map(col => `<th>${col}</th>`).join('') + '</tr>';
+            table.find('thead').html(theadHtml);
+
+            const tbodyHtml = data.map(row =>
+                '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>'
+            ).join('');
+            table.find('tbody').html(tbodyHtml);
+
+            const dt = table.DataTable({
+                responsive: true,
+                pageLength: 10,
+                dom: 'Bfrtip',
+                buttons: [{text: '📊 Excel',}, {text: '📄 PDF',}, {text: '🖨️ Print',}],
+                columnDefs: options.columnDefs || [],
+                language: {
+                    search: "",
+                    searchPlaceholder: "Search..."
+                }
+            });
+
+            if (containerId === 'Table') {
+                table.off('dblclick', 'tbody tr');
+                table.on('dblclick', 'tbody tr', function () {
+                    const rowData = dt.row(this).data();
+                    const firestoreDocId = rowData[0];
+
+                    const originalDoc = window.daybookDataMap.get(firestoreDocId);
+
+                    if (originalDoc) {
+                        const alpineInstance = window.alpineFormManager;
+
+                        alpineInstance.editMode = true;
+                        alpineInstance.currentDocId = originalDoc.firestoreDocId;
+
+                        let formName = '';
+                        let mappedData = {...originalDoc};
+                        mappedData.id = originalDoc.id;
+
+                        const ttypeVal = originalDoc.ttype || '';
+                        const fpartyVal = originalDoc.fparty || '';
+                        const tpartyVal = originalDoc.tparty || '';
+                        const grpVal = originalDoc.grp || '';
+                        const nameVal = originalDoc.name || '';
+
+
+                        switch (ttypeVal.toUpperCase()) {
+                            case 'SALES':
+                                formName = 'sales';
+                                break;
+                            case 'PURCHASE':
+                                formName = 'purchase';
+                                break;
+                            case 'RECEIPT':
+                                formName = 'receipt';
+                                break;
+                            case 'PAYMENT':
+                                formName = 'payment';
+                                break;
+                            case 'OPENING BALANCE':
+                                formName = 'ledger';
+                                mappedData.obj = fpartyVal === nameVal ? originalDoc.amt : '';
+                                mappedData.obk = tpartyVal === nameVal ? originalDoc.amt : '';
+                                mappedData.ttype = 'Opening Balance';
+                                break;
+                            case 'OP STOCK':
+                                formName = 'product';
+                                mappedData.ostk = originalDoc.amt;
+                                mappedData.ttype = 'Opening Stock';
+                                break;
+                            case 'GROUP':
+                                formName = 'group';
+                                mappedData.grp = grpVal;
+                                mappedData.ttype = 'Group';
+                                break;
+                            default:
+                                alert('Cannot edit this transaction type directly.');
+                                return;
+                        }
+                        alpineInstance.showForm(formName, mappedData);
+
+                        alpineInstance.$nextTick(() => {
+                        });
+                    }
+                });
+            }
+        }
+
+        window.formatDate = function (d) {
+            if (!d) return "";
+            const parts = d.split("-");
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return d;
+        }
+
+        window.showReceivables = async function () {
+            const snapshot = await getDocs(collection(db, `tran`));
+            const balanceMap = new Map();
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const amt = Number(data.amt) || 0;
+                const fparty = (data.fparty || "").trim();
+                const tparty = (data.tparty || "").trim();
+
+                if (fparty) {balanceMap.set(fparty, (balanceMap.get(fparty) || 0) - amt);}
+                if (tparty) {balanceMap.set(tparty, (balanceMap.get(tparty) || 0) + amt);}
+            });
+
+            const receivables = Array.from(balanceMap.entries())
+                .filter(([_, bal]) => bal > 0)
+                .sort((a, b) => b[1] - a[1])
+                .map(([name, bal]) => [name, bal.toFixed(0)]);
+            window.renderTable("Table", ["Name", "Receivable Amount"], receivables);
+        }
+
+        window.updateCashLabel = async function () {
+            const tranCol = collection(db, `tran`);
+            const snapshot = await getDocs(tranCol);
+
+            let inflow = 0;
+            let outflow = 0;
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.tparty === "Cash On Hand") {
+                    inflow += Number(data.amt || 0);
+                }
+                if (data.fparty === "Cash On Hand") {
+                    outflow += Number(data.amt || 0);
+                }
+            });
+
+            const balance = inflow - outflow;
+            document.getElementById("cashLabel").textContent = `Cash: ₹${balance.toFixed(0)}`;
+        }
+
+        window.viewGroupsAndAccounts = async function () {
+            const tranCol = collection(db, "tran");
+            const snapshot = await getDocs(tranCol);
+            let rows = [];
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.grp && data.name) {
+                    rows.push([data.grp || "", data.name || ""]);
+                }
+            });
+            window.renderTable("Table", ["Groups", "Accounts"], rows);
+        }
+
+        window.viewProducts = async function () {
+            const tranCol = collection(db, "tran");
+            const snapshot = await getDocs(tranCol);
+            let rows = [];
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.grp && data.name && (data.grp === "sales products" || data.grp === "purchase products"))
+                    {rows.push([data.grp || "", data.name || ""]);}
+            });
+
+            window.renderTable("Table", ["Groups", "Products"], rows);
+        }
+
+        window.updateRelatedNames = async function (oldName, newName) {
+            const tranCol = collection(db, "tran");
+            const snapshot = await getDocs(tranCol);
+            const batch = writeBatch(db);
+            let updatesCount = 0;
+
+            snapshot.forEach(docSnapshot => {
+                const data = docSnapshot.data();
+                let needsUpdate = false;
+                const updateData = {};
+
+                if (data.name && (data.name || '').trim().toLowerCase() === oldName.toLowerCase()) {
+                    updateData.name = newName;
+                    needsUpdate = true;
+                }
+                if (data.grp && (data.grp || '').trim().toLowerCase() === oldName.toLowerCase()) {
+                    updateData.grp = newName;
+                    needsUpdate = true;
+                }
+                if (data.fparty && (data.fparty || '').trim().toLowerCase() === oldName.toLowerCase()) {
+                    updateData.fparty = newName;
+                    needsUpdate = true;
+                }
+                if (data.tparty && (data.tparty || '').trim().toLowerCase() === oldName.toLowerCase()) {
+                    updateData.tparty = newName;
+                    needsUpdate = true;
+                }
+                if (data.ttype && (data.ttype || '').trim().toLowerCase() === oldName.toLowerCase()) {
+                    updateData.ttype = newName;
+                    needsUpdate = true;
+                }
+
+                if (needsUpdate) {
+                    batch.update(doc(db, "tran", docSnapshot.id), updateData);
+                    updatesCount++;
+                }
+            });
+
+            if (updatesCount > 0) {
+                await batch.commit();
+                await window.loadDropdownData();
+            }
+        };
+
+    } else {
+        document.getElementById("authContainer").style.display = "block";
         document.getElementById("loginContainer").style.display = "block";
         document.getElementById("registerContainer").style.display = "none";
-        // No need to hide widget-area here, onAuthStateChanged handles it
-    };
-
-    // Function to show the register form
-    window.showRegister = function () {
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("registerContainer").style.display = "block";
-        // No need to hide widget-area here, onAuthStateChanged handles it
-    };
-
-    // Function to handle user login
-    window.login = async function () {
-        const email = document.getElementById("loginEmail").value;
-        const password = document.getElementById("loginPassword").value;
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            document.getElementById("loginError").textContent = ""; // Clear error on success
-            // onAuthStateChanged will handle UI update
-        } catch (error) {
-            document.getElementById("loginError").textContent = error.message;
-        }
-    };
-
-    // Function to handle user registration
-    window.register = async function () {
-        const email = document.getElementById("registerEmail").value;
-        const password = document.getElementById("registerPassword").value;
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            document.getElementById("registerError").textContent = ""; // Clear error on success
-            // onAuthStateChanged will handle UI update
-        } catch (error) {
-            document.getElementById("registerError").textContent = error.message;
-        }
-    };
-
-    // Function to handle user logout
-    window.logout = async function () {
-        try {
-            await signOut(auth);
-            // onAuthStateChanged will handle UI update
-        } catch (e) {
-            console.error("Logout failed", e);
-            showModal("Error", "Logout failed: " + e.message, "error");
-        }
-    };
-
-    // Function to load dropdown data from Firestore
-    window.loadDropdownData = async function () {
-        const tranCol = window.collection(db, "tran"); // Use window.collection
-        const snapshot = await window.getDocs(tranCol); // Use window.getDocs
-
-        const grpSet = new Set();             // All groups except Sales & Purchase
-        const spSet = new Set();              // Only Sales and Purchase
-        const sproductSet = new Set();
-        const crdbSet = new Set();
-        const pproductSet = new Set();
-        const crdbcsbkangSet = new Set();
-        const crdbcsbkangexpSet = new Set();
-        const allnameSet = new Set();         // All names where grp ≠ Sales Product/Purchase Product
-
-        const crdbGroups = ["Creditors", "Debitors"];
-        const crdbcsbkangGroups = [...crdbGroups, "Cash", "Bank", "Angadiya"];
-        const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const grp = (data.grp || "").trim();
-            const name = (data.name || "").trim();
-            if (grp.length === 0) return;
-
-            if (["Sales Products", "Purchase Products"].includes(grp)) {
-                spSet.add(grp);
-            } else if (!["Receipt", "Payment"].includes(grp)) {
-                grpSet.add(grp);
-            }
-
-            if (name.length > 0) {
-                allnameSet.add(name);
-            }
-
-            // Sales products
-            if (grp === "Sales Products" && name.length > 0) {
-                sproductSet.add(name);
-            }
-
-            // Purchase products
-            if (grp === "Purchase Products" && name.length > 0) {
-                pproductSet.add(name);
-            }
-
-            // crdb list
-            if (crdbGroups.includes(grp) && name.length > 0) {
-                crdbSet.add(name);
-            }
-
-            // crdbcsbkang list
-            if (crdbcsbkangGroups.includes(grp) && name.length > 0) {
-                crdbcsbkangSet.add(name);
-            }
-
-            // crdbcsbkangexp list
-            if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {
-                crdbcsbkangexpSet.add(name);
-            }
-        });
-
-        // Convert Sets to sorted arrays
-        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
-        window.sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
-        window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
-        window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
-        window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
-        window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
-        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
-        window.allnames_list = [...allnameSet].sort((a, b) => a.localeCompare(b));
-
-        window.formDataReady = true;
-    }
-
-    // Helper function to render DataTables
-    window.renderTable = function (containerId, columns, data, options = {}) { // Made globally accessible
-        const table = $('#' + containerId);
-
-        // Destroy existing DataTable if exists
-        if ($.fn.DataTable.isDataTable('#' + containerId)) {
-            table.DataTable().destroy();
-        }
-
-        // Clear previous content
-        table.find('thead').empty();
-        table.find('tbody').empty();
-
-        // Build header row
-        const theadHtml = '<tr>' + columns.map(col => `<th>${col}</th>`).join('') + '</tr>';
-        table.find('thead').html(theadHtml);
-
-        // Build body rows
-        const tbodyHtml = data.map(row =>
-            '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>'
-        ).join('');
-        table.find('tbody').html(tbodyHtml);
-
-        // Initialize DataTable
-        const dt = table.DataTable({
-            responsive: true,
-            pageLength: 10,
-            dom: 'Bfrtip',
-            buttons: [
-                {
-                    extend: 'excel',
-                    text: '📊 Excel',
-                    className: 'buttons-excel' // Use custom class for styling
-                },
-                {
-                    extend: 'pdf',
-                    text: '📄 PDF',
-                    className: 'buttons-pdf' // Use custom class for styling
-                },
-                {
-                    extend: 'print',
-                    text: '🖨️ Print',
-                    className: 'buttons-print' // Use custom class for styling
-                }
-            ],
-            columnDefs: options.columnDefs || [],
-            language: {
-                search: "",
-                searchPlaceholder: "Search..."
-            }
-        });
-
-        // Optional: double-click action (currently just shows a generic message)
-        table.on('dblclick', 'tbody td', function () {
-            showModal('Table Action', 'Double-clicked on a table cell!', 'info');
-        });
-    }
-
-    // Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
-    // Make formatDate globally accessible
-    window.formatDate = function (d) {
-        if (!d) return "";
-        const parts = d.split("-");
-        if (parts.length === 3) {
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        return d;
-    }
-
-    // New function to show Receivables
-    window.showReceivables = async function () {
-        const snapshot = await getDocs(collection(db, "tran"));
-        const balanceMap = new Map();
-
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const amt = Number(data.amt) || 0;
-
-            const fparty = (data.fparty || "").trim();
-            const tparty = (data.tparty || "").trim();
-
-            if (fparty) {
-                balanceMap.set(fparty, (balanceMap.get(fparty) || 0) - amt);
-            }
-            if (tparty) {
-                balanceMap.set(tparty, (balanceMap.get(tparty) || 0) + amt);
-            }
-        });
-
-        const receivables = Array.from(balanceMap.entries())
-            .filter(([_, bal]) => bal > 0)
-            .sort((a, b) => b[1] - a[1])
-            .map(([name, bal]) => [name, bal.toFixed(0)]);
-
-        window.renderTable("viewRecTable", ["Name", "Receivable Amount"], receivables);
-    }
-
-    // New function to load Accounts
-    window.loadAccounts = async function () {
-        const snapshot = await getDocs(collection(db, "tran"));
-        const columns = ['Names'];
-        const data = [];
-
-        snapshot.forEach(doc => {
-            const d = doc.data();
-            if (d.name) {
-                data.push([d.name]);
-            }
-        });
-
-        window.renderTable("accountsTable", columns, data)
+        document.getElementById("widget-area").style.display = "none";
     }
 </script>
 
-<!-- Custom Modal Functions (replacing alert()) moved to a regular script block) -->
-<script>
-    function showModal(title, message, type = 'info') {
-        const modal = document.getElementById('customModal');
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('modalMessage').textContent = message;
-
-        // Optional: Add type-specific styling or icons if needed
-        const modalContent = modal.querySelector('.modal-content');
-        modalContent.classList.remove('border-red-500', 'border-green-500', 'border-yellow-500');
-        if (type === 'error') {
-            modalContent.classList.add('border-red-500');
-        } else if (type === 'success') {
-            modalContent.classList.add('border-green-500');
-        } else if (type === 'warning') {
-            modalContent.classList.add('border-yellow-500');
-        }
-
-        modal.style.display = 'flex'; // Use flex to center
-    }
-
-    function closeModal() {
-        document.getElementById('customModal').style.display = 'none';
-    }
-</script>
 </body>
 </html>
+
+
+
+
