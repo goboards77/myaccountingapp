@@ -363,7 +363,7 @@
 <body style="font-family: 'Arial', Tahoma, Geneva, Verdana, sans-serif;" class="antialiased bg-gray-100 text-base sm:text-lg lg:text-xl" x-cloak x-data="formManager()">
 
 <!-- 🔐 Login/Register Section -->
-<div class="p-4 mt-16" id="authContainer" style="display: none;">
+<div class="mt-20" id="authContainer" style="display: none;">
     <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md" id="loginContainer">
         <h2 class="text-2xl font-bold mb-6 text-center text-blue-700">Login</h2>
         <input class="block w-full mb-4 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginEmail"
@@ -473,7 +473,7 @@
 </div>
 
 <!-- ✅ Form & Table Display Area -->
-<div class="relative z-10 p-4 mt-8 sm:p-8" id="widget-area" style="display: none;">
+<div class="relative z-10 mt-12 sm:p-4" id="widget-area" style="display: none;">
     <template x-if="!dataReady">
         <div class="flex justify-center items-center h-64">
             <p class="text-xl text-gray-600">Loading application data...</p>
