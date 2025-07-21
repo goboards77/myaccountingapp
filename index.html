@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html class="bg-gray-100" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Sidebar Menu with Form</title>
+    <script defer src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script defer src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script defer src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script defer src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script defer src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+
+    <style>
+        table.dataTable th, table.dataTable td {
+            border: 1px solid #ccc !important;
+        }
+
+        .dt-button {
+            margin-right: 5px !important;
+            padding: 5px 10px !important;
+            border-radius: 4px !important;
+            color: white !important;
+            border: none !important;
+            font-weight: bold;
+        }
+
+        .buttons-excel {
+            background-color: #16a34a !important;
+        }
+
+        .buttons-pdf {
+            background-color: #dc2626 !important;
+        }
+
+        .buttons-print {
+            background-color: #2563eb !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100 text-[16px] font-sans">
+
+<div class="bg-blue-700 text-white px-4 py-3 flex items-center justify-between fixed top-0 w-full z-50 h-14">
+    <div class="space-x-2 flex items-center">
+        <button class=" hover:bg-blue-800 px-8 py-2 rounded" onclick="clearScreen(); toggleMenu()">☰</button>
+        <span class="text-lg sm:text-xl font-semibold ml-2">📘 MyApp</span>
+    </div>
+</div>
+
+<div class="hidden fixed top-14 left-0 w-full sm:w-96 px-2 py-2 z-40 space-y-4" id="sidebar">
+    <button class="w-full text-left px-5 py-2.5 bg-blue-600 hover:bg-blue-800 text-white rounded-md font-semibold"
+            onclick="clearScreen(); toggleSubmenu('entry')">➕ 📁 Transactions
+    </button>
+    <div class="hidden mt-2 space-y-1 pl-6 border-l-2 border-blue-300" id="submenu-entry">
+        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+                onclick="clearScreen(); showTransactionForm('Sales', null); toggleMenu();">🛒 Sales
+        </button>
+        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+                onclick="clearScreen(); showTransactionForm('Purchase', null); toggleMenu();">🛒 Purchase
+        </button>
+        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+                onclick="clearScreen(); showDaybook(); toggleMenu();">📓📦💵💳💰👥 Daybook
+        </button>
+    </div>
+    <button class="w-full text-left px-5 py-2.5 bg-red-500 hover:bg-red-700 text-white rounded-md font-semibold"
+            onclick="clearScreen(); logout(); toggleMenu();">🔐 Logout
+    </button>
+</div>
+
+<div class="pt-20 px-4">
+    <div id="loginContainer" style="display: none;">
+        <h2>Login</h2>
+        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="loginEmail" placeholder="Email"
+               type="email">
+        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="loginPassword"
+               placeholder="Password"
+               type="password">
+        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-800 text-white rounded" onclick="login()">Login</button>
+        <div class="text-red-600" id="loginError"></div>
+        <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+    </div>
+
+    <div id="registerContainer" style="display:none;">
+        <h2>Register</h2>
+        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="registerEmail" placeholder="Email"
+               type="email">
+        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="registerPassword"
+               placeholder="Password"
+               type="password">
+        <button class="px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded" onclick="register()">Register
+        </button>
+        <div class="text-red-600" id="registerError"></div>
+        <a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
+    </div>
+
+    <div id="widget-area"></div>
+    <div id="tableWrapper" style="display:none">
+        <table class="display nowrap border border-gray-400 w-full" id="tranTable" style="width:100%">
+            <thead class="bg-blue-500 text-white">
+            <tr>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Tran Type</th>
+                <th>From Party</th>
+                <th>To Party</th>
+                <th>Narration</th>
+                <th>Amount</th>
+                <th>Groups</th>
+                <th>Account Names</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut}
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {getFirestore, collection, getDocs, setDoc, doc, updateDoc, query, orderBy, limit, addDoc}
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    let currentDocId = null;
+    let dataTableInstance = null;
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+        authDomain: "accounts-19d08.firebaseapp.com",
+        projectId: "accounts-19d08",
+        storageBucket: "accounts-19d08.appspot.com",
+        messagingSenderId: "247308606105",
+        appId: "1:247308606105:web:9bfc179368524244bf3608"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await loadDataIntoTable();
+        } else {
+            showLogin();
+        }
+    });
+    window.login = async function () {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            document.getElementById("loginError").textContent = error.message;
+        }
+    };
+    window.register = async function () {
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            document.getElementById("registerError").textContent = error.message;
+        }
+    };
+    window.logout = async function () {
+        await signOut(auth);
+    };
+    window.showLogin = async function () {
+        clearScreen();
+        document.getElementById("loginContainer").style.display = "block";
+    }
+    window.showRegister = async function () {
+        clearScreen();
+        document.getElementById("registerContainer").style.display = "block";
+    }
+    window.toggleMenu = async function () {
+        document.getElementById("sidebar").classList.toggle("hidden");
+    }
+    window.toggleSubmenu = async function (key) {
+        document.getElementById("submenu-" + key).classList.toggle("hidden");
+    }
+    window.clearScreen = async function () {
+        document.getElementById("widget-area").innerHTML = '';
+        document.getElementById("tableWrapper").style.display = "none";
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("registerContainer").style.display = "none";
+        currentDocId = null;
+    }
+
+    function capitalizeWords(str) {
+        return str.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function generateDropdown(id, options, selectedValue) {
+        selectedValue = (selectedValue || '').toString().trim().toLowerCase();  // normalize
+
+        let dropdown = `<select id="${id}" class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded text-[16px]">
+        <option value="" ${selectedValue === '' ? 'selected' : ''}>-- Select --</option>`;
+
+        for (const name of options) {
+            const val = name.toString().trim();
+            const isSelected = val.toLowerCase() === selectedValue ? 'selected' : '';
+            dropdown += `<option value="${val}" ${isSelected}>${capitalizeWords(val)}</option>`;
+        }
+
+        dropdown += `</select>`;
+        return dropdown;
+    }
+
+    window.showTransactionForm = async function (type = "Sales", rowData = null) {
+        clearScreen();
+        currentDocId = rowData ? rowData[0] : null;
+
+        const cap = str => capitalizeWords((str || '').trim());
+        const prefix = type.toLowerCase();
+
+        let fPlaceholder = '', tPlaceholder = '';
+        let fList = [], tList = [];
+
+        if (type === 'Sales') {
+            fPlaceholder = 'Sales Product';
+            tPlaceholder = 'Sales Party';
+            fList = (window.sproduct_list || []).map(opt => opt.trim());
+            tList = (window.crdb_list || []).map(opt => opt.trim());
+        } else if (type === 'Purchase') {
+            fPlaceholder = 'Purchase Party';
+            tPlaceholder = 'Purchase Product';
+            fList = (window.crdb_list || []).map(opt => opt.trim());
+            tList = (window.pproduct_list || []).map(opt => opt.trim());
+        } else if (type === 'Payment') {
+            fPlaceholder = 'From (e.g., Cash/Bank)';
+            tPlaceholder = 'To (e.g., Expense)';
+            fList = (window.crdbcsbkang_list || []).map(opt => opt.trim());
+            tList = (window.crdbcsbkangexp_list || []).map(opt => opt.trim());
+        }
+
+        const content = `
+            <input id="${prefix}-date" type="date"
+                   value="${rowData ? rowData[1].split("-").reverse().join("-") : ''}"
+                   class="block w-[280px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[16px]">
+
+            <input id="${prefix}-type" value="${rowData?.[2] || type}"
+                   class="block w-[280px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[16px]" disabled>
+
+            ${generateDropdown(`${prefix}-fparty`, fList, rowData?.[3])}
+            ${generateDropdown(`${prefix}-tparty`, tList, rowData?.[4])}
+
+            <input id="${prefix}-amount" placeholder="Amount" type="number"
+                   value="${rowData?.[6] || ''}"
+                   class="block w-[280px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[16px]">
+
+            <input id="${prefix}-narration" placeholder="Narration"
+                   value="${cap(rowData?.[5]) || ''}"
+                   class="block w-[280px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[16px]">
+
+            <button onclick="saveTransaction('${type}')"
+                    class="px-4 py-2 bg-green-500 hover:bg-green-700 text-white rounded">Save</button>
+        `;
+
+        document.getElementById("widget-area").innerHTML = content;
+    };
+
+    window.loadDropdownData = async function () {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+
+        const grpSet = new Set();
+        const spSet = new Set();
+        const nameSet = new Set();
+        const ttypeSet = new Set();
+        const sproductSet = new Set();
+        const pproductSet = new Set();
+        const crdbSet = new Set();
+        const crdbcsbkangSet = new Set();
+        const crdbcsbkangexpSet = new Set();
+
+        const crdbGroups = ["Creditors", "Debitors"];
+        const crdbcsbkangGroups = ["Creditors", "Debitors", "Cash", "Bank", "Angadiya"];
+        const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const grp = (data.grp || "").trim();
+            const name = (data.name || "").trim();
+            if (grp.length === 0) return;
+
+            if (["Sales", "Purchase", "Receipt", "Payment"].includes(grp)) {
+                ttypeSet.add(grp);
+            }
+
+            if (["Sales Products", "Purchase Products"].includes(grp)) {
+                spSet.add(grp);
+            }
+
+            if (name.length > 0) {
+                nameSet.add(name);
+            }
+
+            if (grp === "Sales Products" && name.length > 0) {
+                sproductSet.add(name);
+            }
+
+            if (grp === "Purchase Products" && name.length > 0) {
+                pproductSet.add(name);
+            }
+
+            if (crdbGroups.includes(grp) && name.length > 0) {
+                crdbSet.add(name);
+            }
+
+            if (crdbcsbkangGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangSet.add(name);
+            }
+
+            if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangexpSet.add(name);
+            }
+        });
+
+        window.grp_list = [];
+        window.sp_list = [];
+        window.allnames_list = [];
+        window.ttype_list = [];
+        window.sproduct_list = [];
+        window.pproduct_list = [];
+        window.crdb_list = [];
+        window.crdbcsbkang_list = [];
+        window.crdbcsbkangexp_list = [];
+
+        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
+        window.sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
+        window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
+        window.ttype_list = [...ttypeSet].sort((a, b) => a.localeCompare(b));
+        window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
+        window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
+        window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
+    }
+
+    window.saveTransaction = async function (type) {
+        const prefix = type.toLowerCase();
+
+        const date = document.getElementById(`${prefix}-date`).value;
+        const ttype = document.getElementById(`${prefix}-type`).value;
+        const fparty = document.getElementById(`${prefix}-fparty`).value;
+        const tparty = document.getElementById(`${prefix}-tparty`).value;
+        const amt = parseFloat(document.getElementById(`${prefix}-amount`).value);
+        const nar = document.getElementById(`${prefix}-narration`).value;
+
+        if (!date || !ttype || !fparty || !tparty || isNaN(amt)) {
+            alert("⚠️ Please fill in all fields (except Narration) with valid values.");
+            return;
+        }
+
+        const tranCollection = collection(db, "tran");
+        const snapshot = await getDocs(tranCollection);
+        const existingNames = new Set();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.name) {
+                existingNames.add(data.name);
+            }
+        });
+
+        if (!existingNames.has(fparty) || !existingNames.has(tparty)) {
+            alert(`⚠️ '${fparty}' or '${tparty}' not in list.`);
+            return;
+        }
+
+        const dataToSave = {date, ttype, fparty, tparty, amt, nar};
+
+        if (currentDocId) {
+            const docRef = doc(tranCollection, currentDocId);
+            await updateDoc(docRef, dataToSave);
+        } else {
+            await addDoc(tranCollection, dataToSave);
+        }
+
+        // Reload the form after save
+        window.showTransactionForm(type);
+    };
+
+    window.showDaybook = async function () {
+        clearScreen();
+        document.getElementById("tableWrapper").style.display = "block";
+    }
+
+    async function loadDataIntoTable() {
+        if (dataTableInstance) {
+            dataTableInstance.destroy();
+        }
+
+        const snapshot = await getDocs(collection(db, "tran"));
+        const table = $('#tranTable').DataTable({
+            destroy: true,
+            dom: 'Bfrtip',
+            buttons: [
+                {extend: 'excelHtml5', className: 'buttons-excel'},
+                {extend: 'pdfHtml5', className: 'buttons-pdf'},
+                {extend: 'print', className: 'buttons-print'}
+            ],
+            "columnDefs": [
+                {"visible": false, "targets": 0}
+            ]
+        });
+
+        table.clear();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            table.row.add([
+                String(doc.id),
+                data.date ? data.date.split("-")[2] + "-" + data.date.split("-")[1] + "-" + data.date.split("-")[0] : '',
+                data.ttype || '',
+                data.fparty || '',
+                data.tparty || '',
+                data.nar || '',
+                String(data.amt || ''),
+                data.grp || '',
+                data.name || ''
+            ]);
+        });
+        table.draw();
+        dataTableInstance = table;
+
+        $('#tranTable tbody').on('dblclick', 'tr', function () {
+            const row = table.row(this).data();
+            if (row[2] === "Sales") {
+                showTransactionForm("Sales", row);
+            } else if (row[2] === "Purchase") {
+                showTransactionForm("Purchase", row);
+            }
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+        await loadDropdownData();
+    });
+
+</script>
+</body>
+</html>
