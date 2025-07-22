@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html class="bg-gray-100" lang="en">
+
+
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -16,7 +18,9 @@
     <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
+
     <style>
         table.dataTable th, table.dataTable td {
             border: 1px solid #ccc !important;
@@ -44,100 +48,123 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-100 text-[18px] font-serif">
+
+
+<body class="font-[Inter] font-medium text-[17px]">
+
 
 <!-- Topbar -------------------------------------------------------------------------------------->
-<div class="bg-blue-700 text-white px-4 py-3 flex items-center justify-between fixed top-0 w-full z-50 h-14">
+<div class="bg-blue-700 text-white px-1 py-3 flex items-center justify-between fixed top-0 w-full z-50 h-12">
     <div class="space-x-2 flex items-center">
-        <button class=" hover:bg-blue-800 px-8 py-2 rounded" onclick="clearScreen(); toggleMenu()">☰</button>
-        <span class="text-lg sm:text-xl font-semibold ml-2">📘 MyApp</span>
+        <button class=" hover:bg-blue-800 px-2 py-2 rounded" onclick="clearScreen(); toggleMenu()">☰</button>
+        <span class="font-semibold">📘 MyApp</span>
     </div>
-    <div class="font-bold text-lg mr-6" id="cashLabel">💰 Cash: ₹0.00</div>
+    <div class=" mr-5 font-semibold" id="cashLabel">Cash: ₹0.00</div>
 </div>
 
+
 <!-- Menu Submenu Buttons ------------------------------------------------------------------------>
-<div class="hidden fixed top-14 left-0 w-full sm:w-96 px-2 py-2 z-40 space-y-4" id="sidebar">
-    <button class="w-full text-left px-5 py-2.5 bg-blue-600 hover:bg-yellow-800 text-white rounded-md font-semibold"
-            onclick="clearScreen(); toggleSubmenu('transaction')">➕ New ✏️ Update Entries
+<div class="hidden fixed top-14 left-0 w-full sm:w-96 px-2 py-2 z-40 space-y-2" id="sidebar">
+
+    <!-- Transactions -->
+    <button class="w-full text-left px-5 py-2.5 bg-blue-600 hover:bg-blue-800 text-white rounded-md font-semibold"
+            onclick="clearScreen(); toggleSubmenu('transaction')">➕ Transactions
     </button>
     <div class="hidden mt-2 space-y-1 pl-6 border-l-2 border-blue-300" id="submenu-transaction">
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+        <button class="w-full text-left px-4 py-2 bg-blue-400 hover:bg-blue-600 text-white rounded-md"
                 onclick="clearScreen(); showTransactionForm('Sales', null); toggleMenu();">🛒 Sales
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
-                onclick="clearScreen(); showTransactionForm('Purchase', null); toggleMenu();">🛒 Purchase
+        <button class="w-full text-left px-4 py-2 bg-blue-400 hover:bg-blue-600 text-white rounded-md"
+                onclick="clearScreen(); showTransactionForm('Purchase', null); toggleMenu();">🧺 Purchase
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
-                onclick="clearScreen(); showDaybook(); toggleMenu();">📓 Daybook
+        <button class="w-full text-left px-4 py-2 bg-blue-400 hover:bg-blue-600 text-white rounded-md"
+                onclick="clearScreen(); showTransactionForm('Receipt', null); toggleMenu();">💵 Receipt
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
-                onclick="clearScreen(); showGroupForm('Group', null); toggleMenu();">👥 New Group
-        </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
-                onclick="clearScreen(); showProductForm('Sales Product', null); toggleMenu();">📦 New Product
-        </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
-                onclick="clearScreen(); showLedgerForm('Ledger', null); toggleMenu();">📖 New Ledger
+        <button class="w-full text-left px-4 py-2 bg-blue-400 hover:bg-blue-600 text-white rounded-md"
+                onclick="clearScreen(); showTransactionForm('Payment', null); toggleMenu();">💳 Payment
         </button>
     </div>
 
-    <button class="w-full text-left px-5 py-2.5 bg-yellow-600 hover:bg-blue-800 text-white rounded-md font-semibold"
+    <!-- Groups / Products / Ledgers -->
+    <button class="w-full text-left px-5 py-2.5 bg-purple-600 hover:bg-purple-800 text-white rounded-md font-semibold"
+            onclick="clearScreen(); toggleSubmenu('grpprodled')">➕ Groups Products Ledgers
+    </button>
+    <div class="hidden mt-2 space-y-1 pl-6 border-l-2 border-purple-300" id="submenu-grpprodled">
+        <button class="w-full text-left px-4 py-2 bg-purple-400 hover:bg-purple-600 text-white rounded-md"
+                onclick="clearScreen(); showGroupForm('Group', null); toggleMenu();">👥 New Group
+        </button>
+        <button class="w-full text-left px-4 py-2 bg-purple-400 hover:bg-purple-600 text-white rounded-md"
+                onclick="clearScreen(); showProductForm('Opening Stock', null); toggleMenu();">📦 New Product
+        </button>
+        <button class="w-full text-left px-4 py-2 bg-purple-400 hover:bg-purple-600 text-white rounded-md"
+                onclick="clearScreen(); showLedgerForm('Opening Balance', null); toggleMenu();">📖 New Ledger
+        </button>
+    </div>
+
+    <!-- Update -->
+    <button class="w-full text-left px-5 py-2.5 bg-red-600 hover:bg-red-800 text-white rounded-md font-semibold"
+            onclick="clearScreen(); toggleSubmenu('update')">✏️ Update
+    </button>
+    <div class="hidden mt-2 space-y-1 pl-6 border-l-2 border-red-300" id="submenu-update">
+        <button class="w-full text-left px-4 py-2 bg-red-400 hover:bg-red-600 text-white rounded-md"
+                onclick="clearScreen(); showDaybook(); toggleMenu();">📓 Daybook
+        </button>
+    </div>
+
+    <!-- Reports -->
+    <button class="w-full text-left px-5 py-2.5 bg-green-600 hover:bg-green-800 text-white rounded-md font-semibold"
             onclick="clearScreen(); toggleSubmenu('report')">💼 Reports
     </button>
-    <div class="hidden mt-2 space-y-1 pl-6 border-l-2 border-blue-300" id="submenu-report">
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+    <div class="hidden mt-2 space-y-1 pl-6 border-l-2 border-green-300" id="submenu-report">
+        <button class="w-full text-left px-4 py-2 bg-green-400 hover:bg-green-600 text-white rounded-md"
                 onclick="clearScreen(); viewGroupsAndAccounts(); toggleMenu();">👥 View Groups & Accounts
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+        <button class="w-full text-left px-4 py-2 bg-green-400 hover:bg-green-600 text-white rounded-md"
                 onclick="clearScreen(); viewProducts(); toggleMenu();">📦 View Products
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+        <button class="w-full text-left px-4 py-2 bg-green-400 hover:bg-green-600 text-white rounded-md"
                 onclick="clearScreen(); viewReceivables(); toggleMenu();">💵 View Receivables
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+        <button class="w-full text-left px-4 py-2 bg-green-400 hover:bg-green-600 text-white rounded-md"
                 onclick="clearScreen(); viewPayables(); toggleMenu();">💳 View Payables
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
-                onclick="clearScreen(); khatavahi(); toggleMenu();">⏳ View Khatavahi
+        <button class="w-full text-left px-4 py-2 bg-green-400 hover:bg-green-600 text-white rounded-md"
+                onclick="clearScreen(); showKhatavahiForm(); toggleMenu();">⏳ View Khatavahi
         </button>
-        <button class="w-full text-left px-4 py-2 bg-blue-100 text-blue-900 hover:bg-blue-200 rounded-md"
+        <button class="w-full text-left px-4 py-2 bg-green-400 hover:bg-green-600 text-white rounded-md"
                 onclick="clearScreen(); showPLForm(); toggleMenu();">📈 Profit 📉 Loss
         </button>
     </div>
 
-    <button class="w-full text-left px-5 py-2.5 bg-red-500 hover:bg-red-700 text-white rounded-md font-semibold"
+    <!-- Logout -->
+    <button class="w-full text-left px-5 py-2.5 bg-gray-600 hover:bg-gray-800 text-white rounded-md font-semibold"
             onclick="clearScreen(); logout(); toggleMenu();">🔐 Logout
     </button>
 </div>
+
 
 <!-- Login,Register,Widget-Area, Modify Table ---------------------------------------------------->
 <div class="pt-20 px-4">
     <div id="loginContainer" style="display: none;">
         <h2>Login</h2>
-        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="loginEmail" placeholder="Email"
-               type="email">
-        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="loginPassword"
-               placeholder="Password"
-               type="password">
-        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-800 text-white rounded" onclick="login()">Login</button>
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="loginEmail" placeholder="Email" type="email">
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="loginPassword" placeholder="Password" type="password">
+        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-800 text-white rounded" onclick="window.login()">Login</button>
         <div class="text-red-600" id="loginError"></div>
         <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
     </div>
 
     <div id="registerContainer" style="display:none;">
         <h2>Register</h2>
-        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="registerEmail" placeholder="Email"
-               type="email">
-        <input class="block w-[280px] max-w-full mb-2 px-3 py-2 border rounded" id="registerPassword"
-               placeholder="Password"
-               type="password">
-        <button class="px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded" onclick="register()">Register
-        </button>
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="registerEmail" placeholder="Email" type="email">
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="registerPassword" placeholder="Password" type="password">
+        <button class="px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded" onclick="register()">Register</button>
         <div class="text-red-600" id="registerError"></div>
         <a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
     </div>
 
     <div id="widget-area"></div>
+
     <div id="tableWrapper" style="display:none">
         <table class="display nowrap border border-gray-400 w-full" id="tranTable" style="width:100%">
             <thead class="bg-blue-500 text-white">
@@ -158,6 +185,7 @@
         </table>
     </div>
 </div>
+
 
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -182,45 +210,77 @@
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             await loadDataIntoTable();
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("registerContainer").style.display = "none";
         } else {
-            showLogin();
+            window.showLogin();
         }
     });
+    window.showLogin = function () {
+        clearScreen();
+        document.getElementById("loginContainer").style.display = "block";
+    };
+    window.showRegister = function () {
+        clearScreen();
+        document.getElementById("registerContainer").style.display = "block";
+    };
     window.login = async function () {
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
+        const errorDiv = document.getElementById("loginError");
+        errorDiv.textContent = '';
+
+        if (!email || !password) {
+            errorDiv.textContent = "Please enter both email and password.";
+            return;
+        }
+
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            console.log("Login successful");
         } catch (error) {
-            document.getElementById("loginError").textContent = error.message;
+            console.error(error);
+            errorDiv.textContent = error.message;
         }
     };
     window.register = async function () {
         const email = document.getElementById("registerEmail").value;
         const password = document.getElementById("registerPassword").value;
+        const errorDiv = document.getElementById("registerError");
+        errorDiv.textContent = '';
+
+        if (!email || !password) {
+            errorDiv.textContent = "Please enter both email and password.";
+            return;
+        }
+
         try {
             await createUserWithEmailAndPassword(auth, email, password);
+            console.log("Registration successful");
         } catch (error) {
-            document.getElementById("registerError").textContent = error.message;
+            console.error(error);
+            errorDiv.textContent = error.message;
         }
     };
     window.logout = async function () {
         await signOut(auth);
+        console.log("User logged out");
     };
-    window.showLogin = async function () {
-        clearScreen();
-        document.getElementById("loginContainer").style.display = "block";
-    }
-    window.showRegister = async function () {
-        clearScreen();
-        document.getElementById("registerContainer").style.display = "block";
-    }
     window.toggleMenu = async function () {
         document.getElementById("sidebar").classList.toggle("hidden");
     }
-    window.toggleSubmenu = async function (key) {
-        document.getElementById("submenu-" + key).classList.toggle("hidden");
-    }
+    window.toggleSubmenu = function (key) {
+        const allSubmenus = document.querySelectorAll("[id^='submenu-']");
+        allSubmenus.forEach(menu => {
+            if (menu.id !== 'submenu-' + key) {
+                menu.classList.add("hidden");
+            }
+        });
+        const selected = document.getElementById("submenu-" + key);
+        if (selected) {
+            selected.classList.toggle("hidden");
+        }
+    };
     window.clearScreen = async function () {
         document.getElementById("widget-area").innerHTML = '';
         document.getElementById("tableWrapper").style.display = "none";
@@ -349,8 +409,8 @@
                 {extend: 'print', className: 'buttons-print'}
             ],
             columnDefs: [
-                {visible: false, targets: 0}, // Hide ID column
-                {orderable: false, targets: -1} // Disable sorting on Delete button
+                {visible: false, targets: 0},
+                {orderable: false, targets: -1}
             ]
         });
 
@@ -377,9 +437,9 @@
         table.draw();
         dataTableInstance = table;
 
-        // Handle row double-click for edit
         $('#tranTable tbody').on('dblclick', 'tr', function () {
             const row = table.row(this).data();
+            if (!row) return;
             if (row[2] === "Sales") {
                 showTransactionForm("Sales", row);
             } else if (row[2] === "Purchase") {
@@ -388,17 +448,22 @@
                 showTransactionForm("Receipt", row);
             } else if (row[2] === "Payment") {
                 showTransactionForm("Payment", row);
+            } else if (row[2] === "Group") {
+                showGroupForm("Group", row);
+            } else if (row[2] === "Opening Stock") {
+                showProductForm("Opening Stock", row);
+            } else if (row[2] === "Opening Balance") {
+                showLedgerForm("Opening Stock", row);
             }
         });
 
-        // Handle delete button click
         $('#tranTable tbody').on('click', '.delete-btn', async function () {
             const row = table.row($(this).closest('tr'));
             const rowData = row.data();
+            if (!row) return;
             const docId = rowData[0];
             const ttype = rowData[2];
 
-            // Only allow specific types to be deleted
             const deletableTypes = ["Sales", "Purchase", "Receipt", "Payment", "Expense"];
             if (!deletableTypes.includes(ttype)) {
                 alert("Only sales,purchase,receipt,expense transactions can be deleted.");
@@ -455,7 +520,7 @@
             transactionLabel = 'Payment Transaction';
         }
 
-        const inputClass = "block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]";
+        const inputClass = "block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]";
         const content = `
             <label class="${inputClass} text-center">${transactionLabel}</label>
 
@@ -480,7 +545,7 @@
                class="${inputClass}">
 
             <button onclick="saveTransaction('${type}')"
-                    class="px-20 py-1.5 mt-4 bg-blue-700 hover:bg-green-700 text-white rounded">💾 Save
+                    class="px-20 py-2.5 mt-4 bg-green-700 hover:bg-green-900 text-white rounded">💾 Save
             </button>
         `;
 
@@ -542,12 +607,9 @@
         const content = `
             <input id="group" placeholder="Group Name" type="text"
                    value="${rowData ? cap(rowData[7]) : ''}"
-                   class="block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]" />
+                   class="block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]" />
 
-            <button onclick="saveGroup()"
-                    class="px-20 py-1.5 mt-4 bg-blue-700 hover:bg-green-700 text-white rounded">
-                Save
-            </button>
+            <button onclick="saveGroup()" class="px-20 py-2.5 mt-4 bg-green-700 hover:bg-green-900 text-white rounded">💾 Save</button>
         `;
 
         document.getElementById("widget-area").innerHTML = content;
@@ -606,31 +668,26 @@
         window.showGroupForm(type);
     };
 
-    window.showProductForm = async function (type = 'Sales Product', rowData = null) {
+    window.showProductForm = async function (type = 'Opening Stock', rowData = null) {
         clearScreen();
         currentDocId = rowData ? rowData[0] : null;
         const cap = str => capitalizeWords((str || '').trim());
         const groupOptions = ['Sales Product', 'Purchase Product'];
         const content = `
-            <select id="spgroup"
-                    class="block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]">
-                <option value="" disabled selected>-- Select Group --</option>
-                <option value="Sales Product" ${rowData && cap(rowData[8]) === "Sales Product" ? 'selected' : ''}>Sales Product</option>
-                <option value="Purchase Product" ${rowData && cap(rowData[8]) === "Purchase Product" ? 'selected' : ''}>Purchase Product</option>
-            </select>
+            <input id="spgroup" placeholder="Select Group"
+                class="block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]"
+                value="${rowData ? cap(rowData[7]) : ''}">
 
             <input id="product" placeholder="Product Name" type="text"
-                   value="${rowData ? cap(rowData[7]) : ''}"
+                   value="${rowData ? cap(rowData[8]) : ''}"
                    class="block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]" />
+
             <input id="opstk" type="number" placeholder="Opening Stock" value="${rowData?.[6] || ''}"
                        class="block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]" />
-            <button onclick="saveProduct()"
-                    class="px-20 py-1.5 mt-4 bg-blue-700 hover:bg-green-700 text-white rounded">
-                Save
-            </button>
+            <button onclick="saveProduct()" class="px-20 py-2.5 mt-4 bg-green-700 hover:bg-green-900 text-white rounded">💾 Save</button>
         `;
         document.getElementById("widget-area").innerHTML = content;
-
+        generateDropdown("spgroup", ["Sales Product", "Purchase Product"], rowData?.[7] || "");
         bindAutoCapitalizeTo("#product");
     };
 
@@ -692,7 +749,7 @@
         window.showProductForm(type);
     };
 
-    window.showLedgerForm = async function (type = 'Ledger', rowData = null) {
+    window.showLedgerForm = async function (type = 'Opening Balance', rowData = null) {
         clearScreen();
         currentDocId = rowData ? rowData[0] : null;
 
@@ -704,21 +761,18 @@
             ${generateDropdown("ledgerGroup", ledgerGroupOptions, rowData?.[7], inputClass)}
             <input id="ledger" placeholder="Ledger Name" type="text"
                    value="${rowData ? cap(rowData[8]) : ''}"
-                   class="block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]"
+                   class="block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]"
                    ${!rowData ? 'oninput="this.value = capitalizeWords(this.value)"' : ''} />
 
             <input id="obj" type="number" placeholder="Opening Balance Jama"
                    value="${rowData?.[6] || ''}"
-                   class="block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]" />
+                   class="block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]" />
 
             <input id="obk" type="number" placeholder="Opening Balance Khate"
                    value="${rowData?.[6] || ''}"
-                   class="block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]" />
+                   class="block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]" />
 
-            <button onclick="saveLedger()"
-                    class="px-20 py-1.5 mt-4 bg-blue-700 hover:bg-green-700 text-white rounded">
-                Save
-            </button>
+            <button onclick="saveLedger()" class="px-20 py-2.5 mt-4 bg-green-700 hover:bg-green-900 text-white rounded">💾 Save</button>
         `;
 
         document.getElementById("widget-area").innerHTML = content;
@@ -785,6 +839,52 @@
 
     //  VIEWS  ////////////////////////////////////////////////////////////////////////////////////
     function renderTable(tableId, columns, rows, widths, aligns) {
+        const container = document.getElementById(tableId);
+        container.innerHTML = "";
+        // Create table element
+        const table1 = document.createElement("table");
+        table1.id = "dynamic-table";
+        table1.className = "display nowrap";
+        table1.style.width = "100%";
+
+        // Create table header
+        const thead = document.createElement("thead");
+        const trHead = document.createElement("tr");
+        columns.forEach(col => {
+            const th = document.createElement("th");
+            th.innerText = col;
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table1.appendChild(thead);
+
+        // Create table body
+        const tbody = document.createElement("tbody");
+        rows.forEach(row => {
+            const tr = document.createElement("tr");
+            columns.forEach(col => {
+                const td = document.createElement("td");
+                td.innerText = row[col] || "";
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table1.appendChild(tbody);
+
+        container.appendChild(table1);
+
+        // Initialize DataTable
+        $(document).ready(function () {
+            $("#dynamic-table").DataTable({
+                dom: "Bfrtip",
+                buttons: ["excel", "pdf", "print"],
+                responsive: true,
+                destroy: true // ✅ Allows rerendering
+            });
+        });
+
+    }
+    function regularTable(tableId, columns, rows, widths, aligns) {
         const table = document.getElementById(tableId);
         table.innerHTML = ""; // Clear previous content
         table.style.borderCollapse = "collapse";
@@ -799,7 +899,8 @@
             th.style.textAlign = aligns[i];
             th.style.border = "1px solid black";
             th.style.padding = "6px";
-            th.style.backgroundColor = "#f0f0f0";
+            th.style.backgroundColor = "#1976D2";
+            th.style.color = "white";
             header.appendChild(th);
         });
         table.appendChild(header);
@@ -837,7 +938,7 @@
             return a.Accounts.toLowerCase().localeCompare(b.Accounts.toLowerCase());
         });
 
-        renderTable("widget-area", ["Groups", "Accounts"], rows, ["150px", "200px"], ["left", "left"]);
+        renderTable("widget-area", ["Groups", "Accounts"], rows, ["250px", "250px"], ["left", "left"]);
     }
 
     window.viewProducts = async function () {
@@ -852,7 +953,7 @@
             if (
                 data.grp &&
                 data.name &&
-                (data.grp.toLowerCase() === "sales" || data.grp.toLowerCase() === "purchase")
+                (data.grp.toLowerCase() === "sales products" || data.grp.toLowerCase() === "purchase products")
             ) {
                 rows.push({Group: data.grp || "", Product: data.name || ""});
             }
@@ -860,7 +961,7 @@
 
         // Sort alphabetically by product name
         rows.sort((a, b) => a.Product.toLowerCase().localeCompare(b.Product.toLowerCase()));
-        renderTable("widget-area", ["Group", "Product"], rows, ["150px", "200px"], ["left", "left"]);
+        renderTable("widget-area", ["Group", "Product"], rows, ["250px", "250px"], ["left", "left"]);
     }
 
     window.viewReceivables = async function () {
@@ -949,13 +1050,30 @@
         renderTable("widget-area", ["Party", "Amount"], rows, ["200px", "100px"], ["left", "right"]);
     }
 
+    window.showKhatavahiForm = async function () {
+        clearScreen();
+        const inputClass = "block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]";
+        const namesOptions = (window.allnames_list || []).map(opt => opt.trim());
+        const dropdownHtml = generateDropdown("names", namesOptions, "", inputClass);
+        const content = `
+            <input id="fDate" placeholder="Start Date" type="date" class="${inputClass}" />
+            <input id="tDate" placeholder="End Date" type="date" class="${inputClass}" />
+            ${dropdownHtml}
+            <button onclick="window.khatavahi()" class="px-20 py-2.5 mt-4 bg-green-700 hover:bg-green-900 text-white rounded">
+                ⏳ View Khatavahi
+            </button>
+            <div id="kh-table" class="mt-6"></div>
+        `;
+        document.getElementById("widget-area").innerHTML = content;
+    };
+
     window.khatavahi = async function () {
-        const fromDate = document.getElementById("kfromDate").value;
-        const toDate = document.getElementById("ktoDate").value;
-        const partyName = capitalizeWords(document.getElementById("kparty").value.trim());
+        const fromDate = document.getElementById("fDate").value;
+        const toDate = document.getElementById("tDate").value;
+        const partyName = capitalizeWords(document.getElementById("names").value.trim());
 
         if (!fromDate || !toDate || !partyName) {
-            alert("Please select both dates and party.");
+            alert("Please select dates and party.");
             return;
         }
         const fDate = fromDate;
@@ -990,15 +1108,14 @@
                     date <= tDate &&
                     (fparty === party || tparty === party)
                 ) {
-
+                    const formattedDate = data.date ? data.date.split("-")[2] + "-" + data.date.split("-")[1] + "-" + data.date.split("-")[0] : '';
                     transRows.push({
-                        Date: formatDate(data.date || ""),
+                        Date: formattedDate,
                         TranType: data.ttype || "",
                         From: data.fparty || "",
                         To: data.tparty || "",
                         Narration: data.nar || "",
                         Amount: Math.abs(Number(data.amt)).toFixed(0),
-                        ID: data.id?.toString() || ""
                     });
                 }
             });
@@ -1045,41 +1162,29 @@
                 Amount: Math.abs(runningBal).toFixed(0),
                 ID: ""
             });
-
-            const header = ["Date", "TranType", "From", "To", "Narration", "Amount", "ID"];
-            const widths = ["100px", "100px", "120px", "120px", "200px", "80px", "60px"];
-            const aligns = ["left", "left", "left", "left", "left", "right", "right"];
-
-            const targetDiv = document.getElementById("khaTable");
-            if (!targetDiv) {
-                alert("Cannot render table because khaTable does not exist.");
-                return;
-            }
-            renderTable("khaTable", header, finalRows, widths, aligns);
+            const header = ["Date", "TranType", "From", "To", "Narration", "Amount"];
+            const widths = ["100px", "200px", "200px", "200px", "200px", "100px"];
+            const aligns = ["left", "left", "left", "left", "left", "right"];
+            regularTable("kh-table", header, finalRows, widths, aligns);
 
         } catch (error) {
             alert("An error occurred while loading the khatavahi.");
         }
     }
 
-
     window.showPLForm = async function () {
-        clearScreen(); // optional: if you're clearing previous UI
-        const inputClass = "block w-[350px] max-w-full mb-2 px-3 py-2 text-base border rounded text-[18px]";
-
+        clearScreen();
+        const inputClass = "block w-[350px] max-w-full mb-2 px-3 py-2.5 text-base border rounded text-[18px]";
         const content = `
         <input id="fromDate" placeholder="Start Date" type="date" class="${inputClass}" />
-
         <input id="toDate" placeholder="End Date" type="date" class="${inputClass}" />
-
         <input id="closingStock" placeholder="Closing Stock" type="number" class="${inputClass}" />
-
-        <button onclick="window.profit_loss()" class="px-20 py-1.5 mt-4 bg-blue-700 hover:bg-green-700 text-white rounded">⏳ Profit & Loss</button>
+        <button onclick="window.profit_loss()" class="px-20 py-2.5 mt-4 bg-green-700 hover:bg-green-900 text-white rounded">⏳ Profit & Loss</button>
         <div id="pl-table" class="mt-6"></div>
-
     `;
         document.getElementById("widget-area").innerHTML = content;
     };
+
     window.profit_loss = async function () {
         const fromDate = document.getElementById("fromDate").value;
         const toDate = document.getElementById("toDate").value;
@@ -1098,7 +1203,6 @@
             const rawAmount = data.amt;
             const ttype = (data.ttype || "").toLowerCase();
 
-            // Skip if amount is missing or invalid
             if (rawAmount === undefined || rawAmount === null || rawAmount === '') return;
             const amount = parseFloat(rawAmount);
             if (isNaN(amount)) return;
@@ -1134,24 +1238,16 @@
             {Description: "Total (Sales+Clo)", Amount: creditTotal.toFixed(0), index: 7},
             {Description: "Profit / Loss", Amount: profit.toFixed(0), index: 8}
         ];
-
-        // Sort rows by index to maintain order
         rows.sort((a, b) => a.index - b.index);
-
-        // Remove index before rendering (optional)
         const cleanedRows = rows.map(({index, ...rest}) => rest);
-
-        renderTable("pl-table", ["Description", "Amount"], cleanedRows, ["70%", "30%"], ["left", "right"]);
+        regularTable("pl-table", ["Description", "Amount"], cleanedRows, ["70%", "30%"], ["left", "right"]);
     }
-
 
     window.updateCashLabel = async function () {
         const tranCol = collection(db, "tran");
         const snapshot = await getDocs(tranCol);
-
-        let inflow = 0;   // tparty = 'Cash On Hand'
-        let outflow = 0;  // fparty = 'Cash On Hand'
-
+        let inflow = 0;
+        let outflow = 0;
         snapshot.forEach(doc => {
             const data = doc.data();
             if (data.tparty === "Cash On Hand") {
@@ -1161,9 +1257,8 @@
                 outflow += Number(data.amt || 0);
             }
         });
-
         const balance = inflow - outflow;
-        document.getElementById("cashLabel").textContent = `💰 Cash: ₹${balance.toFixed(0)}`;
+        document.getElementById("cashLabel").textContent = `Cash: ₹${balance.toFixed(0)}`;
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
