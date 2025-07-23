@@ -135,7 +135,7 @@
         }
         .auth-card, .form-card {
             background-color: white;
-            padding: 2rem;
+            padding: 0.5rem; /* Further reduced padding */
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 100%;
@@ -148,14 +148,14 @@
         }
         .auth-card input, .form-card input, .form-card select, .form-card textarea {
             width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
+            padding: 0.3rem; /* Further reduced padding */
+            margin-bottom: 0.3rem; /* Further reduced margin */
             border: 1px solid #ccc;
             border-radius: 0.25rem;
         }
         .auth-card button, .form-card button {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.4rem; /* Further reduced padding */
             background-color: #4f46e5;
             color: white;
             border-radius: 0.25rem;
@@ -171,28 +171,32 @@
             font-size: 0.875rem;
         }
         .form-group {
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem; /* Further reduced margin */
         }
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.15rem; /* Further reduced margin */
             font-weight: 500;
             color: #333;
         }
 
         /* DataTables specific styling */
         .dataTables_wrapper {
-            padding: 1rem;
+            padding: 0.5rem; /* Reduced padding */
             background-color: #ffffff;
             border-radius: 0.5rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin: 0; /* Removed outer margin */
+            width: 100%; /* Ensure full width */
+        }
+        table.dataTable {
+            width: 100% !important; /* Ensure table takes full width */
         }
         .dataTables_filter input, .dataTables_length select {
             border: 1px solid #ccc;
             border-radius: 0.25rem;
             padding: 0.5rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem; /* Reduced margin */
         }
         .dataTables_paginate .paginate_button {
             background-color: #4f46e5;
@@ -219,6 +223,9 @@
         table.dataTable tbody td {
             padding: 0.75rem 1rem;
             border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap; /* Keep content in single line */
+            overflow: hidden; /* Hide overflow content */
+            text-overflow: ellipsis; /* Show ellipsis for overflow */
         }
         table.dataTable tbody tr:nth-child(even) {
             background-color: #f9fafb;
@@ -561,7 +568,7 @@
 
         <!-- Table Container (initially hidden) -->
         <div id="tableContainer" style="display: none;" class="flex flex-col items-center">
-            <h2 class="text-2xl font-bold mb-4">Data Table</h2>
+            <!-- Removed h2 "Data Table" -->
             <div class="w-full overflow-x-auto">
                 <table id="tranTable" class="min-w-full bg-white border border-gray-200">
                     <thead>
@@ -966,7 +973,7 @@
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after transaction
-                window.closeFormModal('salesFormContainer'); // Close modal after save/update
+                // Removed: window.closeFormModal('salesFormContainer'); // Do not close modal for transactions
             } catch (error) {
                 console.error("Error saving/updating transaction:", error);
                 errorDiv.textContent = "Error saving/updating transaction: " + error.message;
@@ -1769,6 +1776,8 @@
             // Get thead element
             const tableHead = $('#tranTable thead');
             tableHead.empty(); // Clear existing headers
+            // Clear tbody explicitly before initialization
+            $('#tranTable tbody').empty();
 
             if (reportType === 'GroupsAndProductsReport') {
                 const snapshot = await getDocs(collection(db, "tran"));
@@ -1784,6 +1793,7 @@
                     { title: "Group" },
                     { title: "Name" }
                 ];
+                columnDefsConfig = []; // No specific column defs needed for this report
                 // Dynamically add headers
                 let headerRow = '<tr>';
                 columnsConfig.forEach(col => {
@@ -1807,6 +1817,7 @@
                     { title: "Group" },
                     { title: "Name" }
                 ];
+                columnDefsConfig = []; // No specific column defs needed for this report
                 // Dynamically add headers
                 let headerRow = '<tr>';
                 columnsConfig.forEach(col => {
@@ -1822,6 +1833,7 @@
                     { title: "Party" },
                     { title: "Amount" }
                 ];
+                columnDefsConfig = []; // No specific column defs needed for this report
                 // Dynamically add headers
                 let headerRow = '<tr>';
                 columnsConfig.forEach(col => {
@@ -1836,6 +1848,7 @@
                     { title: "Party" },
                     { title: "Amount" }
                 ];
+                columnDefsConfig = []; // No specific column defs needed for this report
                 // Dynamically add headers
                 let headerRow = '<tr>';
                 columnsConfig.forEach(col => {
@@ -1866,6 +1879,7 @@
                     { title: "Narration" },
                     { title: "Amount" }
                 ];
+                columnDefsConfig = []; // No specific column defs needed for this report
                 // Dynamically add headers
                 let headerRow = '<tr>';
                 columnsConfig.forEach(col => {
@@ -1891,6 +1905,7 @@
                     { title: "Description" },
                     { title: "Amount" }
                 ];
+                columnDefsConfig = []; // No specific column defs needed for this report
                 // Dynamically add headers
                 let headerRow = '<tr>';
                 columnsConfig.forEach(col => {
@@ -1954,6 +1969,7 @@
             dataTableInstance = $('#tranTable').DataTable({
                 data: data,
                 destroy: true, // Re-initialize if already exists
+                autoWidth: false, // Disable auto width calculation
                 dom: 'Bfrtip',
                 buttons: [
                     {extend: 'excelHtml5', className: 'buttons-excel'},
