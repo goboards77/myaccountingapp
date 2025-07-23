@@ -237,14 +237,17 @@
 
         /* DataTables Buttons styling */
         div.dt-buttons {
-            margin-bottom: 1em;
+            margin-top: 1em; /* Add margin above buttons to place them below pagination */
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap */
+            justify-content: center; /* Center buttons */
         }
         .dt-button {
             background-color: #10b981 !important; /* Green for buttons */
             color: white !important;
             border-radius: 0.25rem !important;
             padding: 0.5rem 1rem !important;
-            margin-right: 0.5rem !important;
+            margin: 0.25rem !important; /* Adjust margin for wrapped buttons */
             cursor: pointer !important;
             transition: background-color 0.2s !important;
             border: none !important;
@@ -1017,7 +1020,6 @@
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after transaction
-                // Removed: window.closeFormModal('salesFormContainer'); // Do not close modal for transactions
             } catch (error) {
                 errorDiv.textContent = "Error saving/updating transaction: " + error.message;
                 window.showMessageBox("Error saving/updating transaction: " + error.message);
@@ -1048,7 +1050,7 @@
                 if (docId) {
                     // Update existing document
                     const docRef = doc(db, "tran", docId);
-
+                    
                     const oldGroupName = window.originalEditingValue; // Get original value
                     await updateDoc(docRef, groupData); // Update the group document itself
 
@@ -1070,7 +1072,7 @@
                     await addDoc(groupsCollectionRef, groupData);
                     window.showMessageBox(`Group '${newGroupName}' saved successfully!`);
                 }
-
+                
                 newGroupNameInput.value = ''; // Clear input
                 errorDiv.textContent = ''; // Clear error
                 window.currentDocId = null; // Reset docId
@@ -1081,7 +1083,6 @@
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after group creation
-                // Removed: window.closeFormModal('groupFormContainer'); // Do not close modal
             } catch (error) {
                 errorDiv.textContent = "Error saving/updating group: " + error.message;
                 window.showMessageBox("Error saving/updating group: " + error.message);
@@ -1154,7 +1155,7 @@
                     await addDoc(productsCollectionRef, productData);
                     window.showMessageBox(`Product '${newProductName}' saved successfully!`);
                 }
-
+                
                 // Clear form values after successful save/update
                 productGroupSelect.value = '';
                 newProductNameInput.value = '';
@@ -1168,7 +1169,6 @@
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after product creation
-                // Removed: window.closeFormModal('productFormContainer'); // Do not close modal
             } catch (error) {
                 errorDiv.textContent = "Error saving/updating product: " + error.message;
                 window.showMessageBox("Error saving/updating product: " + error.message);
@@ -1264,7 +1264,7 @@
                     await addDoc(transactionsCollectionRef, ledgerData);
                     window.showMessageBox(`Ledger '${newLedgerName}' saved successfully!`);
                 }
-
+                
                 // Clear form values after successful save/update
                 ledgerGroupSelect.value = '';
                 newLedgerNameInput.value = '';
@@ -1279,7 +1279,6 @@
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after ledger creation
-                // Removed: window.closeFormModal('ledgerFormContainer'); // Do not close modal
             } catch (error) {
                 errorDiv.textContent = "Error saving/updating ledger: " + error.message;
                 window.showMessageBox("Error saving/updating ledger: " + error.message);
@@ -1426,11 +1425,11 @@
             // If the sales form is being shown, populate its dropdowns
             else if (contentIdToShow === 'salesFormContainer') {
                 await loadDropdownData(); // Ensure lists are fresh
-
+                
                 const { fList, tList } = getTransactionDropdownLists(reportType); // Use reportType for transaction type
                 populateDropdown('salesFrom', fList);
                 populateDropdown('salesTo', tList);
-
+                
                 // Set the transaction type if provided
                 if (reportType) {
                     document.getElementById('salesTranType').value = reportType;
@@ -1476,7 +1475,7 @@
                     // Click inside an open modal, do nothing (keep modal open)
                     return;
                 }
-
+                
                 window.closeAllAccordions();
                 mainMenuContainer.style.display = 'none'; // Also hide the accordion container
                 // After closing the menu, show the appropriate screen based on auth state
@@ -2000,15 +1999,21 @@
                 data: data,
                 destroy: true, // Re-initialize if already exists
                 autoWidth: false, // Disable auto width calculation
-                dom: 'Bfrtip',
+                // Adjust dom to place buttons after pagination
+                dom: '<"top"lf>rt<"bottom"ipB><"clear">', // l: length changing input, f: filtering input, t: table, i: information, p: pagination, B: buttons
                 buttons: [
-                    {extend: 'excelHtml5', className: 'buttons-excel'},
-                    {extend: 'pdfHtml5', className: 'buttons-pdf'},
-                    {extend: 'print', className: 'buttons-print'}
+                    {extend: 'excelHtml5', className: 'buttons-excel', text: '📊 Excel'},
+                    {extend: 'pdfHtml5', className: 'buttons-pdf', text: '📄 PDF'},
+                    {extend: 'print', className: 'buttons-print', text: '🖨️ Print'},
+                    {extend: 'copyHtml5', className: 'buttons-copy', text: '📋 Copy'} // Added copy button with emoji
                 ],
                 columnDefs: columnDefsConfig,
                 columns: columnsConfig, // Use the specific columns for the report type
-                ordering: orderingEnabled // Apply ordering setting
+                ordering: orderingEnabled, // Apply ordering setting
+                language: {
+                    search: "", // Remove "Search" label
+                    searchPlaceholder: "Search..." // Add placeholder
+                }
             });
 
             // Remove existing event listeners to prevent duplicates
