@@ -6,6 +6,11 @@
     <title>Accordion Style Menu</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery CDN (required for DataTables) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
     <style>
         /* Ensure html and body take full viewport height for scrolling */
         html, body {
@@ -124,7 +129,7 @@
             align-items: center;
             justify-content: center;
             min-height: calc(100vh - 64px); /* Adjusted min-height to account for fixed nav */
-            padding: 20px;
+            padding: 0; /* Removed outer padding */
             background-color: #f0f2f5;
             box-sizing: border-box; /* Include padding in height calculation */
         }
@@ -139,6 +144,7 @@
         }
         .form-card {
             text-align: left; /* Align form labels/inputs to left */
+            position: relative; /* Needed for close button positioning */
         }
         .auth-card input, .form-card input, .form-card select, .form-card textarea {
             width: 100%;
@@ -173,13 +179,134 @@
             font-weight: 500;
             color: #333;
         }
+
+        /* DataTables specific styling */
+        .dataTables_wrapper {
+            padding: 1rem;
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 0; /* Removed outer margin */
+        }
+        .dataTables_filter input, .dataTables_length select {
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .dataTables_paginate .paginate_button {
+            background-color: #4f46e5;
+            color: white !important;
+            border-radius: 0.25rem;
+            padding: 0.5rem 1rem;
+            margin: 0 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .dataTables_paginate .paginate_button:hover {
+            background-color: #4338ca;
+        }
+        .dataTables_paginate .paginate_button.current {
+            background-color: #6366f1;
+        }
+        table.dataTable thead th {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 2px solid #3730a3;
+        }
+        table.dataTable tbody td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        table.dataTable tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        table.dataTable tbody tr:hover {
+            background-color: #e0e7ff; /* Light blue on hover for rows */
+            cursor: pointer;
+        }
+
+        /* DataTables Buttons styling */
+        div.dt-buttons {
+            margin-bottom: 1em;
+        }
+        .dt-button {
+            background-color: #10b981 !important; /* Green for buttons */
+            color: white !important;
+            border-radius: 0.25rem !important;
+            padding: 0.5rem 1rem !important;
+            margin-right: 0.5rem !important;
+            cursor: pointer !important;
+            transition: background-color 0.2s !important;
+            border: none !important;
+        }
+        .dt-button:hover {
+            background-color: #059669 !important; /* Darker green on hover */
+        }
+        /* Custom delete button style */
+        .delete-btn {
+            background-color: #ef4444; /* Red */
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .delete-btn:hover {
+            background-color: #dc2626; /* Darker red */
+        }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 40; /* Above table, below message/confirm boxes */
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px; /* Max width for modal content */
+            position: relative;
+        }
+
+        /* Styled close button for modals - now below save button */
+        .modal-close-button {
+            width: 100%; /* Same width as save button */
+            padding: 0.75rem; /* Same padding as save button */
+            background-color: #ef4444; /* Red color */
+            color: white;
+            border-radius: 0.25rem; /* Same border-radius */
+            font-weight: 600; /* Same font-weight */
+            transition: background-color 0.2s;
+            margin-top: 1rem; /* Space from save button */
+            border: none; /* Ensure no border */
+            cursor: pointer;
+        }
+
+        .modal-close-button:hover {
+            background-color: #dc2626; /* Darker red on hover */
+        }
     </style>
 </head>
 <body class="p-0">
     <nav class="bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg flex justify-start items-center fixed top-0 left-0 w-full z-30 h-16">
         <!-- Main Menu Button (always visible in fixed nav) -->
         <button class="accordion-header" onclick="window.toggleMainAccordion(event)">
-            Menu
+            <span id="cashLabel">Menu</span> <!-- Changed from "Menu" to dynamic cashLabel -->
             <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
             </svg>
@@ -200,18 +327,18 @@
                         </svg>
                     </button>
                     <div id="newContent" class="accordion-sub-content">
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer');">Sales</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Purchase</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Receipt</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Payment</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Sales');">Sales</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Purchase');">Purchase</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Receipt');">Receipt</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Payment');">Payment</a>
                         <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('groupFormContainer');">Group</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Product</a> <!-- Product now points to mainContainer -->
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('ledgerFormContainer');">Ledger</a> <!-- Ledger points to the new form -->
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('productFormContainer');">Product</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('ledgerFormContainer');">Ledger</a>
                     </div>
                 </div>
 
                 <!-- Simple Button: Update -->
-                <button class="accordion-sub-header" onclick="window.handleMenuItemClick('mainContainer'); window.showMessageBox('Update button clicked!');">
+                <button class="accordion-sub-header" onclick="window.handleMenuItemClick('tableContainer');">
                     Update
                 </button>
 
@@ -224,8 +351,8 @@
                         </svg>
                     </button>
                     <div id="reportsContent" class="accordion-sub-content">
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer');">Groups & Products</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Groups & Ledgers</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndProductsReport');">Groups & Products</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndLedgersReport');">Groups & Ledgers</a>
                     </div>
                 </div>
 
@@ -238,10 +365,10 @@
                         </svg>
                     </button>
                     <div id="financialsContent" class="accordion-sub-content">
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer');">Receivables</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Payables</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Khatavahi</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('mainContainer');">Profit & Loss</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'ReceivablesReport');">Receivables</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'PayablesReport');">Payables</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('khatavahiFormContainer');">Khatavahi</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('profitLossFormContainer');">Profit & Loss</a>
                     </div>
                 </div>
 
@@ -285,6 +412,7 @@
                     <textarea id="salesNarration" rows="3" placeholder="Enter narration (optional)"></textarea>
                 </div>
                 <button onclick="window.saveSalesTransaction()">Save Transaction</button>
+                <button class="modal-close-button" onclick="window.closeFormModal('salesFormContainer')">Close</button>
                 <div id="salesFormError" class="error-message"></div>
             </div>
         </div>
@@ -298,17 +426,42 @@
                     <input type="text" id="newGroupName" placeholder="Enter new group name">
                 </div>
                 <button onclick="window.saveGroup()">Save Group</button>
+                <button class="modal-close-button" onclick="window.closeFormModal('groupFormContainer')">Close</button>
                 <div id="groupFormError" class="error-message"></div>
             </div>
         </div>
 
-        <!-- Ledger Form Container (renamed from productFormContainer) -->
+        <!-- Product Form Container -->
+        <div id="productFormContainer" style="display: none;" class="form-container">
+            <div class="form-card">
+                <h2 class="text-2xl font-bold mb-4 text-center">New Product</h2>
+                <div class="form-group">
+                    <label for="productGroupSelect">Select Group</label>
+                    <select id="productGroupSelect">
+                        <option value="">Select Group</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="newProductName">New Product Name</label>
+                    <input type="text" id="newProductName" placeholder="Enter new product name">
+                </div>
+                <div class="form-group">
+                    <label for="productAmount">Amount (Optional)</label>
+                    <input type="number" id="productAmount" placeholder="Enter amount">
+                </div>
+                <button onclick="window.saveProduct()">Save Product</button>
+                <button class="modal-close-button" onclick="window.closeFormModal('productFormContainer')">Close</button>
+                <div id="productFormError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Ledger Form Container -->
         <div id="ledgerFormContainer" style="display: none;" class="form-container">
             <div class="form-card">
                 <h2 class="text-2xl font-bold mb-4 text-center">New Ledger</h2>
                 <div class="form-group">
-                    <label for="productGroupSelect">Select Group</label>
-                    <select id="productGroupSelect"> <!-- ID remains descriptive for group select -->
+                    <label for="ledgerGroupSelect">Select Group</label>
+                    <select id="ledgerGroupSelect">
                         <option value="">Select Group</option>
                     </select>
                 </div>
@@ -324,15 +477,62 @@
                     <label for="oldBalanceKhate">Old Balance Khate</label>
                     <input type="number" id="oldBalanceKhate" placeholder="Enter Old Balance Khate">
                 </div>
-                <button onclick="window.saveLedger()">Save Ledger</button> <!-- Updated function name -->
-                <div id="ledgerFormError" class="error-message"></div> <!-- Updated error div ID -->
+                <button onclick="window.saveLedger()">Save Ledger</button>
+                <button class="modal-close-button" onclick="window.closeFormModal('ledgerFormContainer')">Close</button>
+                <div id="ledgerFormError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Khatavahi Form Container -->
+        <div id="khatavahiFormContainer" style="display: none;" class="form-container">
+            <div class="form-card">
+                <h2 class="text-2xl font-bold mb-4 text-center">Khatavahi Report</h2>
+                <div class="form-group">
+                    <label for="kfromDate">From Date</label>
+                    <input type="date" id="kfromDate" class="date-input">
+                </div>
+                <div class="form-group">
+                    <label for="ktoDate">To Date</label>
+                    <input type="date" id="ktoDate" class="date-input">
+                </div>
+                <div class="form-group">
+                    <label for="kparty">Party Name</label>
+                    <select id="kparty">
+                        <option value="">Select Party</option>
+                    </select>
+                </div>
+                <button onclick="window.loadDataIntoTable('KhatavahiReport')">View Khatavahi</button>
+                <button class="modal-close-button" onclick="window.closeFormModal('khatavahiFormContainer')">Close</button>
+                <div id="khatavahiFormError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Profit & Loss Form Container -->
+        <div id="profitLossFormContainer" style="display: none;" class="form-container">
+            <div class="form-card">
+                <h2 class="text-2xl font-bold mb-4 text-center">Profit & Loss Statement</h2>
+                <div class="form-group">
+                    <label for="plfromDate">From Date</label>
+                    <input type="date" id="plfromDate" class="date-input">
+                </div>
+                <div class="form-group">
+                    <label for="pltoDate">To Date</label>
+                    <input type="date" id="pltoDate" class="date-input">
+                </div>
+                <div class="form-group">
+                    <label for="closingStock">Closing Stock</label>
+                    <input type="number" id="closingStock" placeholder="Enter closing stock amount">
+                </div>
+                <button onclick="window.loadDataIntoTable('ProfitLossReport')">View Profit & Loss</button>
+                <button class="modal-close-button" onclick="window.closeFormModal('profitLossFormContainer')">Close</button>
+                <div id="profitLossFormError" class="error-message"></div>
             </div>
         </div>
 
         <!-- Main Application Container (initially hidden) -->
+        <!-- Removed "Welcome!" message -->
         <div id="mainContainer" style="display: none;" class="auth-container">
-            <h2 class="text-2xl font-bold mb-4">Welcome!</h2>
-            <p>You are logged in.</p>
+            <!-- Content will be dynamically loaded or user will select from menu -->
         </div>
 
         <!-- Login Container (initially visible for demonstration) -->
@@ -360,19 +560,18 @@
         </div>
 
         <!-- Table Container (initially hidden) -->
-        <div id="tableContainer" style="display: none;" class="p-4">
+        <div id="tableContainer" style="display: none;" class="flex flex-col items-center">
             <h2 class="text-2xl font-bold mb-4">Data Table</h2>
-            <table id="myTable" class="min-w-full bg-white border border-gray-200">
-                <thead>
-                    <tr>
-                        <th class="py-2 px-4 border-b">Header 1</th>
-                        <th class="py-2 px-4 border-b">Header 2</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Table data will be loaded here -->
-                </tbody>
-            </table>
+            <div class="w-full overflow-x-auto">
+                <table id="tranTable" class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <!-- Headers will be dynamically generated here -->
+                    </thead>
+                    <tbody>
+                        <!-- Table data will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -383,6 +582,27 @@
             <button class="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300" onclick="window.hideMessageBox()">OK</button>
         </div>
     </div>
+
+    <!-- Custom Confirmation Box -->
+    <div id="confirmBox" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+            <p id="confirmText" class="text-lg font-semibold mb-4"></p>
+            <div class="flex justify-center space-x-4">
+                <button id="confirmYes" class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">Yes</button>
+                <button id="confirmNo" class="bg-gray-300 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -408,18 +628,39 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let dataTable; // Global variable to hold the DataTables instance
+        let dataTableInstance = null; // Global variable to hold the DataTables instance
         let firestoreData = []; // To store original data and track changes
+        window.currentDocId = null; // Global variable to store the document ID for editing
 
         // Global lists for dropdowns (populated by loadDropdownData)
         window.sproduct_list = [];
         window.crdb_list = [];
         window.crdbcsbkangexp_list = []; // Ensure this is globally accessible
         window.grp_list = []; // Ensure grp_list is initialized
+        window.sp_list = []; // Ensure sp_list is initialized
+        window.pproduct_list = []; // Ensure pproduct_list is initialized
+        window.crdbcsbkang_list = []; // Ensure crdbcsbkang_list is initialized
+        window.allnames_list = []; // Ensure allnames_list is initialized
+
 
         // Capitalize all words in inputs, excluding password and email types
         function applyCapitalization(inputElement) {
             inputElement.value = inputElement.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        // Helper function to capitalize the first letter of each word
+        function capitalizeWords(str) {
+            return str.replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        // Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
+        function formatDate(dateString) {
+            if (!dateString) return "";
+            const parts = dateString.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+            return dateString; // Return as is if format is unexpected
         }
 
         // Clear all *application content* screens (not the menu itself)
@@ -431,8 +672,12 @@
             document.getElementById("salesFormContainer").style.display = "none"; // Hide sales form
             document.getElementById("groupFormContainer").style.display = "none"; // Hide group form
             document.getElementById("ledgerFormContainer").style.display = "none"; // Hide ledger form
+            document.getElementById("productFormContainer").style.display = "none"; // Hide product form
+            document.getElementById("khatavahiFormContainer").style.display = "none"; // Hide khatavahi form
+            document.getElementById("profitLossFormContainer").style.display = "none"; // Hide profitLoss form
             // Also hide the main accordion menu container
             document.getElementById("mainAccordionMenu").style.display = "none";
+            window.currentDocId = null; // Always reset currentDocId when changing screens
         }
 
         // Show login screen
@@ -501,18 +746,20 @@
             if (user) {
                 // User is signed in
                 clearScreen(); // Clear all content screens
-                document.getElementById("mainContainer").style.display = "flex"; // Show main app content
+                // Do NOT show mainContainer by default, user will select from menu
                 console.log("User is logged in:", user.uid);
                 await loadDropdownData(); // Load dropdown data after login
+                await updateCashLabel(); // Update cash label after login and data load
             } else {
                 // User is signed out
                 clearScreen(); // Clear all content screens
                 document.getElementById("loginContainer").style.display = "flex"; // Show login screen
                 console.log("User is logged out.");
+                document.getElementById("cashLabel").textContent = "Menu"; // Reset label on logout
             }
         });
 
-        // Initialize autoCapitalizeInputs on load
+        // Initialize autoCapitalization for inputs on load
         document.addEventListener('DOMContentLoaded', () => {
             // Apply capitalization to all input elements that are not type="password" or type="email"
             document.querySelectorAll('input:not([type="password"]):not([type="email"])').forEach(input => {
@@ -531,6 +778,25 @@
                 salesDateInput.value = `${yyyy}-${mm}-${dd}`;
             }
 
+            // Set current date for khatavahi date inputs
+            const kfromDateInput = document.getElementById('kfromDate');
+            const ktoDateInput = document.getElementById('ktoDate');
+            if (kfromDateInput) {
+                kfromDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+            if (ktoDateInput) {
+                ktoDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+
+            // Set current date for profit/loss date inputs
+            const plfromDateInput = document.getElementById('plfromDate');
+            const pltoDateInput = document.getElementById('pltoDate');
+            if (plfromDateInput) {
+                plfromDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+            if (pltoDateInput) {
+                pltoDateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
 
             // Initially show login screen if no user is logged in
             if (!auth.currentUser) {
@@ -578,11 +844,11 @@
                         nameSet.add(name);
                     }
 
-                    if (grp === "Sales" && name.length > 0) {
+                    if (grp === "Sales Products" && name.length > 0) {
                         sproductSet.add(name);
                     }
 
-                    if (grp === "Purchase" && name.length > 0) {
+                    if (grp === "Purchase Products" && name.length > 0) {
                         pproductSet.add(name);
                     }
 
@@ -613,7 +879,9 @@
                     sproduct_list: window.sproduct_list,
                     crdb_list: window.crdb_list,
                     crdbcsbkangexp_list: window.crdbcsbkangexp_list,
-                    grp_list: window.grp_list // Added for debugging
+                    grp_list: window.grp_list,
+                    sp_list: window.sp_list,
+                    allnames_list: window.allnames_list // Log allnames_list as well
                 });
             } catch (error) {
                 console.error("Error loading dropdown data:", error);
@@ -635,11 +903,11 @@
                 option.textContent = item;
                 selectElement.appendChild(option);
             });
-            // Removed the console.log here as it was for debugging and is no longer needed.
         }
 
         // Function to save Sales transaction
         window.saveSalesTransaction = async function() {
+            const docId = window.currentDocId; // Get current doc ID for update
             const date = document.getElementById('salesDate').value;
             const ttype = document.getElementById('salesTranType').value;
             const fparty = document.getElementById('salesFrom').value;
@@ -663,7 +931,7 @@
             }
 
             try {
-                const newTransaction = {
+                const transactionData = {
                     date: date,
                     ttype: ttype,
                     fparty: fparty,
@@ -672,28 +940,43 @@
                     amt: parseFloat(amount)
                 };
 
-                const transactionsCollection = collection(db, "tran");
-                await addDoc(transactionsCollection, newTransaction);
+                const transactionsCollectionRef = collection(db, "tran");
 
-                window.showMessageBox("Sales transaction saved successfully!");
+                if (docId) {
+                    // Update existing document
+                    const docRef = doc(db, "tran", docId);
+                    await updateDoc(docRef, transactionData);
+                    window.showMessageBox("Transaction updated successfully!");
+                } else {
+                    // Add new document
+                    await addDoc(transactionsCollectionRef, transactionData);
+                    window.showMessageBox("Transaction saved successfully!");
+                }
 
-                // Clear form values after successful save
+                // Clear form values after successful save/update
                 document.getElementById('salesDate').value = new Date().toISOString().split('T')[0]; // Reset to current date
                 document.getElementById('salesFrom').value = '';
                 document.getElementById('salesTo').value = '';
                 document.getElementById('salesAmount').value = '';
                 document.getElementById('salesNarration').value = '';
                 errorDiv.textContent = ''; // Clear any previous errors
-
+                window.currentDocId = null; // Reset docId
+                // Always reload table if it's currently visible (i.e., we were editing from it)
+                if (document.getElementById('tableContainer').style.display === 'flex') {
+                    await loadDataIntoTable();
+                }
+                await updateCashLabel(); // Update cash label after transaction
+                window.closeFormModal('salesFormContainer'); // Close modal after save/update
             } catch (error) {
-                console.error("Error saving sales transaction:", error);
-                errorDiv.textContent = "Error saving transaction: " + error.message;
-                window.showMessageBox("Error saving transaction: " + error.message);
+                console.error("Error saving/updating transaction:", error);
+                errorDiv.textContent = "Error saving/updating transaction: " + error.message;
+                window.showMessageBox("Error saving/updating transaction: " + error.message);
             }
         };
 
         // Function to save a new Group
         window.saveGroup = async function() {
+            const docId = window.currentDocId; // Get current doc ID for update
             const newGroupNameInput = document.getElementById('newGroupName');
             const newGroupName = newGroupNameInput.value.trim();
             const errorDiv = document.getElementById('groupFormError');
@@ -706,34 +989,149 @@
             }
 
             try {
-                const groupsCollection = collection(db, "tran"); // Using 'tran' collection as per previous logic
-                await addDoc(groupsCollection, {
+                const groupData = {
                     ttype: 'Group',
                     grp: newGroupName
-                });
+                };
+                const groupsCollectionRef = collection(db, "tran");
 
-                window.showMessageBox(`Group '${newGroupName}' saved successfully!`);
+                if (docId) {
+                    // Update existing document
+                    const docRef = doc(db, "tran", docId);
+                    await updateDoc(docRef, groupData);
+                    window.showMessageBox(`Group '${newGroupName}' updated successfully!`);
+                } else {
+                    // Add new document
+                    // Check for duplicate group name before adding
+                    const q = query(groupsCollectionRef, where("grp", "==", newGroupName));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        errorDiv.textContent = `Group name '${newGroupName}' already exists.`;
+                        window.showMessageBox(`Group name '${newGroupName}' already exists.`);
+                        return;
+                    }
+                    await addDoc(groupsCollectionRef, groupData);
+                    window.showMessageBox(`Group '${newGroupName}' saved successfully!`);
+                }
+
                 newGroupNameInput.value = ''; // Clear input
                 errorDiv.textContent = ''; // Clear error
-                await loadDropdownData(); // Reload dropdown data to include the new group if needed elsewhere
-
+                window.currentDocId = null; // Reset docId
+                await loadDropdownData(); // Reload dropdown data
+                // Always reload table if it's currently visible (i.e., we were editing from it)
+                if (document.getElementById('tableContainer').style.display === 'flex') {
+                    await loadDataIntoTable();
+                }
+                await updateCashLabel(); // Update cash label after group creation
+                window.closeFormModal('groupFormContainer'); // Close modal after save/update
             } catch (error) {
-                console.error("Error saving group:", error);
-                errorDiv.textContent = "Error saving group: " + error.message;
-                window.showMessageBox("Error saving group: " + error.message);
+                console.error("Error saving/updating group:", error);
+                errorDiv.textContent = "Error saving/updating group: " + error.message;
+                window.showMessageBox("Error saving/updating group: " + error.message);
             }
         };
 
-        // Function to save a new Ledger (renamed from saveProductLedger)
-        window.saveLedger = async function() {
+        // Function to save a new Product
+        window.saveProduct = async function() {
+            const docId = window.currentDocId; // Get current doc ID for update
             const productGroupSelect = document.getElementById('productGroupSelect');
+            const newProductNameInput = document.getElementById('newProductName');
+            const productAmountInput = document.getElementById('productAmount');
+            const errorDiv = document.getElementById('productFormError');
+            errorDiv.textContent = '';
+
+            // Defensive checks for null elements
+            if (!productGroupSelect || !newProductNameInput || !productAmountInput) {
+                console.error("Error: One or more product form elements not found.");
+                errorDiv.textContent = "An internal error occurred. Please try again.";
+                window.showMessageBox("An internal error occurred. Please try again.");
+                return;
+            }
+
+            const selectedGroup = productGroupSelect.value;
+            const newProductName = newProductNameInput.value.trim();
+            const productAmount = parseFloat(productAmountInput.value) || 0; // Amount can be 0 or empty
+
+            // Validation
+            if (!selectedGroup) {
+                errorDiv.textContent = "Please select a Group.";
+                window.showMessageBox("Please select a Group.");
+                return;
+            }
+            if (!newProductName) {
+                errorDiv.textContent = "Please enter a New Product Name.";
+                window.showMessageBox("Please enter a New Product Name.");
+                return;
+            }
+
+            try {
+                const productData = {
+                    ttype: 'Opening Stock',
+                    grp: selectedGroup,
+                    name: newProductName,
+                    amt: productAmount
+                };
+                const productsCollectionRef = collection(db, "tran");
+
+                if (docId) {
+                    // Update existing document
+                    const docRef = doc(db, "tran", docId);
+                    await updateDoc(docRef, productData);
+                    window.showMessageBox(`Product '${newProductName}' updated successfully!`);
+                } else {
+                    // Add new document
+                    // Check for duplicate product name before adding
+                    const q = query(productsCollectionRef, where("name", "==", newProductName));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        errorDiv.textContent = `Product name '${newProductName}' already exists.`;
+                        window.showMessageBox(`Product name '${newProductName}' already exists.`);
+                        return;
+                    }
+                    await addDoc(productsCollectionRef, productData);
+                    window.showMessageBox(`Product '${newProductName}' saved successfully!`);
+                }
+
+                // Clear form values after successful save/update
+                productGroupSelect.value = '';
+                newProductNameInput.value = '';
+                productAmountInput.value = '';
+                errorDiv.textContent = ''; // Clear any previous errors
+                window.currentDocId = null; // Reset docId
+                await loadDropdownData(); // Reload dropdown data
+                // Always reload table if it's currently visible (i.e., we were editing from it)
+                if (document.getElementById('tableContainer').style.display === 'flex') {
+                    await loadDataIntoTable();
+                }
+                await updateCashLabel(); // Update cash label after product creation
+                window.closeFormModal('productFormContainer'); // Close modal after save/update
+            } catch (error) {
+                console.error("Error saving/updating product:", error);
+                errorDiv.textContent = "Error saving/updating product: " + error.message;
+                window.showMessageBox("Error saving/updating product: " + error.message);
+            }
+        };
+
+
+        // Function to save a new Ledger
+        window.saveLedger = async function() {
+            const docId = window.currentDocId; // Get current doc ID for update
+            const ledgerGroupSelect = document.getElementById('ledgerGroupSelect');
             const newLedgerNameInput = document.getElementById('newLedgerName');
             const oldBalanceJamaInput = document.getElementById('oldBalanceJama');
             const oldBalanceKhateInput = document.getElementById('oldBalanceKhate');
-            const errorDiv = document.getElementById('ledgerFormError'); // Updated error div ID
+            const errorDiv = document.getElementById('ledgerFormError');
             errorDiv.textContent = '';
 
-            const selectedGroup = productGroupSelect.value;
+            // Defensive checks for null elements
+            if (!ledgerGroupSelect || !newLedgerNameInput || !oldBalanceJamaInput || !oldBalanceKhateInput) {
+                console.error("Error: One or more ledger form elements not found.");
+                errorDiv.textContent = "An internal error occurred. Please try again.";
+                window.showMessageBox("An internal error occurred. Please try again.");
+                return;
+            }
+
+            const selectedGroup = ledgerGroupSelect.value;
             const newLedgerName = newLedgerNameInput.value.trim();
             const oldBalanceJama = parseFloat(oldBalanceJamaInput.value) || 0;
             const oldBalanceKhate = parseFloat(oldBalanceKhateInput.value) || 0;
@@ -749,57 +1147,97 @@
                 window.showMessageBox("Please enter a New Ledger Name.");
                 return;
             }
-            if ((oldBalanceJama <= 0 && oldBalanceKhate <= 0) || (oldBalanceJama > 0 && oldBalanceKhate > 0)) {
-                errorDiv.textContent = "Please enter either 'Old Balance Jama' OR 'Old Balance Khate' (one positive value).";
-                window.showMessageBox("Please enter either 'Old Balance Jama' OR 'Old Balance Khate' (one positive value).");
+            // Updated validation: Only error if BOTH Jama and Khate have positive values
+            if (oldBalanceJama > 0 && oldBalanceKhate > 0) {
+                errorDiv.textContent = "You cannot enter values for both 'Old Balance Jama' and 'Old Balance Khate'. Please enter only one or leave both empty.";
+                window.showMessageBox("You cannot enter values for both 'Old Balance Jama' and 'Old Balance Khate'. Please enter only one or leave both empty.");
                 return;
             }
 
             try {
-                // Check for duplicate ledger name (case-insensitive)
-                const q = query(collection(db, "tran"), where("name", "==", newLedgerName));
-                const querySnapshot = await getDocs(q);
-                if (!querySnapshot.empty) {
-                    errorDiv.textContent = `Ledger name '${newLedgerName}' already exists.`;
-                    window.showMessageBox(`Ledger name '${newLedgerName}' already exists.`);
-                    return;
-                }
-
-                const newTransaction = {
+                const ledgerData = {
                     ttype: 'Opening Balance',
                     grp: selectedGroup,
                     name: newLedgerName
                 };
 
                 if (oldBalanceJama > 0) {
-                    newTransaction.amt = oldBalanceJama;
-                    newTransaction.fparty = newLedgerName;
-                    newTransaction.tparty = ''; // As per instruction "fparty=newledgername if obj else tparty"
-                } else { // oldBalanceKhate > 0
-                    newTransaction.amt = oldBalanceKhate;
-                    newTransaction.fparty = '';
-                    newTransaction.tparty = newLedgerName; // Interpreting "else tparty" to mean newLedgerName is the tparty
+                    ledgerData.amt = oldBalanceJama;
+                    ledgerData.fparty = newLedgerName;
+                    ledgerData.tparty = '';
+                } else if (oldBalanceKhate > 0) {
+                    ledgerData.amt = oldBalanceKhate;
+                    ledgerData.fparty = '';
+                    ledgerData.tparty = newLedgerName;
+                } else {
+                    ledgerData.amt = 0;
+                    ledgerData.fparty = '';
+                    ledgerData.tparty = '';
                 }
 
-                const transactionsCollection = collection(db, "tran");
-                await addDoc(transactionsCollection, newTransaction);
+                const transactionsCollectionRef = collection(db, "tran");
 
-                window.showMessageBox(`Ledger '${newLedgerName}' saved successfully with Opening Balance.`);
+                if (docId) {
+                    // Update existing document
+                    const docRef = doc(db, "tran", docId);
+                    await updateDoc(docRef, ledgerData);
+                    window.showMessageBox(`Ledger '${newLedgerName}' updated successfully!`);
+                } else {
+                    // Add new document
+                    // Check for duplicate ledger name before adding
+                    const q = query(transactionsCollectionRef, where("name", "==", newLedgerName));
+                    const querySnapshot = await getDocs(q);
+                    if (!querySnapshot.empty) {
+                        errorDiv.textContent = `Ledger name '${newLedgerName}' already exists.`;
+                        window.showMessageBox(`Ledger name '${newLedgerName}' already exists.`);
+                        return;
+                    }
+                    await addDoc(transactionsCollectionRef, ledgerData);
+                    window.showMessageBox(`Ledger '${newLedgerName}' saved successfully!`);
+                }
 
-                // Clear form values after successful save
-                productGroupSelect.value = '';
+                // Clear form values after successful save/update
+                ledgerGroupSelect.value = '';
                 newLedgerNameInput.value = '';
                 oldBalanceJamaInput.value = '';
                 oldBalanceKhateInput.value = '';
                 errorDiv.textContent = ''; // Clear any previous errors
-                await loadDropdownData(); // Reload dropdown data to include the new ledger/group
-
+                window.currentDocId = null; // Reset docId
+                await loadDropdownData(); // Reload dropdown data
+                // Always reload table if it's currently visible (i.e., we were editing from it)
+                if (document.getElementById('tableContainer').style.display === 'flex') {
+                    await loadDataIntoTable();
+                }
+                await updateCashLabel(); // Update cash label after ledger creation
+                window.closeFormModal('ledgerFormContainer'); // Close modal after save/update
             } catch (error) {
-                console.error("Error saving ledger:", error);
-                errorDiv.textContent = "Error saving ledger: " + error.message;
-                window.showMessageBox("Error saving ledger: " + error.message);
+                console.error("Error saving/updating ledger:", error);
+                errorDiv.textContent = "Error saving/updating ledger: " + error.message;
+                window.showMessageBox("Error saving/updating ledger: " + error.message);
             }
         };
+
+        // Function to calculate and update the Cash label in the menu
+        async function updateCashLabel() {
+            const tranCol = collection(db, "tran");
+            const snapshot = await getDocs(tranCol);
+
+            let inflow = 0;    // tparty = 'Cash On Hand'
+            let outflow = 0;   // fparty = 'Cash On Hand'
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (data.tparty === "Cash On Hand") {
+                    inflow += Number(data.amt || 0);
+                }
+                if (data.fparty === "Cash On Hand") {
+                    outflow += Number(data.amt || 0);
+                }
+            });
+
+            const balance = inflow - outflow;
+            document.getElementById("cashLabel").textContent = `Cash: ₹${balance.toFixed(0)}`;
+        }
 
 
         // Accordion Menu Functions (exposed to window)
@@ -837,11 +1275,7 @@
                 // If it was active, it means we clicked to close it, so hide the container
                 mainAccordionMenu.style.display = 'none';
                 // After closing the menu, show the appropriate screen based on auth state
-                if (auth.currentUser) {
-                    document.getElementById("mainContainer").style.display = "flex";
-                } else {
-                    document.getElementById("loginContainer").style.display = "flex";
-                }
+                // No default screen after closing menu, user will choose.
             }
         };
 
@@ -873,23 +1307,83 @@
             }
         };
 
+        /**
+         * Helper function to get the appropriate From and To lists based on transaction type.
+         * @param {string} type The transaction type (e.g., 'Sales', 'Purchase', 'Receipt', 'Payment').
+         * @returns {{fList: string[], tList: string[]}} An object containing the From and To lists.
+         */
+        function getTransactionDropdownLists(type) {
+            let fList = [];
+            let tList = [];
+
+            if (type === 'Sales') {
+                fList = (window.sproduct_list || []).map(opt => opt.trim());
+                tList = (window.crdb_list || []).map(opt => opt.trim());
+            } else if (type === 'Purchase') {
+                fList = (window.crdb_list || []).map(opt => opt.trim());
+                tList = (window.pproduct_list || []).map(opt => opt.trim());
+            } else if (type === 'Receipt') {
+                fList = (window.crdbcsbkang_list || []).map(opt => opt.trim());
+                tList = (window.crdbcsbkangexp_list || []).map(opt => opt.trim());
+            } else if (type === 'Payment') {
+                fList = (window.crdbcsbkang_list || []).map(opt => opt.trim());
+                tList = (window.crdbcsbkangexp_list || []).map(opt => opt.trim());
+            }
+            // Default case, e.g., if type is not recognized or for initial load
+            else {
+                fList = (window.sproduct_list || []).map(opt => opt.trim());
+                tList = (window.crdb_list || []).map(opt => opt.trim());
+            }
+            return { fList, tList };
+        }
+
         // New function to handle clicks on actual menu items (Sales, Purchase, Group etc.)
-        window.handleMenuItemClick = async function(contentIdToShow) {
+        window.handleMenuItemClick = async function(contentIdToShow, reportType = null) { // Renamed transactionType to reportType for clarity
             window.closeAllAccordions(); // Close the accordion menu content
             document.getElementById("mainAccordionMenu").style.display = "none"; // Hide the accordion menu container
             clearScreen(); // Clear all application content screens
 
             // Show the selected content screen
-            document.getElementById(contentIdToShow).style.display = 'flex';
+            const targetContainer = document.getElementById(contentIdToShow);
+            if (targetContainer) {
+                targetContainer.style.display = 'flex';
+            }
 
+
+            // Special handling for Data Table
+            if (contentIdToShow === 'tableContainer') {
+                await loadDataIntoTable(reportType); // Pass reportType
+            }
             // If the sales form is being shown, populate its dropdowns
-            if (contentIdToShow === 'salesFormContainer') {
+            else if (contentIdToShow === 'salesFormContainer') {
                 await loadDropdownData(); // Ensure lists are fresh
-                populateDropdown('salesFrom', window.sproduct_list);
-                populateDropdown('salesTo', window.crdb_list);
-            } else if (contentIdToShow === 'ledgerFormContainer') { // Updated to ledgerFormContainer
+
+                const { fList, tList } = getTransactionDropdownLists(reportType); // Use reportType for transaction type
+                populateDropdown('salesFrom', fList);
+                populateDropdown('salesTo', tList);
+
+                // Set the transaction type if provided
+                if (reportType) {
+                    document.getElementById('salesTranType').value = reportType;
+                } else {
+                    // Default for 'Sales' menu item itself if not explicitly passed
+                    document.getElementById('salesTranType').value = 'Sales';
+                }
+
+            } else if (contentIdToShow === 'ledgerFormContainer') {
                 await loadDropdownData(); // Ensure lists are fresh
-                populateDropdown('productGroupSelect', window.grp_list); // Corrected to grp_list
+                populateDropdown('ledgerGroupSelect', window.grp_list);
+            } else if (contentIdToShow === 'productFormContainer') {
+                await loadDropdownData(); // Ensure lists are fresh
+                populateDropdown('productGroupSelect', window.sp_list);
+            } else if (contentIdToShow === 'khatavahiFormContainer') {
+                await loadDropdownData(); // Ensure lists are fresh
+                populateDropdown('kparty', window.allnames_list); // Populate party dropdown
+                // Ensure table is hidden when showing the khatavahi form
+                document.getElementById('tableContainer').style.display = 'none';
+            } else if (contentIdToShow === 'profitLossFormContainer') {
+                // Ensure table is hidden when showing the profit/loss form
+                document.getElementById('tableContainer').style.display = 'none';
             }
         };
 
@@ -898,17 +1392,26 @@
         document.addEventListener('click', function(event) {
             const mainMenuContainer = document.getElementById('mainAccordionMenu'); // Target the main accordion container
             const navBar = document.querySelector('nav'); // Target the fixed nav bar
+            const tableContainer = document.getElementById('tableContainer'); // Get the table container
 
             // Check if the click is outside both the main accordion menu and the fixed nav bar
+            // AND ensure it's not inside the tableContainer if the table is currently visible
             if (mainMenuContainer && !mainMenuContainer.contains(event.target) && navBar && !navBar.contains(event.target)) {
+                // Check if the click is within any of the form modals
+                const isClickInsideModal = document.querySelector('.modal-overlay:not(.hidden)')?.contains(event.target);
+
+                if (tableContainer && tableContainer.style.display === 'flex' && tableContainer.contains(event.target)) {
+                    // Click inside the table, do nothing (keep table open)
+                    return;
+                } else if (isClickInsideModal) {
+                    // Click inside an open modal, do nothing (keep modal open)
+                    return;
+                }
+
                 window.closeAllAccordions();
                 mainMenuContainer.style.display = 'none'; // Also hide the accordion container
                 // After closing the menu, show the appropriate screen based on auth state
-                if (auth.currentUser) {
-                    document.getElementById("mainContainer").style.display = "flex";
-                } else {
-                    document.getElementById("loginContainer").style.display = "flex";
-                }
+                // No default screen after closing menu, user will choose.
             }
         });
 
@@ -920,6 +1423,683 @@
 
         window.hideMessageBox = function () {
             document.getElementById('messageBox').classList.add('hidden');
+        };
+
+        // Custom Confirmation Box Functions
+        window.showConfirmBox = function (message) {
+            return new Promise((resolve) => {
+                document.getElementById('confirmText').innerText = message;
+                document.getElementById('confirmBox').classList.remove('hidden');
+
+                const yesButton = document.getElementById('confirmYes');
+                const noButton = document.getElementById('confirmNo');
+
+                const handleYes = () => {
+                    document.getElementById('confirmBox').classList.add('hidden');
+                    yesButton.removeEventListener('click', handleYes);
+                    noButton.removeEventListener('click', handleNo);
+                    resolve(true);
+                };
+
+                const handleNo = () => {
+                    document.getElementById('confirmBox').classList.add('hidden');
+                    yesButton.removeEventListener('click', handleYes);
+                    noButton.removeEventListener('click', handleNo);
+                    resolve(false);
+                };
+
+                yesButton.addEventListener('click', handleYes);
+                noButton.addEventListener('click', handleNo);
+            });
+        };
+
+        // Function to calculate and return receivables data
+        async function viewReceivables() {
+            const tranCol = collection(db, "tran");
+            const snapshot = await getDocs(tranCol);
+
+            const ledgerGroups = {};
+            const balances = {};
+
+            // Build ledger group mappings
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const name = (data.name || "").trim().toLowerCase();
+                const grp = (data.grp || "").trim().toLowerCase();
+
+                if (name && grp) {
+                    ledgerGroups[name] = grp;
+                }
+            });
+
+            // Calculate balances from fparty/tparty
+            snapshot.forEach(doc => {
+                const data = doc.data();
+
+                if (data.fparty) {
+                    const party = data.fparty.trim().toLowerCase();
+                    balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+                }
+                if (data.tparty) {
+                    const party = data.tparty.trim().toLowerCase();
+                    balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
+                }
+            });
+
+            // Prepare rows for receivables
+            const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
+            const rows = [];
+
+            for (const [party, amount] of Object.entries(balances)) {
+                const grp = ledgerGroups[party];
+                // Only include if amount is negative (receivable) and group is allowed
+                if (amount < 0 && grp && allowedGroups.includes(grp)) {
+                    rows.push({
+                        Party: capitalizeWords(party),
+                        Amount: Math.abs(amount).toFixed(0)
+                    });
+                }
+            }
+            return rows;
+        }
+
+        // Function to calculate and return payables data
+        async function viewPayables() {
+            const tranCol = collection(db, "tran");
+            const snapshot = await getDocs(tranCol);
+
+            const ledgerGroups = {};
+            const balances = {};
+
+            // Capture ledger definitions
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const name = (data.name || "").trim().toLowerCase();
+                const grp = (data.grp || "").trim().toLowerCase();
+
+                if (name && grp) {
+                    ledgerGroups[name] = grp;
+                }
+            });
+
+            // Sum amounts for all parties
+            snapshot.forEach(doc => {
+                const data = doc.data();
+
+                if (data.fparty) {
+                    const party = data.fparty.trim().toLowerCase();
+                    balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+                }
+
+                if (data.tparty) {
+                    const party = data.tparty.trim().toLowerCase();
+                    balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
+                }
+            });
+
+            // Prepare payables list
+            const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
+            const rows = [];
+
+            for (const [party, amount] of Object.entries(balances)) {
+                const grp = ledgerGroups[party];
+                // Only include if amount is positive (payable) and group is allowed
+                if (amount > 0 && grp && allowedGroups.includes(grp)) {
+                    rows.push({
+                        Party: capitalizeWords(party),
+                        Amount: amount.toFixed(0)
+                    });
+                }
+            }
+            return rows;
+        }
+
+        // Function to calculate and return Khatavahi data
+        async function khatavahi() {
+            const fromDate = document.getElementById("kfromDate").value;
+            const toDate = document.getElementById("ktoDate").value;
+            const partyName = capitalizeWords(document.getElementById("kparty").value.trim());
+            const errorDiv = document.getElementById('khatavahiFormError');
+            errorDiv.textContent = '';
+
+            console.log("Khatavahi: Input fromDate:", fromDate, "toDate:", toDate, "partyName:", partyName);
+
+            if (!fromDate || !toDate || !partyName) {
+                errorDiv.textContent = "Please select both dates and party.";
+                window.showMessageBox("Please select both dates and party.");
+                console.log("Khatavahi: Validation failed - missing dates or party name.");
+                return null; // Return null to indicate failure
+            }
+
+            try {
+                const tranCol = collection(db, "tran");
+                const snapshot = await getDocs(tranCol);
+                let opBal = 0;
+                let transRows = [];
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+
+                    const date = data.date || "";
+                    const fparty = (data.fparty || "").trim().toLowerCase();
+                    const tparty = (data.tparty || "").trim().toLowerCase();
+                    const party = partyName.trim().toLowerCase(); // Normalized party name for comparison
+
+                    console.log(`--- Processing Doc ID: ${docSnap.id} ---`);
+                    console.log(`Doc Data:`, data);
+                    console.log(`Extracted: date='${date}', fparty='${fparty}', tparty='${tparty}'`);
+                    console.log(`Comparing with party: '${party}'`);
+
+                    // Calculate opening balance
+                    if (date < fromDate) {
+                        console.log(`Date '${date}' is before fromDate '${fromDate}'. Checking for opening balance.`);
+                        if (fparty === party) {
+                            opBal += Number(data.amt || "0");
+                            console.log(`Match fparty for opBal. Current opBal: ${opBal}`);
+                        } else if (tparty === party) {
+                            opBal -= Number(data.amt || "0");
+                            console.log(`Match tparty for opBal. Current opBal: ${opBal}`);
+                        }
+                    } else {
+                        console.log(`Date '${date}' is NOT before fromDate '${fromDate}'.`);
+                    }
+
+                    // Filter transactions between dates
+                    if (
+                        date >= fromDate &&
+                        date <= toDate &&
+                        (fparty === party || tparty === party)
+                    ) {
+                        transRows.push({
+                            Date: formatDate(data.date || ""),
+                            TranType: data.ttype || "",
+                            From: data.fparty || "",
+                            To: data.tparty || "",
+                            Narration: data.nar || "",
+                            Amount: Math.abs(Number(data.amt || "0")).toFixed(0)
+                        });
+                        console.log(`Transaction included in transRows:`, transRows[transRows.length - 1]);
+                    } else {
+                        console.log(`Transaction NOT included in transRows. Conditions:`);
+                        console.log(`  date >= fromDate: ${date >= fromDate}`);
+                        console.log(`  date <= toDate: ${date <= toDate}`);
+                        console.log(`  fparty === party: ${fparty === party}`);
+                        console.log(`  tparty === party: ${tparty === party}`);
+                    }
+                });
+
+                console.log("Khatavahi: Calculated Opening Balance:", opBal);
+                console.log("Khatavahi: Transactions within date range:", transRows);
+
+                let runningBal = opBal;
+                let finalRows = [];
+
+                // Opening balance row
+                let opLabel = "Opening Balance";
+                if (opBal < 0) opLabel += " Dr";
+                else if (opBal > 0) opLabel += " Cr";
+
+                finalRows.push({
+                    Date: "",
+                    TranType: "",
+                    From: opLabel,
+                    To: "",
+                    Narration: "",
+                    Amount: Math.abs(opBal).toFixed(0)
+                });
+
+                // Transaction rows
+                transRows.forEach(tran => {
+                    // Adjust running balance based on transaction type for the specific party
+                    if (tran.From?.toLowerCase() === partyName.toLowerCase()) {
+                        runningBal += Number(tran.Amount);
+                    } else if (tran.To?.toLowerCase() === partyName.toLowerCase()) {
+                        runningBal -= Number(tran.Amount);
+                    }
+                    finalRows.push(tran);
+                });
+
+                // Closing balance row
+                let clLabel = "Closing Balance";
+                if (runningBal < 0) clLabel += " Dr";
+                else if (runningBal > 0) clLabel += " Cr";
+
+                finalRows.push({
+                    Date: "",
+                    TranType: "",
+                    From: clLabel,
+                    To: "",
+                    Narration: "",
+                    Amount: Math.abs(runningBal).toFixed(0)
+                });
+
+                console.log("Khatavahi: Final rows for table:", finalRows);
+                return finalRows;
+
+            } catch (error) {
+                console.error("An error occurred while loading the khatavahi:", error);
+                errorDiv.textContent = "An error occurred while loading the khatavahi: " + error.message;
+                window.showMessageBox("An error occurred while loading the khatavahi.");
+                return null; // Return null to indicate failure
+            }
+        }
+
+        // Function to calculate and return Profit & Loss data
+        async function profit_loss() {
+            const fromDate = document.getElementById("plfromDate").value;
+            const toDate = document.getElementById("pltoDate").value;
+            const closingStock = parseFloat(document.getElementById("closingStock").value || 0);
+            const errorDiv = document.getElementById('profitLossFormError');
+            errorDiv.textContent = '';
+
+            if (!fromDate || !toDate) {
+                errorDiv.textContent = "Please select both From Date and To Date.";
+                window.showMessageBox("Please select both From Date and To Date.");
+                return null;
+            }
+
+            try {
+                const tranCol = collection(db, "tran");
+                const snapshot = await getDocs(tranCol);
+
+                let periodOpeningStock = 0;
+                let totalPurchase = 0;
+                let totalExpense = 0;
+                let totalSales = 0;
+
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const tranDate = data.date || "";
+                    const amount = parseFloat(data.amt || 0);
+                    const ttype = (data.ttype || "").toLowerCase();
+
+                    // Calculate Opening Stock: Sum of all 'Opening Stock' entries whose date is <= fromDate
+                    if (ttype === "opening stock" && tranDate <= fromDate) {
+                        periodOpeningStock += amount;
+                    }
+
+                    // Calculate Purchase, Sales, Expense within the period
+                    if (tranDate >= fromDate && tranDate <= toDate) {
+                        if (ttype === "purchase") {
+                            totalPurchase += amount;
+                        } else if (ttype === "expense") {
+                            totalExpense += amount;
+                        } else if (ttype === "sales") {
+                            totalSales += amount;
+                        }
+                    }
+                });
+
+                const debitTotal = periodOpeningStock + totalPurchase + totalExpense;
+                const creditTotal = totalSales + closingStock;
+                const profit = creditTotal - debitTotal;
+
+                const rows = [
+                    {Description: "Opening Stock", Amount: periodOpeningStock.toFixed(0)},
+                    {Description: "Purchase", Amount: totalPurchase.toFixed(0)},
+                    {Description: "Expense", Amount: totalExpense.toFixed(0)},
+                    {Description: "Total (Op+Pur+Exp)", Amount: debitTotal.toFixed(0)},
+                    {Description: "Sales", Amount: totalSales.toFixed(0)},
+                    {Description: "Closing Stock", Amount: closingStock.toFixed(0)},
+                    {Description: "Total (Sales+Clo)", Amount: creditTotal.toFixed(0)},
+                    {Description: "Profit / Loss", Amount: profit.toFixed(0)},
+                ];
+                console.log("Profit & Loss: Calculated rows:", rows); // Log the calculated rows
+                return rows;
+            } catch (error) {
+                console.error("An error occurred while loading the Profit & Loss:", error);
+                errorDiv.textContent = "An error occurred while loading the Profit & Loss: " + error.message;
+                window.showMessageBox("An error occurred while loading the Profit & Loss.");
+                return null;
+            }
+        }
+
+
+        // Function to load data into the DataTables table
+        window.loadDataIntoTable = async function (reportType = null) { // Added reportType parameter
+            if (dataTableInstance) {
+                dataTableInstance.destroy(); // Destroy existing DataTable instance
+            }
+
+            let data = [];
+            let columnsConfig = [];
+            let columnDefsConfig = [];
+            let orderingEnabled = true; // Default to true for general tables
+
+            // Get thead element
+            const tableHead = $('#tranTable thead');
+            tableHead.empty(); // Clear existing headers
+
+            if (reportType === 'GroupsAndProductsReport') {
+                const snapshot = await getDocs(collection(db, "tran"));
+                snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    const grp = (docData.grp || "").trim();
+                    const name = (docData.name || "").trim();
+                    if ((grp === "Sales Products" || grp === "Purchase Products") && name.length > 0) {
+                        data.push([grp, name]);
+                    }
+                });
+                columnsConfig = [
+                    { title: "Group" },
+                    { title: "Name" }
+                ];
+                // Dynamically add headers
+                let headerRow = '<tr>';
+                columnsConfig.forEach(col => {
+                    headerRow += `<th>${col.title}</th>`;
+                });
+                headerRow += '</tr>';
+                tableHead.append(headerRow);
+
+            } else if (reportType === 'GroupsAndLedgersReport') {
+                const snapshot = await getDocs(collection(db, "tran"));
+                snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    const ttype = (docData.ttype || "").trim();
+                    const grp = (docData.grp || "").trim();
+                    const name = (docData.name || "").trim();
+                    if (ttype === "Opening Balance" && grp.length > 0 && name.length > 0) {
+                        data.push([grp, name]);
+                    }
+                });
+                columnsConfig = [
+                    { title: "Group" },
+                    { title: "Name" }
+                ];
+                // Dynamically add headers
+                let headerRow = '<tr>';
+                columnsConfig.forEach(col => {
+                    headerRow += `<th>${col.title}</th>`;
+                });
+                headerRow += '</tr>';
+                tableHead.append(headerRow);
+
+            } else if (reportType === 'ReceivablesReport') {
+                const receivablesData = await viewReceivables();
+                data = receivablesData.map(item => [item.Party, item.Amount]);
+                columnsConfig = [
+                    { title: "Party" },
+                    { title: "Amount" }
+                ];
+                // Dynamically add headers
+                let headerRow = '<tr>';
+                columnsConfig.forEach(col => {
+                    headerRow += `<th>${col.title}</th>`;
+                });
+                headerRow += '</tr>';
+                tableHead.append(headerRow);
+            } else if (reportType === 'PayablesReport') {
+                const payablesData = await viewPayables();
+                data = payablesData.map(item => [item.Party, item.Amount]);
+                columnsConfig = [
+                    { title: "Party" },
+                    { title: "Amount" }
+                ];
+                // Dynamically add headers
+                let headerRow = '<tr>';
+                columnsConfig.forEach(col => {
+                    headerRow += `<th>${col.title}</th>`;
+                });
+                headerRow += '</tr>';
+                tableHead.append(headerRow);
+            } else if (reportType === 'KhatavahiReport') {
+                const khatavahiData = await khatavahi();
+                if (!khatavahiData) {
+                    // If khatavahi function returned null due to validation error, do not proceed with table
+                    console.log("Khatavahi data is null, not loading table.");
+                    return;
+                }
+                data = khatavahiData.map(item => [
+                    item.Date,
+                    item.TranType,
+                    item.From,
+                    item.To,
+                    item.Narration,
+                    item.Amount
+                ]);
+                columnsConfig = [
+                    { title: "Date" },
+                    { title: "Tran Type" },
+                    { title: "From" },
+                    { title: "To" },
+                    { title: "Narration" },
+                    { title: "Amount" }
+                ];
+                // Dynamically add headers
+                let headerRow = '<tr>';
+                columnsConfig.forEach(col => {
+                    headerRow += `<th>${col.title}</th>`;
+                });
+                headerRow += '</tr>';
+                tableHead.append(headerRow);
+
+                // Hide the khatavahi form and show the table container
+                document.getElementById('khatavahiFormContainer').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'flex';
+                console.log("Khatavahi: Form hidden, Table shown.");
+
+            } else if (reportType === 'ProfitLossReport') {
+                const profitLossData = await profit_loss();
+                console.log("ProfitLossReport: Data received from profit_loss:", profitLossData);
+                if (!profitLossData) {
+                    console.log("Profit & Loss data is null, not loading table.");
+                    return;
+                }
+                data = profitLossData.map(item => [item.Description, item.Amount]);
+                columnsConfig = [
+                    { title: "Description" },
+                    { title: "Amount" }
+                ];
+                // Dynamically add headers
+                let headerRow = '<tr>';
+                columnsConfig.forEach(col => {
+                    headerRow += `<th>${col.title}</th>`;
+                });
+                headerRow += '</tr>';
+                tableHead.append(headerRow);
+
+                // Disable ordering for Profit & Loss report
+                orderingEnabled = false;
+
+                // Hide the profitLoss form and show the table container
+                document.getElementById('profitLossFormContainer').style.display = 'none';
+                document.getElementById('tableContainer').style.display = 'flex';
+                console.log("ProfitLossReport: Form hidden, Table shown.");
+            }
+            else {
+                // Default view (all columns for editable table)
+                const snapshot = await getDocs(collection(db, "tran"));
+                snapshot.forEach(doc => {
+                    const docData = doc.data();
+                    data.push([
+                        String(doc.id), // Index 0
+                        docData.date ? docData.date.split("-")[2] + "-" + docData.date.split("-")[1] + "-" + docData.date.split("-")[0] : '', // Index 1
+                        docData.ttype || '', // Index 2
+                        docData.fparty || '', // Index 3
+                        docData.tparty || '', // Index 4
+                        docData.nar || '', // Index 5
+                        String(docData.amt || ''), // Index 6
+                        docData.grp || '', // Index 7 (Group)
+                        docData.name || '', // Index 8 (Name)
+                        `<button class="delete-btn">🗑️ Delete</button>` // Index 9
+                    ]);
+                });
+
+                columnsConfig = [
+                    { title: "ID" },
+                    { title: "Date" },
+                    { title: "Type" },
+                    { title: "From Party" },
+                    { title: "To Party" },
+                    { title: "Narration" },
+                    { title: "Amount" },
+                    { title: "Group" },
+                    { title: "Name" },
+                    { title: "Actions" }
+                ];
+                columnDefsConfig = [
+                    { visible: false, targets: 0 }, // Hide the ID column
+                    { orderable: false, targets: -1 } // Disable ordering for the Actions column
+                ];
+                // Dynamically add headers for default view
+                let headerRow = '<tr>';
+                columnsConfig.forEach(col => {
+                    headerRow += `<th>${col.title}</th>`;
+                });
+                headerRow += '</tr>';
+                tableHead.append(headerRow);
+            }
+
+            dataTableInstance = $('#tranTable').DataTable({
+                data: data,
+                destroy: true, // Re-initialize if already exists
+                dom: 'Bfrtip',
+                buttons: [
+                    {extend: 'excelHtml5', className: 'buttons-excel'},
+                    {extend: 'pdfHtml5', className: 'buttons-pdf'},
+                    {extend: 'print', className: 'buttons-print'}
+                ],
+                columnDefs: columnDefsConfig,
+                columns: columnsConfig, // Use the specific columns for the report type
+                ordering: orderingEnabled // Apply ordering setting
+            });
+
+            // Remove existing event listeners to prevent duplicates
+            $('#tranTable tbody').off('dblclick');
+            $('#tranTable tbody').off('click', '.delete-btn');
+
+            // Only add editing/deleting functionality for the default 'Update' table
+            if (reportType === null) {
+                // Re-add double-click event for rows only if not a report
+                $('#tranTable tbody').on('dblclick', 'tr', function () {
+                    const rowData = dataTableInstance.row(this).data();
+                    if (!rowData) return;
+
+                    const docId = rowData[0];
+                    const ttype = rowData[2]; // Transaction Type
+
+                    // Store the docId globally for update operations
+                    window.currentDocId = docId;
+
+                    // Populate form based on transaction type
+                    if (["Sales", "Purchase", "Receipt", "Payment"].includes(ttype)) {
+                        window.showTransactionForm(ttype, rowData);
+                    } else if (ttype === "Group") {
+                        window.showGroupForm("Group", rowData);
+                    } else if (ttype === "Opening Stock") {
+                        window.showProductForm("Opening Stock", rowData);
+                    } else if (ttype === "Opening Balance") {
+                        window.showLedgerForm("Opening Balance", rowData);
+                    }
+                });
+
+                // Re-add click event for delete button only if not a report
+                $('#tranTable tbody').on('click', '.delete-btn', async function (event) {
+                    event.stopPropagation(); // Prevent row double-click event from firing
+
+                    const row = dataTableInstance.row($(this).closest('tr'));
+                    const rowData = row.data();
+                    if (!rowData) return;
+
+                    const docId = rowData[0];
+                    const ttype = rowData[2];
+
+                    const deletableTypes = ["Sales", "Purchase", "Receipt", "Payment", "Expense"];
+                    if (!deletableTypes.includes(ttype)) {
+                        window.showMessageBox("Only sales, purchase, receipt, payment, or expense transactions can be deleted.");
+                        return;
+                    }
+
+                    const confirmDelete = await window.showConfirmBox("Are you sure you want to delete this transaction?");
+                    if (!confirmDelete) return;
+
+                    try {
+                        await deleteDoc(doc(db, "tran", docId));
+                        row.remove().draw();
+                        window.showMessageBox("Transaction deleted successfully.");
+                        await loadDropdownData(); // Reload dropdowns if deleted item affected lists
+                        await updateCashLabel(); // Update cash label after deletion
+                    } catch (error) {
+                        console.error("Error deleting document:", error);
+                        window.showMessageBox("Failed to delete the transaction: " + error.message);
+                    }
+                });
+            }
+        };
+
+        // Function to close any currently open modal form
+        window.closeFormModal = function(formContainerId) {
+            const formContainer = document.getElementById(formContainerId);
+            if (formContainer) {
+                formContainer.style.display = 'none';
+                formContainer.classList.remove('modal-overlay'); // Remove modal class
+                window.currentDocId = null; // Reset currentDocId
+            }
+        };
+
+        // Functions to show and populate specific forms for editing (now as modals)
+        window.showTransactionForm = async function(type, rowData) {
+            const formContainer = document.getElementById('salesFormContainer'); // Using sales form for all transaction types for now
+            formContainer.style.display = 'flex';
+            formContainer.classList.add('modal-overlay'); // Make it a modal
+            await loadDropdownData(); // Ensure dropdowns are populated
+
+            const { fList, tList } = getTransactionDropdownLists(type);
+
+            populateDropdown('salesFrom', fList);
+            populateDropdown('salesTo', tList);
+
+            document.getElementById('salesTranType').value = type;
+            document.getElementById('salesDate').value = rowData[1].split("-")[2] + "-" + rowData[1].split("-")[1] + "-" + rowData[1].split("-")[0]; // Convert DD-MM-YYYY to YYYY-MM-DD
+            document.getElementById('salesFrom').value = rowData[3];
+            document.getElementById('salesTo').value = rowData[4];
+            document.getElementById('salesAmount').value = rowData[6];
+            document.getElementById('salesNarration').value = rowData[5];
+        };
+
+        window.showGroupForm = async function(type, rowData) {
+            const formContainer = document.getElementById('groupFormContainer');
+            formContainer.style.display = 'flex';
+            formContainer.classList.add('modal-overlay'); // Make it a modal
+            await loadDropdownData(); // Ensure dropdowns are populated
+
+            document.getElementById('newGroupName').value = rowData[7]; // grp field
+        };
+
+        window.showProductForm = async function(type, rowData) {
+            const formContainer = document.getElementById('productFormContainer');
+            formContainer.style.display = 'flex';
+            formContainer.classList.add('modal-overlay'); // Make it a modal
+            await loadDropdownData(); // Ensure dropdowns are populated
+
+            populateDropdown('productGroupSelect', window.sp_list); // Repopulate to ensure option exists
+            document.getElementById('productGroupSelect').value = rowData[7]; // grp field
+            document.getElementById('newProductName').value = rowData[8]; // name field
+            document.getElementById('productAmount').value = rowData[6]; // amt field
+        };
+
+        window.showLedgerForm = async function(type, rowData) {
+            const formContainer = document.getElementById('ledgerFormContainer');
+            formContainer.style.display = 'flex';
+            formContainer.classList.add('modal-overlay'); // Make it a modal
+            await loadDropdownData(); // Ensure dropdowns are populated
+
+            populateDropdown('ledgerGroupSelect', window.grp_list); // Repopulate to ensure option exists
+            document.getElementById('ledgerGroupSelect').value = rowData[7]; // grp field
+            document.getElementById('newLedgerName').value = rowData[8]; // name field
+
+            // Determine if it's Jama or Khate balance
+            if (rowData[3] === rowData[8]) { // fparty === name (Jama)
+                document.getElementById('oldBalanceJama').value = rowData[6]; // amt field
+                document.getElementById('oldBalanceKhate').value = '';
+            } else if (rowData[4] === rowData[8]) { // tparty === name (Khate)
+                document.getElementById('oldBalanceJama').value = '';
+                document.getElementById('oldBalanceKhate').value = rowData[6]; // amt field
+            } else { // No balance or other type
+                document.getElementById('oldBalanceJama').value = '';
+                document.getElementById('oldBalanceKhate').value = '';
+            }
         };
     </script>
 </body>
