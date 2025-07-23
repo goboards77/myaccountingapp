@@ -2000,12 +2000,12 @@
                 destroy: true, // Re-initialize if already exists
                 autoWidth: false, // Disable auto width calculation
                 // Adjust dom to place buttons after pagination
-                dom: '<"top"lf>rt<"bottom"ipB><"clear">', // l: length changing input, f: filtering input, t: table, i: information, p: pagination, B: buttons
+                dom: '<"top"f>rt<"bottom"ipB><"clear">', // Removed 'l' for length changing input
                 buttons: [
                     {extend: 'excelHtml5', className: 'buttons-excel', text: '📊 Excel'},
                     {extend: 'pdfHtml5', className: 'buttons-pdf', text: '📄 PDF'},
-                    {extend: 'print', className: 'buttons-print', text: '🖨️ Print'},
-                    {extend: 'copyHtml5', className: 'buttons-copy', text: '📋 Copy'} // Added copy button with emoji
+                    {extend: 'print', className: 'buttons-print', text: '🖨️ Print'}
+                    // Removed copyHtml5 button
                 ],
                 columnDefs: columnDefsConfig,
                 columns: columnsConfig, // Use the specific columns for the report type
