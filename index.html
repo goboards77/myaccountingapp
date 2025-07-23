@@ -148,7 +148,7 @@
         }
         .auth-card input, .form-card input, .form-card select, .form-card textarea {
             width: 100%;
-            padding: 0.3rem; /* Further reduced padding */
+            padding: 0.5rem; /* Increased padding for height */
             margin-bottom: 0.3rem; /* Further reduced margin */
             border: 1px solid #ccc;
             border-radius: 0.25rem;
@@ -294,7 +294,7 @@
         .modal-close-button {
             width: 100%; /* Same width as save button */
             padding: 0.75rem; /* Same padding as save button */
-            background-color: #ef4444; /* Red color */
+            background-color: #ef4444 !important; /* Red color, now with !important */
             color: white;
             border-radius: 0.25rem; /* Same border-radius */
             font-weight: 600; /* Same font-weight */
@@ -305,7 +305,7 @@
         }
 
         .modal-close-button:hover {
-            background-color: #dc2626; /* Darker red on hover */
+            background-color: #dc2626 !important; /* Darker red on hover, now with !important */
         }
     </style>
 </head>
@@ -313,7 +313,7 @@
     <nav class="bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg flex justify-start items-center fixed top-0 left-0 w-full z-30 h-16">
         <!-- Main Menu Button (always visible in fixed nav) -->
         <button class="accordion-header" onclick="window.toggleMainAccordion(event)">
-            <span id="cashLabel">Menu</span> <!-- Changed from "Menu" to dynamic cashLabel -->
+            <span id="cashLabel">☰ Menu</span> <!-- Changed from "Menu" to dynamic cashLabel -->
             <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
             </svg>
@@ -328,60 +328,60 @@
                 <!-- Nested Accordion Item: New -->
                 <div class="accordion-sub-item">
                     <button class="accordion-sub-header" onclick="window.toggleSubAccordion(this, 'newContent', event)">
-                        New
+                        ➕ New
                         <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
                     </button>
                     <div id="newContent" class="accordion-sub-content">
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Sales');">Sales</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Purchase');">Purchase</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Receipt');">Receipt</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Payment');">Payment</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('groupFormContainer');">Group</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('productFormContainer');">Product</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('ledgerFormContainer');">Ledger</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Sales');">🛒 Sales</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Purchase');">🧺 Purchase</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Receipt');">💵 Receipt</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('salesFormContainer', 'Payment');">💳 Payment</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('groupFormContainer');">👥 Group</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('productFormContainer');">📦 Product</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('ledgerFormContainer');">📖 Ledger</a>
                     </div>
                 </div>
 
                 <!-- Simple Button: Update -->
                 <button class="accordion-sub-header" onclick="window.handleMenuItemClick('tableContainer');">
-                    Update
+                    ✏️ Update
                 </button>
 
                 <!-- Nested Accordion Item: Reports -->
                 <div class="accordion-sub-item">
                     <button class="accordion-sub-header" onclick="window.toggleSubAccordion(this, 'reportsContent', event)">
-                        Reports
+                        💼 Reports
                         <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
                     </button>
                     <div id="reportsContent" class="accordion-sub-content">
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndProductsReport');">Groups & Products</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndLedgersReport');">Groups & Ledgers</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndProductsReport');">👥 Groups & 📦 Products</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndLedgersReport');">👥 Groups & 📖 Ledgers</a>
                     </div>
                 </div>
 
                 <!-- Nested Accordion Item: Financials -->
                 <div class="accordion-sub-item">
                     <button class="accordion-sub-header" onclick="window.toggleSubAccordion(this, 'financialsContent', event)">
-                        Financials
+                        ⏳ Financials
                         <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
                         </svg>
                     </button>
                     <div id="financialsContent" class="accordion-sub-content">
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'ReceivablesReport');">Receivables</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'PayablesReport');">Payables</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('khatavahiFormContainer');">Khatavahi</a>
-                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('profitLossFormContainer');">Profit & Loss</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'ReceivablesReport');">💵 Receivables</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('tableContainer', 'PayablesReport');">💳 Payables</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('khatavahiFormContainer');">⏳ Khatavahi</a>
+                        <a href="javascript:void(0)" class="dropdown-item" onclick="window.handleMenuItemClick('profitLossFormContainer');">📈 Profit & 📉 Loss</a>
                     </div>
                 </div>
 
                 <!-- Simple Button: Logout -->
                 <button class="accordion-sub-header logout-button" onclick="window.logout(); window.showMessageBox('Logged out!');">
-                    Logout
+                    🔐 Logout
                 </button>
             </div>
         </div>
@@ -392,31 +392,31 @@
                 <h2 class="text-2xl font-bold mb-4 text-center">Sales Transaction</h2>
                 <div class="form-group">
                     <label for="salesTranType">Transaction Type</label>
-                    <input type="text" id="salesTranType" value="Sales" disabled class="bg-gray-100 cursor-not-allowed">
+                    <input type="text" id="salesTranType" value="Sales" disabled class="bg-gray-100 cursor-not-allowed" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="salesDate">Date</label>
-                    <input type="date" id="salesDate" class="date-input">
+                    <input type="date" id="salesDate" class="date-input" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="salesFrom">From</label>
-                    <select id="salesFrom">
+                    <select id="salesFrom" autocomplete="off">
                         <option value="">Select Product</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="salesTo">To</label>
-                    <select id="salesTo">
+                    <select id="salesTo" autocomplete="off">
                         <option value="">Select Creditor/Debitor</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="salesAmount">Amount</label>
-                    <input type="number" id="salesAmount" placeholder="Enter amount">
+                    <input type="number" id="salesAmount" placeholder="Enter amount" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="salesNarration">Narration</label>
-                    <textarea id="salesNarration" rows="3" placeholder="Enter narration (optional)"></textarea>
+                    <textarea id="salesNarration" rows="3" placeholder="Enter narration (optional)" autocomplete="off"></textarea>
                 </div>
                 <button onclick="window.saveSalesTransaction()">Save Transaction</button>
                 <button class="modal-close-button" onclick="window.closeFormModal('salesFormContainer')">Close</button>
@@ -430,7 +430,7 @@
                 <h2 class="text-2xl font-bold mb-4 text-center">New Group</h2>
                 <div class="form-group">
                     <label for="newGroupName">Group Name</label>
-                    <input type="text" id="newGroupName" placeholder="Enter new group name">
+                    <input type="text" id="newGroupName" placeholder="Enter new group name" autocomplete="off">
                 </div>
                 <button onclick="window.saveGroup()">Save Group</button>
                 <button class="modal-close-button" onclick="window.closeFormModal('groupFormContainer')">Close</button>
@@ -444,17 +444,17 @@
                 <h2 class="text-2xl font-bold mb-4 text-center">New Product</h2>
                 <div class="form-group">
                     <label for="productGroupSelect">Select Group</label>
-                    <select id="productGroupSelect">
+                    <select id="productGroupSelect" autocomplete="off">
                         <option value="">Select Group</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="newProductName">New Product Name</label>
-                    <input type="text" id="newProductName" placeholder="Enter new product name">
+                    <input type="text" id="newProductName" placeholder="Enter new product name" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="productAmount">Amount (Optional)</label>
-                    <input type="number" id="productAmount" placeholder="Enter amount">
+                    <input type="number" id="productAmount" placeholder="Enter amount" autocomplete="off">
                 </div>
                 <button onclick="window.saveProduct()">Save Product</button>
                 <button class="modal-close-button" onclick="window.closeFormModal('productFormContainer')">Close</button>
@@ -468,21 +468,21 @@
                 <h2 class="text-2xl font-bold mb-4 text-center">New Ledger</h2>
                 <div class="form-group">
                     <label for="ledgerGroupSelect">Select Group</label>
-                    <select id="ledgerGroupSelect">
+                    <select id="ledgerGroupSelect" autocomplete="off">
                         <option value="">Select Group</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="newLedgerName">New Ledger Name</label>
-                    <input type="text" id="newLedgerName" placeholder="Enter new ledger name">
+                    <input type="text" id="newLedgerName" placeholder="Enter new ledger name" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="oldBalanceJama">Old Balance Jama</label>
-                    <input type="number" id="oldBalanceJama" placeholder="Enter Old Balance Jama">
+                    <input type="number" id="oldBalanceJama" placeholder="Enter Old Balance Jama" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="oldBalanceKhate">Old Balance Khate</label>
-                    <input type="number" id="oldBalanceKhate" placeholder="Enter Old Balance Khate">
+                    <input type="number" id="oldBalanceKhate" placeholder="Enter Old Balance Khate" autocomplete="off">
                 </div>
                 <button onclick="window.saveLedger()">Save Ledger</button>
                 <button class="modal-close-button" onclick="window.closeFormModal('ledgerFormContainer')">Close</button>
@@ -496,15 +496,15 @@
                 <h2 class="text-2xl font-bold mb-4 text-center">Khatavahi Report</h2>
                 <div class="form-group">
                     <label for="kfromDate">From Date</label>
-                    <input type="date" id="kfromDate" class="date-input">
+                    <input type="date" id="kfromDate" class="date-input" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="ktoDate">To Date</label>
-                    <input type="date" id="ktoDate" class="date-input">
+                    <input type="date" id="ktoDate" class="date-input" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="kparty">Party Name</label>
-                    <select id="kparty">
+                    <select id="kparty" autocomplete="off">
                         <option value="">Select Party</option>
                     </select>
                 </div>
@@ -520,15 +520,15 @@
                 <h2 class="text-2xl font-bold mb-4 text-center">Profit & Loss Statement</h2>
                 <div class="form-group">
                     <label for="plfromDate">From Date</label>
-                    <input type="date" id="plfromDate" class="date-input">
+                    <input type="date" id="plfromDate" class="date-input" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="pltoDate">To Date</label>
-                    <input type="date" id="pltoDate" class="date-input">
+                    <input type="date" id="pltoDate" class="date-input" autocomplete="off">
                 </div>
                 <div class="form-group">
                     <label for="closingStock">Closing Stock</label>
-                    <input type="number" id="closingStock" placeholder="Enter closing stock amount">
+                    <input type="number" id="closingStock" placeholder="Enter closing stock amount" autocomplete="off">
                 </div>
                 <button onclick="window.loadDataIntoTable('ProfitLossReport')">View Profit & Loss</button>
                 <button class="modal-close-button" onclick="window.closeFormModal('profitLossFormContainer')">Close</button>
@@ -546,8 +546,8 @@
         <div id="loginContainer" class="auth-container">
             <div class="auth-card">
                 <h2 class="text-2xl font-bold mb-4">Login</h2>
-                <input type="email" id="loginEmail" placeholder="Email" class="mb-4 p-2 border rounded w-full">
-                <input type="password" id="loginPassword" placeholder="Password" class="mb-4 p-2 border rounded w-full">
+                <input type="email" id="loginEmail" placeholder="Email" class="mb-4 p-2 border rounded w-full" autocomplete="off">
+                <input type="password" id="loginPassword" placeholder="Password" class="mb-4 p-2 border rounded w-full" autocomplete="off">
                 <button onclick="window.login()">Login</button>
                 <p class="text-sm mt-4">Don't have an account? <a href="javascript:void(0)" class="text-indigo-600 hover:underline" onclick="window.showRegister()">Register here</a></p>
                 <div id="loginError" class="error-message"></div>
@@ -558,8 +558,8 @@
         <div id="registerContainer" style="display: none;" class="auth-container">
             <div class="auth-card">
                 <h2 class="text-2xl font-bold mb-4">Register</h2>
-                <input type="email" id="registerEmail" placeholder="Email" class="mb-4 p-2 border rounded w-full">
-                <input type="password" id="registerPassword" placeholder="Password" class="mb-4 p-2 border rounded w-full">
+                <input type="email" id="registerEmail" placeholder="Email" class="mb-4 p-2 border rounded w-full" autocomplete="off">
+                <input type="password" id="registerPassword" placeholder="Password" class="mb-4 p-2 border rounded w-full" autocomplete="off">
                 <button onclick="window.register()">Register</button>
                 <p class="text-sm mt-4">Already have an account? <a href="javascript:void(0)" class="text-indigo-600 hover:underline" onclick="window.showLogin()">Login here</a></p>
                 <div id="registerError" class="error-message"></div>
@@ -619,7 +619,7 @@
             signOut
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import {
-            getFirestore, collection, getDocs, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc
+            getFirestore, collection, getDocs, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc, writeBatch
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -638,6 +638,7 @@
         let dataTableInstance = null; // Global variable to hold the DataTables instance
         let firestoreData = []; // To store original data and track changes
         window.currentDocId = null; // Global variable to store the document ID for editing
+        window.originalEditingValue = null; // Global variable to store the original name/group during editing
 
         // Global lists for dropdowns (populated by loadDropdownData)
         window.sproduct_list = [];
@@ -685,6 +686,7 @@
             // Also hide the main accordion menu container
             document.getElementById("mainAccordionMenu").style.display = "none";
             window.currentDocId = null; // Always reset currentDocId when changing screens
+            window.originalEditingValue = null; // Reset original editing value
         }
 
         // Show login screen
@@ -713,7 +715,6 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                console.log("Login successful");
                 // onAuthStateChanged will handle showing mainContainer
             } catch (error) {
                 errorDiv.textContent = error.message;
@@ -734,7 +735,6 @@
 
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
-                console.log("Registration successful");
                 // onAuthStateChanged will handle showing mainContainer
             } catch (error) {
                 errorDiv.textContent = error.message;
@@ -744,7 +744,6 @@
         // Logout
         window.logout = async function () {
             await signOut(auth);
-            console.log("User logged out");
             // onAuthStateChanged will handle showing loginContainer
         };
 
@@ -754,14 +753,12 @@
                 // User is signed in
                 clearScreen(); // Clear all content screens
                 // Do NOT show mainContainer by default, user will select from menu
-                console.log("User is logged in:", user.uid);
                 await loadDropdownData(); // Load dropdown data after login
                 await updateCashLabel(); // Update cash label after login and data load
             } else {
                 // User is signed out
                 clearScreen(); // Clear all content screens
                 document.getElementById("loginContainer").style.display = "flex"; // Show login screen
-                console.log("User is logged out.");
                 document.getElementById("cashLabel").textContent = "Menu"; // Reset label on logout
             }
         });
@@ -882,16 +879,7 @@
                 window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
                 window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
 
-                console.log("Dropdown data loaded:", {
-                    sproduct_list: window.sproduct_list,
-                    crdb_list: window.crdb_list,
-                    crdbcsbkangexp_list: window.crdbcsbkangexp_list,
-                    grp_list: window.grp_list,
-                    sp_list: window.sp_list,
-                    allnames_list: window.allnames_list // Log allnames_list as well
-                });
             } catch (error) {
-                console.error("Error loading dropdown data:", error);
                 window.showMessageBox("Error loading dropdown data: " + error.message);
             }
         }
@@ -900,7 +888,6 @@
         function populateDropdown(selectElementId, dataList) {
             const selectElement = document.getElementById(selectElementId);
             if (!selectElement) {
-                console.warn(`Dropdown element with ID '${selectElementId}' not found.`);
                 return;
             }
             selectElement.innerHTML = '<option value="">Select...</option>'; // Clear existing options and add default
@@ -911,6 +898,63 @@
                 selectElement.appendChild(option);
             });
         }
+
+        /**
+         * Updates references in the 'tran' collection when a group, product, or ledger name changes.
+         * @param {string} oldValue The old name/group value.
+         * @param {string} newValue The new name/group value.
+         * @param {string} fieldType 'grp' for group name, 'name' for product/ledger name.
+         */
+        async function updateReferences(oldValue, newValue, fieldType) {
+            if (oldValue === newValue) return; // No change needed
+
+            const batch = writeBatch(db);
+            const tranColRef = collection(db, "tran");
+
+            try {
+                if (fieldType === 'grp') {
+                    // Update 'grp' field in all documents where it matches oldValue
+                    const q = query(tranColRef, where("grp", "==", oldValue));
+                    const snapshot = await getDocs(q);
+                    snapshot.forEach(docSnap => {
+                        batch.update(doc(db, "tran", docSnap.id), { grp: newValue });
+                    });
+                } else if (fieldType === 'name') {
+                    // Update 'name', 'fparty', or 'tparty' fields where they match oldValue
+                    // Due to Firestore query limitations (no OR across different fields), we query each field separately
+                    const nameQuery = query(tranColRef, where("name", "==", oldValue));
+                    const fpartyQuery = query(tranColRef, where("fparty", "==", oldValue));
+                    const tpartyQuery = query(tranColRef, where("tparty", "==", oldValue));
+
+                    const [nameSnapshot, fpartySnapshot, tpartySnapshot] = await Promise.all([
+                        getDocs(nameQuery),
+                        getDocs(fpartyQuery),
+                        getDocs(tpartyQuery)
+                    ]);
+
+                    const docsToUpdate = new Map(); // Use a Map to store unique docRefs and their updates
+
+                    nameSnapshot.forEach(docSnap => {
+                        docsToUpdate.set(docSnap.id, { ...docsToUpdate.get(docSnap.id), name: newValue });
+                    });
+                    fpartySnapshot.forEach(docSnap => {
+                        docsToUpdate.set(docSnap.id, { ...docsToUpdate.get(docSnap.id), fparty: newValue });
+                    });
+                    tpartySnapshot.forEach(docSnap => {
+                        docsToUpdate.set(docSnap.id, { ...docsToUpdate.get(docSnap.id), tparty: newValue });
+                    });
+
+                    docsToUpdate.forEach((updateData, docId) => {
+                        batch.update(doc(db, "tran", docId), updateData);
+                    });
+                }
+
+                await batch.commit();
+            } catch (error) {
+                window.showMessageBox(`Error updating related records: ${error.message}`);
+            }
+        }
+
 
         // Function to save Sales transaction
         window.saveSalesTransaction = async function() {
@@ -975,7 +1019,6 @@
                 await updateCashLabel(); // Update cash label after transaction
                 // Removed: window.closeFormModal('salesFormContainer'); // Do not close modal for transactions
             } catch (error) {
-                console.error("Error saving/updating transaction:", error);
                 errorDiv.textContent = "Error saving/updating transaction: " + error.message;
                 window.showMessageBox("Error saving/updating transaction: " + error.message);
             }
@@ -1005,7 +1048,14 @@
                 if (docId) {
                     // Update existing document
                     const docRef = doc(db, "tran", docId);
-                    await updateDoc(docRef, groupData);
+
+                    const oldGroupName = window.originalEditingValue; // Get original value
+                    await updateDoc(docRef, groupData); // Update the group document itself
+
+                    // If group name changed, update all references
+                    if (oldGroupName && oldGroupName !== newGroupName) {
+                        await updateReferences(oldGroupName, newGroupName, 'grp');
+                    }
                     window.showMessageBox(`Group '${newGroupName}' updated successfully!`);
                 } else {
                     // Add new document
@@ -1024,15 +1074,15 @@
                 newGroupNameInput.value = ''; // Clear input
                 errorDiv.textContent = ''; // Clear error
                 window.currentDocId = null; // Reset docId
+                window.originalEditingValue = null; // Reset original editing value
                 await loadDropdownData(); // Reload dropdown data
                 // Always reload table if it's currently visible (i.e., we were editing from it)
                 if (document.getElementById('tableContainer').style.display === 'flex') {
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after group creation
-                window.closeFormModal('groupFormContainer'); // Close modal after save/update
+                // Removed: window.closeFormModal('groupFormContainer'); // Do not close modal
             } catch (error) {
-                console.error("Error saving/updating group:", error);
                 errorDiv.textContent = "Error saving/updating group: " + error.message;
                 window.showMessageBox("Error saving/updating group: " + error.message);
             }
@@ -1049,7 +1099,6 @@
 
             // Defensive checks for null elements
             if (!productGroupSelect || !newProductNameInput || !productAmountInput) {
-                console.error("Error: One or more product form elements not found.");
                 errorDiv.textContent = "An internal error occurred. Please try again.";
                 window.showMessageBox("An internal error occurred. Please try again.");
                 return;
@@ -1083,7 +1132,14 @@
                 if (docId) {
                     // Update existing document
                     const docRef = doc(db, "tran", docId);
-                    await updateDoc(docRef, productData);
+
+                    const oldProductName = window.originalEditingValue; // Get original value
+                    await updateDoc(docRef, productData); // Update the product document itself
+
+                    // If product name changed, update all references
+                    if (oldProductName && oldProductName !== newProductName) {
+                        await updateReferences(oldProductName, newProductName, 'name');
+                    }
                     window.showMessageBox(`Product '${newProductName}' updated successfully!`);
                 } else {
                     // Add new document
@@ -1105,15 +1161,15 @@
                 productAmountInput.value = '';
                 errorDiv.textContent = ''; // Clear any previous errors
                 window.currentDocId = null; // Reset docId
+                window.originalEditingValue = null; // Reset original editing value
                 await loadDropdownData(); // Reload dropdown data
                 // Always reload table if it's currently visible (i.e., we were editing from it)
                 if (document.getElementById('tableContainer').style.display === 'flex') {
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after product creation
-                window.closeFormModal('productFormContainer'); // Close modal after save/update
+                // Removed: window.closeFormModal('productFormContainer'); // Do not close modal
             } catch (error) {
-                console.error("Error saving/updating product:", error);
                 errorDiv.textContent = "Error saving/updating product: " + error.message;
                 window.showMessageBox("Error saving/updating product: " + error.message);
             }
@@ -1132,7 +1188,6 @@
 
             // Defensive checks for null elements
             if (!ledgerGroupSelect || !newLedgerNameInput || !oldBalanceJamaInput || !oldBalanceKhateInput) {
-                console.error("Error: One or more ledger form elements not found.");
                 errorDiv.textContent = "An internal error occurred. Please try again.";
                 window.showMessageBox("An internal error occurred. Please try again.");
                 return;
@@ -1187,7 +1242,14 @@
                 if (docId) {
                     // Update existing document
                     const docRef = doc(db, "tran", docId);
-                    await updateDoc(docRef, ledgerData);
+
+                    const oldLedgerName = window.originalEditingValue; // Get original value
+                    await updateDoc(docRef, ledgerData); // Update the ledger document itself
+
+                    // If ledger name changed, update all references
+                    if (oldLedgerName && oldLedgerName !== newLedgerName) {
+                        await updateReferences(oldLedgerName, newLedgerName, 'name');
+                    }
                     window.showMessageBox(`Ledger '${newLedgerName}' updated successfully!`);
                 } else {
                     // Add new document
@@ -1210,15 +1272,15 @@
                 oldBalanceKhateInput.value = '';
                 errorDiv.textContent = ''; // Clear any previous errors
                 window.currentDocId = null; // Reset docId
+                window.originalEditingValue = null; // Reset original editing value
                 await loadDropdownData(); // Reload dropdown data
                 // Always reload table if it's currently visible (i.e., we were editing from it)
                 if (document.getElementById('tableContainer').style.display === 'flex') {
                     await loadDataIntoTable();
                 }
                 await updateCashLabel(); // Update cash label after ledger creation
-                window.closeFormModal('ledgerFormContainer'); // Close modal after save/update
+                // Removed: window.closeFormModal('ledgerFormContainer'); // Do not close modal
             } catch (error) {
-                console.error("Error saving/updating ledger:", error);
                 errorDiv.textContent = "Error saving/updating ledger: " + error.message;
                 window.showMessageBox("Error saving/updating ledger: " + error.message);
             }
@@ -1243,7 +1305,7 @@
             });
 
             const balance = inflow - outflow;
-            document.getElementById("cashLabel").textContent = `Cash: ₹${balance.toFixed(0)}`;
+            document.getElementById("cashLabel").textContent = `☰ Cash: ₹${balance.toFixed(0)}`;
         }
 
 
@@ -1569,12 +1631,9 @@
             const errorDiv = document.getElementById('khatavahiFormError');
             errorDiv.textContent = '';
 
-            console.log("Khatavahi: Input fromDate:", fromDate, "toDate:", toDate, "partyName:", partyName);
-
             if (!fromDate || !toDate || !partyName) {
                 errorDiv.textContent = "Please select both dates and party.";
                 window.showMessageBox("Please select both dates and party.");
-                console.log("Khatavahi: Validation failed - missing dates or party name.");
                 return null; // Return null to indicate failure
             }
 
@@ -1592,23 +1651,13 @@
                     const tparty = (data.tparty || "").trim().toLowerCase();
                     const party = partyName.trim().toLowerCase(); // Normalized party name for comparison
 
-                    console.log(`--- Processing Doc ID: ${docSnap.id} ---`);
-                    console.log(`Doc Data:`, data);
-                    console.log(`Extracted: date='${date}', fparty='${fparty}', tparty='${tparty}'`);
-                    console.log(`Comparing with party: '${party}'`);
-
                     // Calculate opening balance
                     if (date < fromDate) {
-                        console.log(`Date '${date}' is before fromDate '${fromDate}'. Checking for opening balance.`);
                         if (fparty === party) {
                             opBal += Number(data.amt || "0");
-                            console.log(`Match fparty for opBal. Current opBal: ${opBal}`);
                         } else if (tparty === party) {
                             opBal -= Number(data.amt || "0");
-                            console.log(`Match tparty for opBal. Current opBal: ${opBal}`);
                         }
-                    } else {
-                        console.log(`Date '${date}' is NOT before fromDate '${fromDate}'.`);
                     }
 
                     // Filter transactions between dates
@@ -1625,18 +1674,9 @@
                             Narration: data.nar || "",
                             Amount: Math.abs(Number(data.amt || "0")).toFixed(0)
                         });
-                        console.log(`Transaction included in transRows:`, transRows[transRows.length - 1]);
-                    } else {
-                        console.log(`Transaction NOT included in transRows. Conditions:`);
-                        console.log(`  date >= fromDate: ${date >= fromDate}`);
-                        console.log(`  date <= toDate: ${date <= toDate}`);
-                        console.log(`  fparty === party: ${fparty === party}`);
-                        console.log(`  tparty === party: ${tparty === party}`);
                     }
                 });
 
-                console.log("Khatavahi: Calculated Opening Balance:", opBal);
-                console.log("Khatavahi: Transactions within date range:", transRows);
 
                 let runningBal = opBal;
                 let finalRows = [];
@@ -1680,11 +1720,9 @@
                     Amount: Math.abs(runningBal).toFixed(0)
                 });
 
-                console.log("Khatavahi: Final rows for table:", finalRows);
                 return finalRows;
 
             } catch (error) {
-                console.error("An error occurred while loading the khatavahi:", error);
                 errorDiv.textContent = "An error occurred while loading the khatavahi: " + error.message;
                 window.showMessageBox("An error occurred while loading the khatavahi.");
                 return null; // Return null to indicate failure
@@ -1751,10 +1789,8 @@
                     {Description: "Total (Sales+Clo)", Amount: creditTotal.toFixed(0)},
                     {Description: "Profit / Loss", Amount: profit.toFixed(0)},
                 ];
-                console.log("Profit & Loss: Calculated rows:", rows); // Log the calculated rows
                 return rows;
             } catch (error) {
-                console.error("An error occurred while loading the Profit & Loss:", error);
                 errorDiv.textContent = "An error occurred while loading the Profit & Loss: " + error.message;
                 window.showMessageBox("An error occurred while loading the Profit & Loss.");
                 return null;
@@ -1859,8 +1895,6 @@
             } else if (reportType === 'KhatavahiReport') {
                 const khatavahiData = await khatavahi();
                 if (!khatavahiData) {
-                    // If khatavahi function returned null due to validation error, do not proceed with table
-                    console.log("Khatavahi data is null, not loading table.");
                     return;
                 }
                 data = khatavahiData.map(item => [
@@ -1891,13 +1925,10 @@
                 // Hide the khatavahi form and show the table container
                 document.getElementById('khatavahiFormContainer').style.display = 'none';
                 document.getElementById('tableContainer').style.display = 'flex';
-                console.log("Khatavahi: Form hidden, Table shown.");
 
             } else if (reportType === 'ProfitLossReport') {
                 const profitLossData = await profit_loss();
-                console.log("ProfitLossReport: Data received from profit_loss:", profitLossData);
                 if (!profitLossData) {
-                    console.log("Profit & Loss data is null, not loading table.");
                     return;
                 }
                 data = profitLossData.map(item => [item.Description, item.Amount]);
@@ -1920,7 +1951,6 @@
                 // Hide the profitLoss form and show the table container
                 document.getElementById('profitLossFormContainer').style.display = 'none';
                 document.getElementById('tableContainer').style.display = 'flex';
-                console.log("ProfitLossReport: Form hidden, Table shown.");
             }
             else {
                 // Default view (all columns for editable table)
@@ -2037,7 +2067,6 @@
                         await loadDropdownData(); // Reload dropdowns if deleted item affected lists
                         await updateCashLabel(); // Update cash label after deletion
                     } catch (error) {
-                        console.error("Error deleting document:", error);
                         window.showMessageBox("Failed to delete the transaction: " + error.message);
                     }
                 });
@@ -2051,6 +2080,7 @@
                 formContainer.style.display = 'none';
                 formContainer.classList.remove('modal-overlay'); // Remove modal class
                 window.currentDocId = null; // Reset currentDocId
+                window.originalEditingValue = null; // Reset original editing value
             }
         };
 
@@ -2072,6 +2102,7 @@
             document.getElementById('salesTo').value = rowData[4];
             document.getElementById('salesAmount').value = rowData[6];
             document.getElementById('salesNarration').value = rowData[5];
+            window.originalEditingValue = null; // Transactions don't have a single "name" to track for global updates
         };
 
         window.showGroupForm = async function(type, rowData) {
@@ -2081,6 +2112,7 @@
             await loadDropdownData(); // Ensure dropdowns are populated
 
             document.getElementById('newGroupName').value = rowData[7]; // grp field
+            window.originalEditingValue = rowData[7]; // Store original group name
         };
 
         window.showProductForm = async function(type, rowData) {
@@ -2093,6 +2125,7 @@
             document.getElementById('productGroupSelect').value = rowData[7]; // grp field
             document.getElementById('newProductName').value = rowData[8]; // name field
             document.getElementById('productAmount').value = rowData[6]; // amt field
+            window.originalEditingValue = rowData[8]; // Store original product name
         };
 
         window.showLedgerForm = async function(type, rowData) {
@@ -2116,6 +2149,7 @@
                 document.getElementById('oldBalanceJama').value = '';
                 document.getElementById('oldBalanceKhate').value = '';
             }
+            window.originalEditingValue = rowData[8]; // Store original ledger name
         };
     </script>
 </body>
