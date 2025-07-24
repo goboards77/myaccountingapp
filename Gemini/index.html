@@ -654,9 +654,9 @@
         }
 
         function capitalizeWords(str) {
-            return str.replace(/\b\w/g, char => char.toUpperCase());
             const narration = document.getElementById('salesNarration').value;
             capitalizeWords(narration);
+            return str.replace(/\b\w/g, char => char.toUpperCase());
         }
 
         function formatDate(dateString) {
