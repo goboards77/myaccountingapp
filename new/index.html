@@ -1,85 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8"/>
-    <title>Fixed Menu with Forms</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fixed Menu with Forms</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="m-0 p-0 bg-gray-100 pt-[56px]" x-data="{ open: false, activeForm: '' }">
 
-<button @click="open = !open" class="fixed top-0 left-0 w-full bg-blue-600 text-white px-6 py-4 text-2xl text-left hover:bg-blue-700 z-50">☰</button>
+<body class="bg-gray-100 pt-[56px] text-sm sm:text-base" x-data="{ open: false, activeForm: '' }">
+  <button
+    @click="open = !open"
+    class="fixed top-0 left-0 w-full bg-blue-600 text-white px-4 py-3 sm:py-4 text-lg sm:text-2xl text-left hover:bg-blue-700 z-50"
+  >☰</button>
 
-<div @click.away="open = false" class="fixed top-[56px] left-0 w-full bg-white shadow-md border-t z-40 flex flex-col" x-show="open" x-transition>
-    <button @click="open = false; activeForm = 'tran'; console.log('Transaction button clicked, activeForm set to tran!');" class="text-left px-6 py-3 mt-4 hover:bg-blue-100">💰 Transaction</button>
-    <button @click="open = false; activeForm = 'ledger'" class="text-left px-6 py-3 hover:bg-blue-100">📒 Ledger</button>
-    <button @click="open = false; activeForm = 'daybook'" class="text-left px-6 py-3 hover:bg-blue-100">👁️ Daybook</button>
-    <button @click="open = false; activeForm = 'accounts'" class="text-left px-6 py-3 hover:bg-blue-100">📂 View Accounts</button>
-    <button @click="open = false; activeForm = 'receivables'" class="text-left px-6 py-3 hover:bg-blue-100">📥 View Receivables</button>
-    <button @click="open = false; activeForm = 'payables'" class="text-left px-6 py-3 hover:bg-blue-100">📤 View Payables</button>
-    <button @click="open = false; activeForm = 'khatavahi'" class="text-left px-6 py-3 hover:bg-blue-100">🧾 Khatavahi</button>
-    <button @click="open = false; activeForm = 'pl'" class="text-left px-6 py-3 hover:bg-blue-100">📊 Profit & Loss</button>
-    <button @click="open = false; logout()" class="text-left px-6 py-3 hover:bg-blue-100">🔐 Logout</button>
-</div>
+  <div
+    @click.away="open = false"
+    class="fixed top-[56px] left-0 w-full bg-white shadow-md border-t z-40 flex flex-col"
+    x-show="open"
+    x-transition
+  >
+    <template x-for="item in [
+      { label: '💰 Transaction', key: 'tran' },
+      { label: '📒 Ledger', key: 'ledger' },
+      { label: '👁️ Daybook', key: 'daybook' },
+      { label: '📂 View Accounts', key: 'accounts' },
+      { label: '📥 View Receivables', key: 'receivables' },
+      { label: '📤 View Payables', key: 'payables' },
+      { label: '🧾 Khatavahi', key: 'khatavahi' },
+      { label: '📊 Profit & Loss', key: 'pl' }
+    ]">
+      <button
+        @click="open = false; activeForm = item.key"
+        class="text-left px-4 py-3 hover:bg-blue-100 text-base"
+        x-text="item.label"
+      ></button>
+    </template>
+    <button @click="open = false; logout()" class="text-left px-4 py-3 hover:bg-blue-100 text-base">🔐 Logout</button>
+  </div>
 
-<div class="pt-20 px-4">
-    <div id="loginContainer" style="display: none;">
-        <h2>Login</h2>
-        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="loginEmail" placeholder="Email" type="email">
-        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="loginPassword" placeholder="Password" type="password">
-        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-800 text-white rounded" onclick="window.login()">Login</button>
-        <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+  <div class="pt-6 sm:pt-10 px-4 max-w-lg mx-auto">
+    <div id="loginContainer" class="space-y-3" style="display: none;">
+      <h2 class="text-xl font-semibold">Login</h2>
+      <input class="w-full px-3 py-2 border rounded" id="loginEmail" placeholder="Email" type="email" />
+      <input class="w-full px-3 py-2 border rounded" id="loginPassword" placeholder="Password" type="password" />
+      <button class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-800 text-white rounded" onclick="window.login()">Login</button>
+      <a href="#" onclick="event.preventDefault(); showRegister();" class="text-blue-600 underline">Don’t have an account? Register</a>
     </div>
 
-    <div id="registerContainer" style="display:none;">
-        <h2>Register</h2>
-        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="registerEmail" placeholder="Email" type="email">
-        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="registerPassword" placeholder="Password" type="password">
-        <button class="px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded" onclick="window.register()">Register</button>
-        <a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
+    <div id="registerContainer" class="space-y-3" style="display:none;">
+      <h2 class="text-xl font-semibold">Register</h2>
+      <input class="w-full px-3 py-2 border rounded" id="registerEmail" placeholder="Email" type="email" />
+      <input class="w-full px-3 py-2 border rounded" id="registerPassword" placeholder="Password" type="password" />
+      <button class="w-full px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded" onclick="window.register()">Register</button>
+      <a href="#" onclick="event.preventDefault(); showLogin();" class="text-blue-600 underline">Already have an account? Login</a>
     </div>
 
-    <div class="widget-area p-4 mt-4" x-show="activeForm" x-transition>
+    <div class="widget-area mt-6 space-y-6" x-show="activeForm" x-transition>
+      <div class="bg-white p-4 sm:p-6 rounded shadow space-y-4" x-show="activeForm === 'tran'" x-init="setTimeout(async () => {
+          await window.loadDropdownData();
+          window.populateDropdown('tranFrom', window.names_list);
+          window.populateDropdown('tranTo', window.names_list);
+      }, 0)">
+        <input class="w-full border rounded px-3 py-2" id="tranDate" type="date" />
+        <select class="w-full border rounded px-3 py-2" id="tranFrom"></select>
+        <select class="w-full border rounded px-3 py-2" id="tranTo"></select>
+        <input class="w-full border rounded px-3 py-2" id="tranAmt" placeholder="₹" type="number" />
+        <textarea class="w-full border rounded px-3 py-2" id="tranNar" placeholder="Narration..." rows="3"></textarea>
+        <button class="w-full bg-green-600 text-white px-4 py-2 rounded" onclick="window.saveTran()">💾 Save</button>
+      </div>
 
-        <div class="w-full max-w-md mx-auto mt-6 p-6 bg-white shadow rounded"
-             x-show="activeForm === 'tran'"
-             x-transition
-             x-init="setTimeout(async () => {
-                         await window.loadDropdownData();
-                         window.populateDropdown('tranFrom', window.names_list);
-                         window.populateDropdown('tranTo', window.names_list);
-                     }, 0)">
-            <input class="w-full border rounded px-3 py-2" id="tranDate" type="date"/><br><br>
-            <select class="w-full border rounded px-3 py-2" id="tranFrom"></select><br><br>
-            <select class="w-full border rounded px-3 py-2" id="tranTo"></select><br><br>
-            <input class="w-full border rounded px-3 py-2" id="tranAmt" placeholder="₹" type="number"/><br><br>
-            <textarea class="w-full border rounded px-3 py-2" id="tranNar" placeholder="Narration..." rows="3"></textarea><br><br>
-            <button class="w-full bg-green-600 text-white px-4 py-2 rounded" id="tranSave" onclick="window.saveTran()">💾 Save</button>
-        </div>
-
-        <div class="w-full max-w-md mx-auto mt-6 p-6 bg-white shadow rounded" x-show="activeForm === 'ledger'" x-transition>
-            <h2 class="text-xl font-semibold mb-4">📒 Ledger Entry</h2>
-            <input class="w-full border rounded px-3 py-2" id="ledgerName" placeholder="Ledger Name" type="text"/><br><br>
-            <button class="w-full bg-blue-600 text-white px-4 py-2 rounded" id="ledgerSave" onclick="window.saveLedger()">💾 Save</button>
-        </div>
+      <div class="bg-white p-4 sm:p-6 rounded shadow space-y-4" x-show="activeForm === 'ledger'">
+        <h2 class="text-lg font-semibold">📒 Ledger Entry</h2>
+        <input class="w-full border rounded px-3 py-2" id="ledgerName" placeholder="Ledger Name" type="text" />
+        <button class="w-full bg-blue-600 text-white px-4 py-2 rounded" onclick="window.saveLedger()">💾 Save</button>
+      </div>
     </div>
 
-    <div id="tableWrapper" style="display:none">
-        <table class="display nowrap border border-gray-400 w-full" id="tranTable" style="width:100%">
-            <thead class="bg-blue-500 text-white">
-            <tr>
-                <th>ID</th> <th>Date</th>
-                <th>From Party</th>
-                <th>To Party</th>
-                <th>Narration</th>
-                <th>Amount</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <div id="tableWrapper" class="overflow-x-auto mt-6" style="display:none">
+      <table class="min-w-full text-sm border border-gray-300" id="tranTable">
+        <thead class="bg-blue-500 text-white">
+          <tr>
+            <th class="p-2">ID</th>
+            <th class="p-2">Date</th>
+            <th class="p-2">From</th>
+            <th class="p-2">To</th>
+            <th class="p-2">Narration</th>
+            <th class="p-2">Amount</th>
+            <th class="p-2">Action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
-</div>
+  </div>
 
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
