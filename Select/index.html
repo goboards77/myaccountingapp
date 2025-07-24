@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Datalist - Auth State Only</title>
+</head>
+<body>
+
+    <label for="groupInput">Type a Group:</label><br>
+    <input type="text" id="groupInput" list="uniqueGroupsDatalist"
+           style="width: 200px; height: 35px; padding: 5px; font-size: 16px; border: 1px solid #007bff; border-radius: 5px; background-color: #e0f2f7; color: #004085;"
+           placeholder="Select...">
+    <datalist id="uniqueGroupsDatalist"></datalist>
+
+    <script type="module">
+        // Firebase SDK Imports (including Auth)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"; // <-- Auth import
+
+        // Firebase Configuration (replace with your actual config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+            authDomain: "accounts-19d08.firebaseapp.com",
+            projectId: "accounts-19d08",
+            storageBucket: "accounts-19d08.appspot.com",
+            messagingSenderId: "247308606105",
+            appId: "1:247308606105:web:9bfc179368524244bf3608"
+        };
+
+        // Initialize Firebase services
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); // <-- Get Auth service instance
+
+        const groupInput = document.getElementById('groupInput');
+
+        async function loadDatalistData() {
+            const tranCol = collection(db, 'tran');
+            const snapshot = await getDocs(tranCol);
+            const uniqueGroups = new Set();
+            snapshot.forEach(doc => {
+                const grp = (doc.data().grp || '').trim();
+                if (grp.length > 0) uniqueGroups.add(grp);
+            });
+            return [...uniqueGroups];
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    const groups = await loadDatalistData();
+                    document.getElementById('uniqueGroupsDatalist').innerHTML = '';
+                    if (groups.length > 0) {
+                        groups.forEach(group => {
+                            const option = document.createElement('option');
+                            option.value = group;
+                            document.getElementById('uniqueGroupsDatalist').appendChild(option);
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
