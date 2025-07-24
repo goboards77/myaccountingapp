@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Fixed Menu with Forms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="m-0 p-0 bg-gray-100 pt-[56px]" x-data="{ open: false, activeForm: '' }">
+
+<button @click="open = !open" class="fixed top-0 left-0 w-full bg-blue-600 text-white px-6 py-4 text-2xl text-left hover:bg-blue-700 z-50">☰</button>
+
+<div @click.away="open = false" class="fixed top-[56px] left-0 w-full bg-white shadow-md border-t z-40 flex flex-col" x-show="open" x-transition>
+    <button @click="open = false; activeForm = 'tran'; console.log('Transaction button clicked, activeForm set to tran!');" class="text-left px-6 py-3 mt-4 hover:bg-blue-100">💰 Transaction</button>
+    <button @click="open = false; activeForm = 'ledger'" class="text-left px-6 py-3 hover:bg-blue-100">📒 Ledger</button>
+    <button @click="open = false; activeForm = 'daybook'" class="text-left px-6 py-3 hover:bg-blue-100">👁️ Daybook</button>
+    <button @click="open = false; activeForm = 'accounts'" class="text-left px-6 py-3 hover:bg-blue-100">📂 View Accounts</button>
+    <button @click="open = false; activeForm = 'receivables'" class="text-left px-6 py-3 hover:bg-blue-100">📥 View Receivables</button>
+    <button @click="open = false; activeForm = 'payables'" class="text-left px-6 py-3 hover:bg-blue-100">📤 View Payables</button>
+    <button @click="open = false; activeForm = 'khatavahi'" class="text-left px-6 py-3 hover:bg-blue-100">🧾 Khatavahi</button>
+    <button @click="open = false; activeForm = 'pl'" class="text-left px-6 py-3 hover:bg-blue-100">📊 Profit & Loss</button>
+    <button @click="open = false; logout()" class="text-left px-6 py-3 hover:bg-blue-100">🔐 Logout</button>
+</div>
+
+<div class="pt-20 px-4">
+    <div id="loginContainer" style="display: none;">
+        <h2>Login</h2>
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="loginEmail" placeholder="Email" type="email">
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="loginPassword" placeholder="Password" type="password">
+        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-800 text-white rounded" onclick="window.login()">Login</button>
+        <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+    </div>
+
+    <div id="registerContainer" style="display:none;">
+        <h2>Register</h2>
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="registerEmail" placeholder="Email" type="email">
+        <input class="block w-[350px] max-w-full mb-2 px-3 py-2 border rounded" id="registerPassword" placeholder="Password" type="password">
+        <button class="px-4 py-2 bg-green-600 hover:bg-green-800 text-white rounded" onclick="window.register()">Register</button>
+        <a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
+    </div>
+
+    <div class="widget-area p-4 mt-4" x-show="activeForm" x-transition>
+
+        <div class="w-full max-w-md mx-auto mt-6 p-6 bg-white shadow rounded"
+             x-show="activeForm === 'tran'"
+             x-transition
+             x-init="setTimeout(async () => {
+                         await window.loadDropdownData();
+                         window.populateDropdown('tranFrom', window.names_list);
+                         window.populateDropdown('tranTo', window.names_list);
+                     }, 0)">
+            <input class="w-full border rounded px-3 py-2" id="tranDate" type="date"/><br><br>
+            <select class="w-full border rounded px-3 py-2" id="tranFrom"></select><br><br>
+            <select class="w-full border rounded px-3 py-2" id="tranTo"></select><br><br>
+            <input class="w-full border rounded px-3 py-2" id="tranAmt" placeholder="₹" type="number"/><br><br>
+            <textarea class="w-full border rounded px-3 py-2" id="tranNar" placeholder="Narration..." rows="3"></textarea><br><br>
+            <button class="w-full bg-green-600 text-white px-4 py-2 rounded" id="tranSave" onclick="window.saveTran()">💾 Save</button>
+        </div>
+
+        <div class="w-full max-w-md mx-auto mt-6 p-6 bg-white shadow rounded" x-show="activeForm === 'ledger'" x-transition>
+            <h2 class="text-xl font-semibold mb-4">📒 Ledger Entry</h2>
+            <input class="w-full border rounded px-3 py-2" id="ledgerName" placeholder="Ledger Name" type="text"/><br><br>
+            <button class="w-full bg-blue-600 text-white px-4 py-2 rounded" id="ledgerSave" onclick="window.saveLedger()">💾 Save</button>
+        </div>
+    </div>
+
+    <div id="tableWrapper" style="display:none">
+        <table class="display nowrap border border-gray-400 w-full" id="tranTable" style="width:100%">
+            <thead class="bg-blue-500 text-white">
+            <tr>
+                <th>ID</th> <th>Date</th>
+                <th>From Party</th>
+                <th>To Party</th>
+                <th>Narration</th>
+                <th>Amount</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut}
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {getFirestore, collection, getDocs, setDoc, deleteDoc, doc, updateDoc, query, orderBy, limit, addDoc}
+        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    let currentDocId = null;
+    let dataTableInstance = null;
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+        authDomain: "accounts-19d08.firebaseapp.com",
+        projectId: "accounts-19d08",
+        storageBucket: "accounts-19d08.appspot.com",
+        messagingSenderId: "247308606105",
+        appId: "1:247308606105:web:9bfc179368524244bf3608"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log("User authenticated.");
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("registerContainer").style.display = "none";
+            document.querySelectorAll("input[type='text']").forEach(input => {
+                input.addEventListener("input", (e) => {
+                    const cursorPos = input.selectionStart;
+                    input.value = capitalizeWords(input.value);
+                    input.setSelectionRange(cursorPos, cursorPos);
+                });
+            });
+            await window.loadDropdownData();
+            console.log("loadDropdownData completed after auth. Names:", window.names_list);
+            if (Alpine.store('activeForm') === 'tran') {
+                console.log("Populating dropdowns from onAuthStateChanged (initial check).");
+                window.populateDropdown('tranFrom', window.names_list); // CALLING VIA WINDOW
+                window.populateDropdown('tranTo', window.names_list); // CALLING VIA WINDOW
+            } else {
+                console.log("activeForm is not 'tran' yet after auth:", Alpine.store('activeForm'));
+            }
+        } else {
+            console.log("User not authenticated.");
+            window.showLogin();
+        }
+    });
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('app', () => ({
+            open: false,
+            activeForm: '',
+            init() {
+                console.log("Alpine.js app initialized.");
+                // Removed the $watch here as x-init on the form will handle population now
+            }
+        }));
+    });
+    window.showLogin = function () {
+        clearScreen();
+        document.getElementById("loginContainer").style.display = "block";
+    };
+    window.showRegister = function () {
+        clearScreen();
+        document.getElementById("registerContainer").style.display = "block";
+    };
+    window.login = async function () {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        if (!email || !password) {
+            return;
+        }
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    window.register = async function () {
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+
+        if (!email || !password) {
+            return;
+        }
+
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    window.logout = async function () {
+        await signOut(auth);
+    };
+    window.clearScreen = async function () {
+        const widgetArea = document.querySelector('.widget-area');
+        if (widgetArea) {
+            widgetArea.innerHTML = '';
+        }
+        document.getElementById("tableWrapper").style.display = "none";
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("registerContainer").style.display = "none";
+        currentDocId = null;
+    }
+    function capitalizeWords(str) {
+        return str.replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function resetForm() {
+        const fieldIds = ["tranDate", "tranFrom", "tranTo", "tranAmt", "tranNar", "ledgerName"];
+        for (const id of fieldIds) {
+            const field = document.getElementById(id);
+            if (field) field.value = '';
+        }
+    }
+
+    window.saveTran = async function () {
+        const date = document.getElementById("tranDate").value;
+        const from = document.getElementById("tranFrom").value;
+        const to = document.getElementById("tranTo").value;
+        const amt = document.getElementById("tranAmt").value;
+        const nar = document.getElementById("tranNar").value;
+
+        if (!date || !from || !to || !amt) return alert("All fields except narration are required.");
+        await addDoc(collection(db, 'hisab'), {date, from, to, amt, nar});
+    }
+
+    window.saveLedger = async function () {
+        const nameField = document.getElementById("ledgerName");
+        const name = nameField?.value?.trim();
+        if (!name) return alert("Ledger name is required");
+        const tranRef = collection(db, 'hisab');
+        const snap = await getDocs(tranRef);
+        for (const docSnap of snap.docs) {
+            const data = docSnap.data();
+            if (data.from === name || data.to === name) {
+                alert("Ledger already exists in a transaction");
+                return;
+            }
+        }
+        await addDoc(tranRef, {from: name});
+        resetForm();
+        await window.loadDropdownData();
+    };
+
+    window.loadDropdownData = async function () {
+        const tranCol = collection(db, "hisab");
+        const snapshot = await getDocs(tranCol);
+        const namesSet = new Set();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.from && data.from.trim().length > 0) {
+                namesSet.add(data.from.trim());
+            }
+            if (data.to && data.to.trim().length > 0) {
+                namesSet.add(data.to.trim());
+            }
+            const name = (data.name || "").trim();
+            if (name.length > 0) {
+                namesSet.add(name);
+            }
+        });
+        window.names_list = [...namesSet].sort((a, b) => a.localeCompare(b));
+    }
+
+    window.populateDropdown = function (selectElementId, dataList) {
+        const selectElement = document.getElementById(selectElementId);
+        if (!selectElement) {
+            return;
+        }
+        selectElement.innerHTML = '<option value="">Select...</option>';
+        dataList.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            selectElement.appendChild(option);
+        });
+    }
+</script>
+</body>
+</html>
