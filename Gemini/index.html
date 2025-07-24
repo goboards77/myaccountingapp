@@ -1977,7 +1977,7 @@
             formContainer.style.display = 'flex';
             formContainer.classList.add('modal-overlay'); // Make it a modal
             await loadDropdownData(); // Ensure dropdowns are populated
-
+            capitalizeWords(narration);
             const { fList, tList } = getTransactionDropdownLists(type);
 
             populateDropdown('salesFrom', fList);
