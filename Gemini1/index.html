@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Gemini2001</title>
+    <title>Gemini2000</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- jQuery CDN (required for DataTables) -->
@@ -204,7 +204,7 @@
             color: white;
             padding: 0.25rem 1rem;
             text-align: left;
-            border-bottom: 2px solid #3730a3;
+            border-bottom: 1px solid #3730a3;
         }
 
         table.dataTable tbody td {
@@ -223,27 +223,14 @@
             background-color: #e0e7ff; /* Light blue on hover for rows */
             cursor: pointer;
         }
-
-        div.dt-buttons {
-            margin-top: 1em; /* Add margin above buttons to place them below pagination */
-            display: flex;
-            flex-wrap: wrap; /* Allow buttons to wrap */
-            justify-content: center; /* Center buttons */
-        }
-
+        
         .dt-button {
             background-color: #10b981 !important; /* Green for buttons */
             color: white !important;
-            border-radius: 0.25rem !important;
-            padding: 0.5rem 1rem !important;
-            margin: 0.25rem !important; /* Adjust margin for wrapped buttons */
+            border-radius: 0.5rem !important;
+            padding: 0.25rem 0.5rem !important;
+            margin: 0.50rem !important; /* Adjust margin for wrapped buttons */
             cursor: pointer !important;
-            transition: background-color 0.2s !important;
-            border: none !important;
-        }
-
-        .dt-button:hover {
-            background-color: #059669 !important; /* Darker green on hover */
         }
 
         .delete-btn {
