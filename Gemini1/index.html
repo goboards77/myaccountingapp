@@ -366,28 +366,32 @@
     <!-- Sales Transaction Form Container -->
     <div class="form-container" id="salesFormContainer" style="display: none;">
         <div class="form-card">
-            <h2 class="text-xl font-bold mb-4 text-center">Sales Transaction</h2>
             <div class="form-group">
                 <label for="salesTranType">Transaction Type</label>
                 <input autocomplete="off" class="bg-gray-100 cursor-not-allowed" disabled id="salesTranType" type="text" value="Sales">
             </div>
             <div class="form-group">
+                <label for="salesDate">Date</label>
                 <input autocomplete="off" class="date-input" id="salesDate" type="date">
             </div>
             <div class="form-group">
+                <label for="salesFrom">From</label>
                 <select autocomplete="off" id="salesFrom">
                     <option value="">Select Product</option>
                 </select>
             </div>
             <div class="form-group">
+                <label for="salesTo">To</label>
                 <select autocomplete="off" id="salesTo">
                     <option value="">Select Creditor/Debitor</option>
                 </select>
             </div>
             <div class="form-group">
+                <label for="salesAmount">Amount</label>
                 <input autocomplete="off" id="salesAmount" placeholder="Enter amount" type="number">
             </div>
             <div class="form-group">
+                <label for="salesNarration">Narration</label>
                 <input autocomplete="off" id="salesNarration" placeholder="Enter narration (optional)" rows="3">
             </div>
             <button onclick="window.saveSalesTransaction()">Save Transaction</button>
@@ -400,6 +404,7 @@
         <div class="form-card">
             <h2 class="text-xl font-bold mb-4 text-center">New Group</h2>
             <div class="form-group">
+                <label for="newGroupName">Group Name</label>
                 <input autocomplete="off" id="newGroupName" placeholder="Enter new group name" type="text">
             </div>
             <button onclick="window.saveGroup()">Save Group</button>
@@ -412,15 +417,18 @@
         <div class="form-card">
             <h2 class="text-xl font-bold mb-4 text-center">New Product</h2>
             <div class="form-group">
+                <label for="productGroupSelect">Select Group</label>
                 <select autocomplete="off" id="productGroupSelect">
                     <option value="">Select Group</option>
                 </select>
             </div>
             <div class="form-group">
+                <label for="newProductName">New Product Name</label>
                 <input autocomplete="off" id="newProductName" placeholder="Enter new product name" type="text">
             </div>
             <div class="form-group">
-                <input autocomplete="off" id="productAmount" placeholder="Enter amount" type="number">
+                <label for="productAmount">Opening Stock Amount (Optional)</label>
+                <input autocomplete="off" id="productAmount" placeholder="Enter Opening Stock Amount (Optional)" type="number">
             </div>
             <button onclick="window.saveProduct()">Save Product</button>
             <button class="modal-close-button" onclick="window.closeFormModal('productFormContainer')">Close</button>
@@ -432,17 +440,21 @@
         <div class="form-card">
             <h2 class="text-xl font-bold mb-4 text-center">New Ledger</h2>
             <div class="form-group">
+                <label for="ledgerGroupSelect">Select Group</label>
                 <select autocomplete="off" id="ledgerGroupSelect">
                     <option value="">Select Group</option>
                 </select>
             </div>
             <div class="form-group">
+                <label for="newLedgerName">New Ledger Name</label>
                 <input autocomplete="off" id="newLedgerName" placeholder="Enter new ledger name" type="text">
             </div>
             <div class="form-group">
+                <label for="oldBalanceJama">Old Balance Jama</label>
                 <input autocomplete="off" id="oldBalanceJama" placeholder="Enter Old Balance Jama" type="number">
             </div>
             <div class="form-group">
+                <label for="oldBalanceKhate">Old Balance Khate</label>
                 <input autocomplete="off" id="oldBalanceKhate" placeholder="Enter Old Balance Khate" type="number">
             </div>
             <button onclick="window.saveLedger()">Save Ledger</button>
@@ -455,12 +467,15 @@
         <div class="form-card">
             <h2 class="text-xl font-bold mb-4 text-center">Khatavahi Report</h2>
             <div class="form-group">
+                <label for="kfromDate">From Date</label>
                 <input autocomplete="off" class="date-input" id="kfromDate" type="date">
             </div>
             <div class="form-group">
+                <label for="ktoDate">To Date</label>
                 <input autocomplete="off" class="date-input" id="ktoDate" type="date">
             </div>
             <div class="form-group">
+                <label for="kparty">Party Name</label>
                 <select autocomplete="off" id="kparty">
                     <option value="">Select Party</option>
                 </select>
@@ -475,12 +490,15 @@
         <div class="form-card">
             <h2 class="text-xl font-bold mb-4 text-center">Profit & Loss Statement</h2>
             <div class="form-group">
+                <label for="plfromDate">From Date</label>
                 <input autocomplete="off" class="date-input" id="plfromDate" type="date">
             </div>
             <div class="form-group">
+                <label for="pltoDate">To Date</label>
                 <input autocomplete="off" class="date-input" id="pltoDate" type="date">
             </div>
             <div class="form-group">
+                <label for="closingStock">Closing Stock</label>
                 <input autocomplete="off" id="closingStock" placeholder="Enter closing stock amount" type="number">
             </div>
             <button onclick="window.loadDataIntoTable('ProfitLossReport')">View Profit & Loss</button>
@@ -1461,8 +1479,8 @@
         const balances = {};
         snapshot.forEach(doc => {
             const data = doc.data();
-            const name = (data.name || "").trim().toLowerCase();
-            const grp = (data.grp || "").trim().toLowerCase();
+            const name = (data.name || "").trim();
+            const grp = (data.grp || "").trim();
             if (name && grp) {
                 ledgerGroups[name] = grp;
             }
@@ -1470,21 +1488,21 @@
         snapshot.forEach(doc => {
             const data = doc.data();
             if (data.fparty) {
-                const party = data.fparty.trim().toLowerCase();
+                const party = data.fparty.trim();
                 balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
             }
             if (data.tparty) {
-                const party = data.tparty.trim().toLowerCase();
+                const party = data.tparty.trim();
                 balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
             }
         });
-        const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
+        const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
         const rows = [];
         for (const [party, amount] of Object.entries(balances)) {
             const grp = ledgerGroups[party];
             if (amount < 0 && grp && allowedGroups.includes(grp)) {
                 rows.push({
-                    Party: capitalizeWords(party),
+                    Party: party,
                     Amount: Math.abs(amount).toFixed(0)
                 });
             }
@@ -1499,8 +1517,8 @@
         const balances = {};
         snapshot.forEach(doc => {
             const data = doc.data();
-            const name = (data.name || "").trim().toLowerCase();
-            const grp = (data.grp || "").trim().toLowerCase();
+            const name = (data.name || "").trim();
+            const grp = (data.grp || "").trim();
             if (name && grp) {
                 ledgerGroups[name] = grp;
             }
@@ -1508,22 +1526,22 @@
         snapshot.forEach(doc => {
             const data = doc.data();
             if (data.fparty) {
-                const party = data.fparty.trim().toLowerCase();
+                const party = data.fparty.trim();
                 balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
             }
             if (data.tparty) {
-                const party = data.tparty.trim().toLowerCase();
+                const party = data.tparty.trim();
                 balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
             }
         });
-        const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
+        const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
         const rows = [];
 
         for (const [party, amount] of Object.entries(balances)) {
             const grp = ledgerGroups[party];
             if (amount > 0 && grp && allowedGroups.includes(grp)) {
                 rows.push({
-                    Party: capitalizeWords(party),
+                    Party: party,
                     Amount: amount.toFixed(0)
                 });
             }
@@ -1536,7 +1554,7 @@
         const snapshot = await getDocs(tranCol);
         const fromDate = document.getElementById("kfromDate").value;
         const toDate = document.getElementById("ktoDate").value;
-        const partyName = capitalizeWords(document.getElementById("kparty").value.trim());
+        const partyName = document.getElementById("kparty").value;
 
         if (!fromDate || !toDate || !partyName) {
             return alert("Please select both dates and party.");
@@ -1546,9 +1564,9 @@
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
             const date = data.date || "";
-            const fparty = (data.fparty || "").trim().toLowerCase();
-            const tparty = (data.tparty || "").trim().toLowerCase();
-            const party = partyName.trim().toLowerCase();
+            const fparty = (data.fparty || "");
+            const tparty = (data.tparty || "");
+            const party = partyName.trim();
 
             if (date < fromDate) {
                 if (fparty === party) {
@@ -1587,9 +1605,9 @@
             Amount: Math.abs(opBal).toFixed(0)
         });
         transRows.forEach(tran => {
-            if (tran.From?.toLowerCase() === partyName.toLowerCase()) {
+            if (tran.From  === partyName) {
                 runningBal += Number(tran.Amount);
-            } else if (tran.To?.toLowerCase() === partyName.toLowerCase()) {
+            } else if (tran.To === partyName) {
                 runningBal -= Number(tran.Amount);
             }
             finalRows.push(tran);
@@ -1628,7 +1646,7 @@
             const data = doc.data();
             const tranDate = data.date || "";
             const amount = parseFloat(data.amt || 0);
-            const ttype = (data.ttype || "").toLowerCase();
+            const ttype = (data.ttype || "");
 
             if (ttype === "opening stock" && tranDate <= fromDate) {
                 periodOpeningStock += amount;
@@ -1667,6 +1685,10 @@
                 applyCapitalization(this);
             });
         });
+    document.querySelectorAll('label').forEach(label => {
+        label.style.color = '#888';
+        label.style.fontWeight = '500';
+    });
 
         const today = new Date();
         const yyyy = today.getFullYear();
