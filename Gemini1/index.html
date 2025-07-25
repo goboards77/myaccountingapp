@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Gemini2001</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jQuery CDN (required for DataTables) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css" rel="stylesheet" type="text/css">
+    <style>
+        html, body {
+            height: 100%; /* Make html and body fill the viewport */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+        }
+
+        .accordion-main-container {
+            width: 100%;
+            max-width: 358px; /* Constrain width for better accordion appearance */
+            margin-left: 0; /* Explicitly align to the left */
+            background-color: #ffffff;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.1);
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0.5rem;
+            overflow: hidden; /* Ensures rounded corners */
+            position: relative; /* Added for correct positioning of expanded content */
+            z-index: 10; /* Ensure it's above other content when open */
+            display: none; /* Initially hidden */
+        }
+
+        .accordion-header, .accordion-sub-header {
+            width: 100%;
+            text-align: left;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            background-color: #4f46e5; /* Indigo for main header */
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle separator */
+        }
+
+        .accordion-header:hover, .accordion-sub-header:hover {
+            background-color: #4338ca; /* Darker indigo on hover */
+        }
+
+        .accordion-sub-header {
+            background-color: #6366f1; /* Lighter indigo for sub-headers */
+            padding-left: 2.5rem; /* Indent sub-headers */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .accordion-sub-header:hover {
+            background-color: #4f46e5; /* Darker indigo on hover */
+        }
+
+        .accordion-sub-header:last-child {
+            border-bottom: none; /* No border on the last sub-header */
+        }
+
+        .accordion-content, .accordion-sub-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out; /* Smooth slide effect */
+            background-color: #f9f9f9; /* Light background for content */
+        }
+
+        .accordion-content.active, .accordion-sub-content.active {
+            max-height: 1000px; /* Increased to accommodate more content */
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            display: block;
+            color: #333;
+            background-color: #f9f9f9;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            border-bottom: 1px solid #eee; /* Light separator for items */
+            padding-left: 3.5rem; /* Further indent for actual items */
+        }
+
+        .dropdown-item:hover {
+            background-color: #e0e7ff; /* Light blue on hover */
+            color: #4f46e5; /* Darker blue text on hover */
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .accordion-header svg, .accordion-sub-header svg {
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .accordion-header.active svg, .accordion-sub-header.active svg {
+            transform: rotate(180deg);
+        }
+
+        .logout-button {
+            background-color: #ef4444; /* Red for logout */
+        }
+
+        .logout-button:hover {
+            background-color: #dc2626; /* Darker red on hover */
+        }
+
+        .auth-container, .form-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 64px); /* Adjusted min-height to account for fixed nav */
+            padding: 0; /* Removed outer padding */
+            background-color: #f0f2f5;
+            box-sizing: border-box; /* Include padding in height calculation */
+        }
+
+        .auth-card, .form-card {
+            background-color: white;
+            padding: 0.5rem; /* Further reduced padding */
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .form-card {
+            text-align: left; /* Align form labels/inputs to left */
+            position: relative; /* Needed for close button positioning */
+        }
+
+        .auth-card input, .form-card input, .form-card select, .form-card textarea {
+            width: 100%;
+            padding: 0.5rem; /* Increased padding for height */
+            margin-bottom: 0.3rem; /* Further reduced margin */
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+        }
+
+        .auth-card button, .form-card button {
+            width: 100%;
+            padding: 0.4rem; /* Further reduced padding */
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .auth-card button:hover, .form-card button:hover {
+            background-color: #4338ca;
+        }
+
+        .auth-card .error-message, .form-card .error-message {
+            color: #ef4444;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-group {
+            margin-bottom: 0.5rem; /* Further reduced margin */
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.15rem; /* Further reduced margin */
+            font-weight: 500;
+            color: #333;
+        }
+
+        .dataTables_wrapper {
+            background-color: #ffffff;
+            margin: 0;
+            width: 100%;
+        }
+
+        .dataTables_filter input {
+            width: 100% !important; /* Make search input 100% width */
+            border: 1px solid #ccc;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            margin-bottom: 0.75rem; /* Reduced margin */
+        }
+
+        table.dataTable thead th {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.25rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #3730a3;
+        }
+
+        table.dataTable tbody td {
+            padding: 0.25rem 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap; /* Keep content in single line */
+            overflow: hidden; /* Hide overflow content */
+            text-overflow: ellipsis; /* Show ellipsis for overflow */
+        }
+
+        table.dataTable tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: #e0e7ff; /* Light blue on hover for rows */
+            cursor: pointer;
+        }
+
+        .dt-button {
+            background-color: #10b981 !important; /* Green for buttons */
+            color: white !important;
+            border-radius: 0.5rem !important;
+            padding: 0.25rem 0.5rem !important;
+            margin: 0.50rem !important; /* Adjust margin for wrapped buttons */
+            cursor: pointer !important;
+        }
+
+        .delete-btn {
+            background-color: #ef4444; /* Red */
+            color: white;
+            padding: 0.10rem 0.50rem;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 40; /* Above table, below message/confirm boxes */
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px; /* Max width for modal content */
+            position: relative;
+        }
+
+        .modal-close-button {
+            background-color: #ef4444 !important; /* Red color, now with !important */
+            color: white;
+            margin-top: 1rem; /* Space from save button */
+        }
+
+    </style>
+</head>
+<body class="p-0">
+<nav class="bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg flex justify-start items-center fixed top-0 left-0 w-full z-30 h-16">
+    <button class="accordion-header" onclick="window.toggleMainAccordion(event)">
+        <span id="cashLabel">☰ Menu</span>
+        <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path clip-rule="evenodd"
+                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                  fill-rule="evenodd"></path>
+        </svg>
+    </button>
+</nav>
+
+<!-- Wrapper for all main content, including the accordion menu and app screens -->
+<div id="appContentWrapper" style="margin-top: 64px;">
+    <!-- The actual accordion menu structure, now below the fixed nav -->
+    <div class="accordion-main-container" id="mainAccordionMenu">
+        <div class="accordion-content" id="mainMenuContent">
+            <!-- Nested Accordion Item: New -->
+            <div class="accordion-sub-item">
+                <button class="accordion-sub-header" onclick="window.toggleSubAccordion(this, 'newContent', event)">
+                    ➕ New
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              fill-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div class="accordion-sub-content" id="newContent">
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('salesFormContainer', 'Sales');">🛒
+                        Sales</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('salesFormContainer', 'Purchase');">🧺
+                        Purchase</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('salesFormContainer', 'Receipt');">💵
+                        Receipt</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('salesFormContainer', 'Payment');">💳
+                        Payment</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('groupFormContainer');">👥 Group</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('productFormContainer');">📦 Product</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('ledgerFormContainer');">📖 Ledger</a>
+                </div>
+            </div>
+
+            <!-- Simple Button: Update -->
+            <button class="accordion-sub-header" onclick="window.handleMenuItemClick('tableContainer');">
+                ✏️ Update
+            </button>
+
+            <!-- Nested Accordion Item: Reports -->
+            <div class="accordion-sub-item">
+                <button class="accordion-sub-header" onclick="window.toggleSubAccordion(this, 'reportsContent', event)">
+                    💼 Reports
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              fill-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div class="accordion-sub-content" id="reportsContent">
+                    <a class="dropdown-item" href="javascript:void(0)"
+                       onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndProductsReport');">👥 Groups & 📦 Products</a>
+                    <a class="dropdown-item" href="javascript:void(0)"
+                       onclick="window.handleMenuItemClick('tableContainer', 'GroupsAndLedgersReport');">👥 Groups & 📖 Ledgers</a>
+                </div>
+            </div>
+
+            <!-- Nested Accordion Item: Financials -->
+            <div class="accordion-sub-item">
+                <button class="accordion-sub-header" onclick="window.toggleSubAccordion(this, 'financialsContent', event)">
+                    ⏳ Financials
+                    <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path clip-rule="evenodd"
+                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                              fill-rule="evenodd"></path>
+                    </svg>
+                </button>
+                <div class="accordion-sub-content" id="financialsContent">
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('tableContainer', 'ReceivablesReport');">💵
+                        Receivables</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('tableContainer', 'PayablesReport');">💳
+                        Payables</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('khatavahiFormContainer');">⏳ Khatavahi</a>
+                    <a class="dropdown-item" href="javascript:void(0)" onclick="window.handleMenuItemClick('profitLossFormContainer');">📈 Profit & 📉
+                        Loss</a>
+                </div>
+            </div>
+
+            <!-- Simple Button: Logout -->
+            <button class="accordion-sub-header logout-button" onclick="window.logout(); ">
+                🔐 Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- Sales Transaction Form Container -->
+    <div class="form-container" id="salesFormContainer" style="display: none;">
+        <div class="form-card">
+            <h2 class="text-xl font-bold mb-4 text-center">Sales Transaction</h2>
+            <div class="form-group">
+                <label for="salesTranType">Transaction Type</label>
+                <input autocomplete="off" class="bg-gray-100 cursor-not-allowed" disabled id="salesTranType" type="text" value="Sales">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" class="date-input" id="salesDate" type="date">
+            </div>
+            <div class="form-group">
+                <select autocomplete="off" id="salesFrom">
+                    <option value="">Select Product</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select autocomplete="off" id="salesTo">
+                    <option value="">Select Creditor/Debitor</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="salesAmount" placeholder="Enter amount" type="number">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="salesNarration" placeholder="Enter narration (optional)" rows="3">
+            </div>
+            <button onclick="window.saveSalesTransaction()">Save Transaction</button>
+            <button class="modal-close-button" onclick="window.closeFormModal('salesFormContainer')">Close</button>
+        </div>
+    </div>
+
+    <!-- Group Form Container -->
+    <div class="form-container" id="groupFormContainer" style="display: none;">
+        <div class="form-card">
+            <h2 class="text-xl font-bold mb-4 text-center">New Group</h2>
+            <div class="form-group">
+                <input autocomplete="off" id="newGroupName" placeholder="Enter new group name" type="text">
+            </div>
+            <button onclick="window.saveGroup()">Save Group</button>
+            <button class="modal-close-button" onclick="window.closeFormModal('groupFormContainer')">Close</button>
+        </div>
+    </div>
+
+    <!-- Product Form Container -->
+    <div class="form-container" id="productFormContainer" style="display: none;">
+        <div class="form-card">
+            <h2 class="text-xl font-bold mb-4 text-center">New Product</h2>
+            <div class="form-group">
+                <select autocomplete="off" id="productGroupSelect">
+                    <option value="">Select Group</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="newProductName" placeholder="Enter new product name" type="text">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="productAmount" placeholder="Enter amount" type="number">
+            </div>
+            <button onclick="window.saveProduct()">Save Product</button>
+            <button class="modal-close-button" onclick="window.closeFormModal('productFormContainer')">Close</button>
+        </div>
+    </div>
+
+    <!-- Ledger Form Container -->
+    <div class="form-container" id="ledgerFormContainer" style="display: none;">
+        <div class="form-card">
+            <h2 class="text-xl font-bold mb-4 text-center">New Ledger</h2>
+            <div class="form-group">
+                <select autocomplete="off" id="ledgerGroupSelect">
+                    <option value="">Select Group</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="newLedgerName" placeholder="Enter new ledger name" type="text">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="oldBalanceJama" placeholder="Enter Old Balance Jama" type="number">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="oldBalanceKhate" placeholder="Enter Old Balance Khate" type="number">
+            </div>
+            <button onclick="window.saveLedger()">Save Ledger</button>
+            <button class="modal-close-button" onclick="window.closeFormModal('ledgerFormContainer')">Close</button>
+        </div>
+    </div>
+
+    <!-- Khatavahi Form Container -->
+    <div class="form-container" id="khatavahiFormContainer" style="display: none;">
+        <div class="form-card">
+            <h2 class="text-xl font-bold mb-4 text-center">Khatavahi Report</h2>
+            <div class="form-group">
+                <input autocomplete="off" class="date-input" id="kfromDate" type="date">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" class="date-input" id="ktoDate" type="date">
+            </div>
+            <div class="form-group">
+                <select autocomplete="off" id="kparty">
+                    <option value="">Select Party</option>
+                </select>
+            </div>
+            <button onclick="window.loadDataIntoTable('KhatavahiReport')">View Khatavahi</button>
+            <button class="modal-close-button" onclick="window.closeFormModal('khatavahiFormContainer')">Close</button>
+        </div>
+    </div>
+
+    <!-- Profit & Loss Form Container -->
+    <div class="form-container" id="profitLossFormContainer" style="display: none;">
+        <div class="form-card">
+            <h2 class="text-xl font-bold mb-4 text-center">Profit & Loss Statement</h2>
+            <div class="form-group">
+                <input autocomplete="off" class="date-input" id="plfromDate" type="date">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" class="date-input" id="pltoDate" type="date">
+            </div>
+            <div class="form-group">
+                <input autocomplete="off" id="closingStock" placeholder="Enter closing stock amount" type="number">
+            </div>
+            <button onclick="window.loadDataIntoTable('ProfitLossReport')">View Profit & Loss</button>
+            <button class="modal-close-button" onclick="window.closeFormModal('profitLossFormContainer')">Close</button>
+        </div>
+    </div>
+
+    <!-- Main Application Container (initially hidden) -->
+    <div class="auth-container" id="mainContainer" style="display: none;">
+    </div>
+
+    <!-- Login Container (initially visible for demonstration) -->
+    <div class="auth-container" id="loginContainer">
+        <div class="auth-card">
+            <h2 class="text-2xl font-bold mb-4">Login</h2>
+            <input autocomplete="off" class="mb-4 p-2 border rounded w-full" id="loginEmail" placeholder="Email" type="email">
+            <input autocomplete="off" class="mb-4 p-2 border rounded w-full" id="loginPassword" placeholder="Password" type="password">
+            <button onclick="window.login()">Login</button>
+            <p class="text-sm mt-4">Don't have an account? <a class="text-indigo-600 hover:underline" href="javascript:void(0)"
+                                                              onclick="window.showRegister()">Register here</a></p>
+            <div class="error-message" id="loginError"></div>
+        </div>
+    </div>
+
+    <!-- Register Container (initially hidden) -->
+    <div class="auth-container" id="registerContainer" style="display: none;">
+        <div class="auth-card">
+            <h2 class="text-2xl font-bold mb-4">Register</h2>
+            <input autocomplete="off" class="mb-4 p-2 border rounded w-full" id="registerEmail" placeholder="Email" type="email">
+            <input autocomplete="off" class="mb-4 p-2 border rounded w-full" id="registerPassword" placeholder="Password" type="password">
+            <button onclick="window.register()">Register</button>
+            <p class="text-sm mt-4">Already have an account? <a class="text-indigo-600 hover:underline" href="javascript:void(0)"
+                                                                onclick="window.showLogin()">Login here</a></p>
+            <div class="error-message" id="registerError"></div>
+        </div>
+    </div>
+
+    <!-- Table Container (initially hidden) -->
+    <div class="flex flex-col items-center" id="tableContainer" style="display: none;">
+        <div class="w-full overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200" id="tranTable">
+                <thead>
+                <!-- Headers will be dynamically generated here -->
+                </thead>
+                <tbody>
+                <!-- Table data will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Message Box -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="messageBox">
+    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+        <p class="text-lg font-semibold mb-4" id="messageText"></p>
+        <button class="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                onclick="window.hideMessageBox()">OK
+        </button>
+    </div>
+</div>
+
+<!-- Custom Confirmation Box -->
+<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden" id="confirmBox">
+    <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+        <p class="text-lg font-semibold mb-4" id="confirmText"></p>
+        <div class="flex justify-center space-x-4">
+            <button class="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+                    id="confirmYes">Yes
+            </button>
+            <button class="bg-gray-300 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    id="confirmNo">No
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- DataTables JS -->
+<script charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js" type="text/javascript"></script>
+<script charset="utf8" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js" type="text/javascript"></script>
+<script charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js" type="text/javascript"></script>
+<script charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js" type="text/javascript"></script>
+<script charset="utf8" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js" type="text/javascript"></script>
+<script charset="utf8" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js" type="text/javascript"></script>
+<script charset="utf8" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js" type="text/javascript"></script>
+
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+        getAuth, onAuthStateChanged,
+        signInWithEmailAndPassword, createUserWithEmailAndPassword,
+        signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+        getFirestore, collection, getDocs, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc, writeBatch, orderBy, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+        authDomain: "accounts-19d08.firebaseapp.com",
+        projectId: "accounts-19d08",
+        storageBucket: "accounts-19d08.appspot.com",
+        messagingSenderId: "247308606105",
+        appId: "1:247308606105:web:9bfc179368524244bf3608"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const listNames = ['sproduct_list', 'crdb_list', 'crdbcsbkangexp_list', 'grp_list',
+        'sp_list', 'pproduct_list', 'crdbcsbkang_list', 'allnames_list'];
+    listNames.forEach(name => {
+        window[name] = [];
+    });
+    let dataTableInstance = null;
+    let firestoreData = [];
+    window.currentDocId = null;
+    window.originalEditingValue = null;
+    window.showLogin = function () {
+        clearScreen();
+        document.getElementById("loginContainer").style.display = "flex"; // Use flex for centering
+    }
+    window.showRegister = function () {
+        clearScreen();
+        document.getElementById("registerContainer").style.display = "flex"; // Use flex for centering
+    }
+    window.login = async function () {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const errorDiv = document.getElementById("loginError");
+        errorDiv.textContent = '';
+
+        if (!email || !password) {
+            errorDiv.textContent = "Please enter both email and password.";
+            return;
+        }
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            // onAuthStateChanged will handle showing mainContainer
+        } catch (error) {
+            errorDiv.textContent = error.message;
+        }
+    };
+    window.register = async function () {
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        const errorDiv = document.getElementById("registerError");
+        errorDiv.textContent = '';
+
+        if (!email || !password) {
+            errorDiv.textContent = "Please enter both email and password.";
+            return;
+        }
+
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            errorDiv.textContent = error.message;
+        }
+    };
+    window.logout = async function () {
+        await signOut(auth);
+        // onAuthStateChanged will handle showing loginContainer
+    };
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            clearScreen();
+            await loadDropdownData();
+            await updateCashLabel();
+        } else {
+            clearScreen();
+            document.getElementById("loginContainer").style.display = "flex";
+            document.getElementById("cashLabel").textContent = "Menu";
+        }
+    });
+    const tranCollectionRef = collection(db, "tran");
+    const createGroupDefinition = (groupName) => ({
+        data: {grp: groupName, ttype: "Group"},
+        queryConditions: [where("grp", "==", groupName), where("ttype", "==", "Group")]
+    });
+    const uniqueDocumentDefinitions = [
+        createGroupDefinition("Cash"),
+        createGroupDefinition("Bank"),
+        createGroupDefinition("Creditors"),
+        createGroupDefinition("Debitors"),
+        createGroupDefinition("Angadiya"),
+        createGroupDefinition("Expense"),
+        createGroupDefinition("Sales Products"),
+        createGroupDefinition("Purchase Products"),
+    ];
+    window.createAndDeduplicateDocuments = async function () {
+        for (const docDef of uniqueDocumentDefinitions) {
+            const q = query(tranCollectionRef, ...docDef.queryConditions);
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) {
+                await addDoc(tranCollectionRef, docDef.data);
+            }
+        }
+    };
+
+    window.closeAllAccordions = function () {
+        document.querySelectorAll('.accordion-content.active, .accordion-sub-content.active').forEach(content => {
+            content.classList.remove('active');
+            const button = content.previousElementSibling;
+            if (button && (button.classList.contains('accordion-header') || button.classList.contains('accordion-sub-header'))) {
+                button.classList.remove('active');
+            }
+        });
+    };
+
+    window.toggleMainAccordion = function (event) {
+        event.stopPropagation();
+        const mainAccordionMenu = document.getElementById('mainAccordionMenu');
+        const mainMenuContent = mainAccordionMenu.querySelector('.accordion-content');
+        const mainHeader = event.currentTarget;
+        const isCurrentlyActive = mainMenuContent.classList.contains('active');
+        clearScreen(); // This ensures all other content is hidden
+        window.closeAllAccordions(); // This will hide the accordion content if it was already open
+        if (!isCurrentlyActive) {
+            mainAccordionMenu.style.display = 'block'; // Show the accordion container
+            mainMenuContent.classList.add('active');
+            mainHeader.classList.add('active');
+        } else {
+            mainAccordionMenu.style.display = 'none';
+        }
+    };
+
+    window.toggleSubAccordion = function (button, contentId, event) {
+        event.stopPropagation();
+        const subContent = document.getElementById(contentId);
+        const subHeader = button;
+        const isCurrentlyActive = subContent.classList.contains('active');
+        document.querySelectorAll('#mainMenuContent .accordion-sub-content.active').forEach(otherSubContent => {
+            if (otherSubContent !== subContent) {
+                otherSubContent.classList.remove('active');
+                const otherSubHeader = otherSubContent.previousElementSibling;
+                if (otherSubHeader && otherSubHeader.classList.contains('accordion-sub-header')) {
+                    otherSubHeader.classList.remove('active');
+                }
+            }
+        });
+        if (!isCurrentlyActive) {
+            subContent.classList.add('active');
+            subHeader.classList.add('active');
+        } else {
+            subContent.classList.remove('active');
+            subHeader.classList.remove('active');
+        }
+    };
+
+    window.handleMenuItemClick = async function (contentIdToShow, reportType = null) {
+        window.closeAllAccordions();
+        document.getElementById("mainAccordionMenu").style.display = "none";
+        clearScreen();
+        await loadDropdownData();
+        const targetContainer = document.getElementById(contentIdToShow);
+        if (targetContainer) {
+            targetContainer.style.display = 'flex';
+        }
+
+        if (contentIdToShow === 'tableContainer') {
+            await loadDataIntoTable(reportType); // Pass reportType
+        } else if (contentIdToShow === 'salesFormContainer') {
+            const {fList, tList} = getTransactionDropdownLists(reportType);
+            populateDropdown('salesFrom', fList);
+            populateDropdown('salesTo', tList);
+            document.getElementById('salesTranType').value = reportType || 'Sales';
+            clearFormBySection('salesFormContainer', 'salesDate');
+            if (reportType) {
+                document.getElementById('salesTranType').value = reportType;
+            } else {
+                document.getElementById('salesTranType').value = 'Sales';
+            }
+        } else if (contentIdToShow === 'groupFormContainer') {
+            clearFormBySection('groupFormContainer');
+        } else if (contentIdToShow === 'ledgerFormContainer') {
+            populateDropdown('ledgerGroupSelect', window.grp_list);
+            clearFormBySection('ledgerFormContainer');
+        } else if (contentIdToShow === 'productFormContainer') {
+            populateDropdown('productGroupSelect', window.sp_list);
+            clearFormBySection('productFormContainer');
+        } else if (contentIdToShow === 'khatavahiFormContainer') {
+            populateDropdown('kparty', window.allnames_list);
+            clearFormBySection('khatavahiFormContainer');
+            document.getElementById('tableContainer').style.display = 'none';
+        } else if (contentIdToShow === 'profitLossFormContainer') {
+            clearFormBySection('profitLossFormContainer');
+            document.getElementById('tableContainer').style.display = 'none';
+        }
+    };
+
+    document.addEventListener('click', function (event) {
+        const mainMenuContainer = document.getElementById('mainAccordionMenu'); // Target the main accordion container
+        const navBar = document.querySelector('nav'); // Target the fixed nav bar
+        const tableContainer = document.getElementById('tableContainer'); // Get the table container
+
+        // Check if the click is outside both the main accordion menu and the fixed nav bar
+        // AND ensure it's not inside the tableContainer if the table is currently visible
+        if (mainMenuContainer && !mainMenuContainer.contains(event.target) && navBar && !navBar.contains(event.target)) {
+            // Check if the click is within any of the form modals
+            const isClickInsideModal = document.querySelector('.modal-overlay:not(.hidden)')?.contains(event.target);
+
+            if (tableContainer && tableContainer.style.display === 'flex' && tableContainer.contains(event.target)) {
+                // Click inside the table, do nothing (keep table open)
+                return;
+            } else if (isClickInsideModal) {
+                // Click inside an open modal, do nothing (keep modal open)
+                return;
+            }
+
+            window.closeAllAccordions();
+            mainMenuContainer.style.display = 'none'; // Also hide the accordion container
+            // After closing the menu, show the appropriate screen based on auth state
+            // No default screen after closing menu, user will choose.
+        }
+    });
+
+    window.showConfirmBox = function (message) {
+        return new Promise((resolve) => {
+            document.getElementById('confirmText').innerText = message;
+            document.getElementById('confirmBox').classList.remove('hidden');
+            const yesButton = document.getElementById('confirmYes');
+            const noButton = document.getElementById('confirmNo');
+
+            const handleYes = () => {
+                document.getElementById('confirmBox').classList.add('hidden');
+                yesButton.removeEventListener('click', handleYes);
+                noButton.removeEventListener('click', handleNo);
+                resolve(true);
+            };
+            const handleNo = () => {
+                document.getElementById('confirmBox').classList.add('hidden');
+                yesButton.removeEventListener('click', handleYes);
+                noButton.removeEventListener('click', handleNo);
+                resolve(false);
+            };
+            yesButton.addEventListener('click', handleYes);
+            noButton.addEventListener('click', handleNo);
+        });
+    };
+
+    window.closeFormModal = function (formContainerId) {
+        const formContainer = document.getElementById(formContainerId);
+        if (formContainer) {
+            formContainer.style.display = 'none';
+            formContainer.classList.remove('modal-overlay'); // Remove modal class
+            window.currentDocId = null; // Reset currentDocId
+            window.originalEditingValue = null; // Reset original editing value
+        }
+    };
+
+    function applyCapitalization(inputElement) {
+        if (inputElement && typeof inputElement.value === 'string') {
+            inputElement.value = inputElement.value.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+        }
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return "";
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        return dateString;
+    }
+
+    async function clearFormBySection(sectionId, resetDateId = null) {
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+
+        const inputs = section.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.value = '';
+        });
+        window.currentDocId = null;
+        window.originalEditingValue = null;
+        const tableContainer = document.getElementById('tableContainer');
+        if (tableContainer && tableContainer.style.display === 'flex') {
+            loadDataIntoTable();
+        }
+        await updateCashLabel();
+    }
+
+    function clearScreen() {
+        document.getElementById("mainContainer").style.display = "none";
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("registerContainer").style.display = "none";
+        document.getElementById("tableContainer").style.display = "none";
+        document.getElementById("salesFormContainer").style.display = "none";
+        document.getElementById("groupFormContainer").style.display = "none";
+        document.getElementById("ledgerFormContainer").style.display = "none";
+        document.getElementById("productFormContainer").style.display = "none";
+        document.getElementById("khatavahiFormContainer").style.display = "none";
+        document.getElementById("profitLossFormContainer").style.display = "none";
+        document.getElementById("mainAccordionMenu").style.display = "none";
+        window.currentDocId = null;
+        window.originalEditingValue = null;
+    }
+
+    async function updateCashLabel() {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+        let inflow = 0;    // tparty = 'Cash On Hand'
+        let outflow = 0;   // fparty = 'Cash On Hand'
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.tparty === "Cash On Hand") {
+                inflow += Number(data.amt || 0);
+            }
+            if (data.fparty === "Cash On Hand") {
+                outflow += Number(data.amt || 0);
+            }
+        });
+        const balance = inflow - outflow;
+        document.getElementById("cashLabel").textContent = `☰ Cash: ₹${balance.toFixed(0)}`;
+    }
+
+    async function loadDropdownData() {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+
+        const grpSet = new Set();
+        const spSet = new Set();
+        const nameSet = new Set();
+        const ttypeSet = new Set();
+        const sproductSet = new Set();
+        const pproductSet = new Set();
+        const crdbSet = new Set();
+        const crdbcsbkangSet = new Set();
+        const crdbcsbkangexpSet = new Set();
+
+        const crdbGroups = ["Creditors", "Debitors"];
+        const crdbcsbkangGroups = ["Creditors", "Debitors", "Cash", "Bank", "Angadiya"];
+        const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const grp = (data.grp || "").trim();
+            const name = (data.name || "").trim();
+            if (grp.length === 0) return;
+
+            if (["Sales", "Purchase", "Receipt", "Payment"].includes(grp)) {
+                ttypeSet.add(grp);
+            }
+
+            if (["Sales Products", "Purchase Products"].includes(grp)) {
+                spSet.add(grp);
+            } else if (!["Sales Products", "Purchase Products"].includes(grp)) {
+                grpSet.add(grp);
+            }
+            if (name.length > 0) {
+                nameSet.add(name);
+            }
+            if (grp === "Sales Products" && name.length > 0) {
+                sproductSet.add(name);
+            }
+            if (grp === "Purchase Products" && name.length > 0) {
+                pproductSet.add(name);
+            }
+            if (crdbGroups.includes(grp) && name.length > 0) {
+                crdbSet.add(name);
+            }
+            if (crdbcsbkangGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangSet.add(name);
+            }
+            if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangexpSet.add(name);
+            }
+        });
+        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
+        window.sp_list = [...spSet].sort((a, b) => a.localeCompare(b));
+        window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
+        window.ttype_list = [...ttypeSet].sort((a, b) => a.localeCompare(b));
+        window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
+        window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
+        window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
+    }
+
+    function populateDropdown(selectElementId, dataList) {
+        const selectElement = document.getElementById(selectElementId);
+        if (!selectElement) {
+            return;
+        }
+        selectElement.innerHTML = '<option value="">Select...</option>'; // Clear existing options and add default
+        dataList.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item;
+            option.textContent = item;
+            selectElement.appendChild(option);
+        });
+    }
+
+    function getTransactionDropdownLists(type) {
+        let fList = [];
+        let tList = [];
+
+        if (type === 'Sales') {
+            fList = (window.sproduct_list || []).map(opt => opt.trim());
+            tList = (window.crdb_list || []).map(opt => opt.trim());
+        } else if (type === 'Purchase') {
+            fList = (window.crdb_list || []).map(opt => opt.trim());
+            tList = (window.pproduct_list || []).map(opt => opt.trim());
+        } else if (type === 'Receipt') {
+            fList = (window.crdbcsbkang_list || []).map(opt => opt.trim());
+            tList = (window.crdbcsbkangexp_list || []).map(opt => opt.trim());
+        } else if (type === 'Payment') {
+            fList = (window.crdbcsbkang_list || []).map(opt => opt.trim());
+            tList = (window.crdbcsbkangexp_list || []).map(opt => opt.trim());
+        }
+        else {
+            fList = (window.sproduct_list || []).map(opt => opt.trim());
+            tList = (window.crdb_list || []).map(opt => opt.trim());
+        }
+        return {fList, tList};
+    }
+
+    async function updateReferences(oldValue, newValue, fieldType) {
+        if (oldValue === newValue) return; // No change needed
+        const batch = writeBatch(db);
+        const tranColRef = collection(db, "tran");
+
+        if (fieldType === 'grp') {
+            const q = query(tranColRef, where("grp", "==", oldValue));
+            const snapshot = await getDocs(q);
+            snapshot.forEach(docSnap => {
+                batch.update(doc(db, "tran", docSnap.id), {grp: newValue});
+            });
+        } else if (fieldType === 'name') {
+            const nameQuery = query(tranColRef, where("name", "==", oldValue));
+            const fpartyQuery = query(tranColRef, where("fparty", "==", oldValue));
+            const tpartyQuery = query(tranColRef, where("tparty", "==", oldValue));
+
+            const [nameSnapshot, fpartySnapshot, tpartySnapshot] = await Promise.all([
+                getDocs(nameQuery),
+                getDocs(fpartyQuery),
+                getDocs(tpartyQuery)
+            ]);
+            const docsToUpdate = new Map(); // Use a Map to store unique docRefs and their updates
+            nameSnapshot.forEach(docSnap => {
+                docsToUpdate.set(docSnap.id, {...docsToUpdate.get(docSnap.id), name: newValue});
+            });
+            fpartySnapshot.forEach(docSnap => {
+                docsToUpdate.set(docSnap.id, {...docsToUpdate.get(docSnap.id), fparty: newValue});
+            });
+            tpartySnapshot.forEach(docSnap => {
+                docsToUpdate.set(docSnap.id, {...docsToUpdate.get(docSnap.id), tparty: newValue});
+            });
+
+            docsToUpdate.forEach((updateData, docId) => {
+                batch.update(doc(db, "tran", docId), updateData);
+            });
+        }
+        await batch.commit();
+    }
+
+    window.loadDataIntoTable = async function (reportType = null) { // Added reportType parameter
+        const snapshot = await getDocs(collection(db, "tran"));
+        if (dataTableInstance) {
+            dataTableInstance.destroy(); // Destroy existing DataTable instance
+        }
+        let data = [];
+        let columnsConfig = [];
+        let columnDefsConfig = [];
+        let orderingEnabled = true; // Default to true for general tables
+
+        const tableHead = $('#tranTable thead');
+        tableHead.empty(); // Clear existing headers
+        $('#tranTable tbody').empty();
+
+        if (reportType === 'GroupsAndProductsReport') {
+            const snapshot = await getDocs(collection(db, "tran"));
+            snapshot.forEach(doc => {
+                const docData = doc.data();
+                const grp = (docData.grp || "").trim();
+                const name = (docData.name || "").trim();
+                if ((grp === "Sales Products" || grp === "Purchase Products") && name.length > 0) {
+                    data.push([grp, name]);
+                }
+            });
+            columnsConfig = [
+                {title: "Group"},
+                {title: "Name"}
+            ];
+        } else if (reportType === 'GroupsAndLedgersReport') {
+            snapshot.forEach(doc => {
+                const docData = doc.data();
+                const ttype = (docData.ttype || "").trim();
+                const grp = (docData.grp || "").trim();
+                const name = (docData.name || "").trim();
+                if (ttype === "Opening Balance" && grp.length > 0 && name.length > 0) {
+                    data.push([grp, name]);
+                }
+            });
+            columnsConfig = [
+                {title: "Group"},
+                {title: "Name"}
+            ];
+        } else if (reportType === 'ReceivablesReport') {
+            const receivablesData = await viewReceivables();
+            data = receivablesData.map(item => [item.Party, item.Amount]);
+            columnsConfig = [
+                {title: "Party"},
+                {title: "Amount"}
+            ];
+        } else if (reportType === 'PayablesReport') {
+            const payablesData = await viewPayables();
+            data = payablesData.map(item => [item.Party, item.Amount]);
+            columnsConfig = [
+                {title: "Party"},
+                {title: "Amount"}
+            ];
+        } else if (reportType === 'KhatavahiReport') {
+            const khatavahiData = await khatavahi();
+            if (!khatavahiData) {
+                return;
+            }
+            data = khatavahiData.map(item => [
+                item.Date,
+                item.TranType,
+                item.From,
+                item.To,
+                item.Narration,
+                item.Amount
+            ]);
+            columnsConfig = [
+                {title: "Date"},
+                {title: "Tran Type"},
+                {title: "From"},
+                {title: "To"},
+                {title: "Narration"},
+                {title: "Amount"}
+            ];
+            document.getElementById('khatavahiFormContainer').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'flex';
+        } else if (reportType === 'ProfitLossReport') {
+            const profitLossData = await profit_loss();
+            if (!profitLossData) {
+                return;
+            }
+            data = profitLossData.map(item => [item.Description, item.Amount]);
+            columnsConfig = [
+                {title: "Description"},
+                {title: "Amount"}
+            ];
+            orderingEnabled = false;
+            document.getElementById('profitLossFormContainer').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'flex';
+        } else {
+            const snapshot = await getDocs(collection(db, "tran"));
+            snapshot.forEach(doc => {
+                const docData = doc.data();
+                data.push([
+                    String(doc.id), // Index 0
+                    docData.date ? docData.date.split("-")[2] + "-" + docData.date.split("-")[1] + "-" + docData.date.split("-")[0] : '', // Index 1
+                    docData.ttype || '', // Index 2
+                    docData.fparty || '', // Index 3
+                    docData.tparty || '', // Index 4
+                    docData.nar || '', // Index 5
+                    String(docData.amt || ''), // Index 6
+                    docData.grp || '', // Index 7 (Group)
+                    docData.name || '', // Index 8 (Name)
+                    `<button class="delete-btn">🗑️ Delete</button>` // Index 9
+                ]);
+            });
+            columnsConfig = [
+                {title: "ID"},
+                {title: "Date"},
+                {title: "Type"},
+                {title: "From Party"},
+                {title: "To Party"},
+                {title: "Narration"},
+                {title: "Amount"},
+                {title: "Group"},
+                {title: "Name"},
+                {title: "Actions"}
+            ];
+            columnDefsConfig = [
+                {visible: false, targets: 0}, // Hide the ID column
+                {orderable: false, targets: -1} // Disable ordering for the Actions column
+            ];
+            let headerRow = '<tr>';
+            columnsConfig.forEach(col => {
+                headerRow += `<th>${col.title}</th>`;
+            });
+            headerRow += '</tr>';
+            tableHead.append(headerRow);
+        }
+        dataTableInstance = $('#tranTable').DataTable({
+            data: data,
+            destroy: true, // Re-initialize if already exists
+            autoWidth: false, // Disable auto width calculation
+            dom: '<"top"f>rt<"bottom"ipB><"clear">', // Removed 'l' for length changing input
+            buttons: [
+                {extend: 'excelHtml5', className: 'buttons-excel', text: '📊 Excel'},
+                {extend: 'pdfHtml5', className: 'buttons-pdf', text: '📄 PDF'},
+                {extend: 'print', className: 'buttons-print', text: '🖨️ Print'}
+            ],
+            columnDefs: columnDefsConfig,
+            columns: columnsConfig, // Use the specific columns for the report type
+            ordering: orderingEnabled, // Apply ordering setting
+            language: {
+                search: "",
+                searchPlaceholder: "Search..."
+            }
+        });
+        $('#tranTable tbody').off('dblclick');
+        $('#tranTable tbody').off('click', '.delete-btn');
+        if (reportType === null) {
+            $('#tranTable tbody').on('dblclick', 'tr', function () {
+                const rowData = dataTableInstance.row(this).data();
+                if (!rowData) return;
+
+                const docId = rowData[0];
+                const ttype = rowData[2]; // Transaction Type
+                window.currentDocId = docId;
+                if (["Sales", "Purchase", "Receipt", "Payment"].includes(ttype)) {
+                    window.showTransactionForm(ttype, rowData);
+                } else if (ttype === "Group") {
+                    window.showGroupForm("Group", rowData);
+                } else if (ttype === "Opening Stock") {
+                    window.showProductForm("Opening Stock", rowData);
+                } else if (ttype === "Opening Balance") {
+                    window.showLedgerForm("Opening Balance", rowData);
+                }
+            });
+            $('#tranTable tbody').on('click', '.delete-btn', async function (event) {
+                event.stopPropagation(); // Prevent row double-click event from firing
+
+                const row = dataTableInstance.row($(this).closest('tr'));
+                const rowData = row.data();
+                if (!rowData) return;
+
+                const docId = rowData[0];
+                const ttype = rowData[2];
+
+                const deletableTypes = ["Sales", "Purchase", "Receipt", "Payment", "Expense"];
+                if (!deletableTypes.includes(ttype)) {
+                    alert("Only sales, purchase, receipt, payment, or expense transactions can be deleted.");
+                    return;
+                }
+
+                const confirmDelete = await window.showConfirmBox("Are you sure you want to delete this transaction?");
+                if (!confirmDelete) return;
+
+                await deleteDoc(doc(db, "tran", docId));
+                row.remove().draw();
+                await loadDropdownData();
+                await updateCashLabel();
+            });
+        }
+    };
+
+    window.showTransactionForm = async function (type, rowData) {
+        const formContainer = document.getElementById('salesFormContainer');
+        formContainer.style.display = 'flex';
+        formContainer.classList.add('modal-overlay'); // Make it a modal
+        const {fList, tList} = getTransactionDropdownLists(type);
+
+        document.getElementById('salesTranType').value = type;
+        document.getElementById('salesDate').value = rowData[1].split("-")[2] + "-" + rowData[1].split("-")[1] + "-" + rowData[1].split("-")[0];
+        document.getElementById('salesFrom').value = rowData[3];
+        document.getElementById('salesTo').value = rowData[4];
+        document.getElementById('salesAmount').value = rowData[6];
+        document.getElementById('salesNarration').value = rowData[5];
+        window.originalEditingValue = null; // Transactions don't have a single "name" to track for global updates
+    };
+    window.saveSalesTransaction = async function () {
+        const transactionsCollectionRef = collection(db, "tran");
+        const docId = window.currentDocId;
+        const date = document.getElementById('salesDate').value;
+        const ttype = document.getElementById('salesTranType').value;
+        const fparty = document.getElementById('salesFrom').value;
+        const tparty = document.getElementById('salesTo').value;
+        const amount = document.getElementById('salesAmount').value;
+        const narration = document.getElementById('salesNarration').value;
+
+        if (!date || !ttype || !fparty || !tparty || !amount) {
+            return alert("Please fill all required fields (Date, From, To, Amount).");
+        }
+
+        if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
+            return alert("Amount must be a positive number.");
+        }
+        const transactionData = {
+            date: date,
+            ttype: ttype,
+            fparty: fparty,
+            tparty: tparty,
+            nar: narration,
+            amt: parseFloat(amount)
+        };
+        if (docId) {
+            const docRef = doc(db, "tran", docId);
+            await updateDoc(docRef, transactionData);
+        } else {
+            await addDoc(transactionsCollectionRef, transactionData);
+        }
+        document.getElementById('salesDate').value = new Date().toISOString().split('T')[0]; // Reset to current date
+        clearFormBySection('salesFormContainer');
+    };
+
+    window.showGroupForm = async function (type, rowData) {
+        const formContainer = document.getElementById('groupFormContainer');
+        formContainer.style.display = 'flex';
+        formContainer.classList.add('modal-overlay'); // Make it a modal
+        document.getElementById('newGroupName').value = rowData[7]; // grp field
+        window.originalEditingValue = rowData[7]; // Store original group name
+    };
+    window.saveGroup = async function () {
+        const groupsCollectionRef = collection(db, "tran");
+        const docId = window.currentDocId;
+        const newGroupNameInput = document.getElementById('newGroupName');
+        const newGroupName = newGroupNameInput.value.trim();
+
+        if (!newGroupName) {
+            alert("Please enter a group name.");
+            return;
+        }
+        const groupData = {
+            ttype: 'Group',
+            grp: newGroupName
+        };
+
+        if (docId) {
+            const docRef = doc(db, "tran", docId);
+
+            const oldGroupName = window.originalEditingValue;
+            await updateDoc(docRef, groupData);
+
+            if (oldGroupName && oldGroupName !== newGroupName) {
+                await updateReferences(oldGroupName, newGroupName, 'grp');
+            }
+        } else {
+            const q = query(groupsCollectionRef, where("grp", "==", newGroupName));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                alert(`Group name '${newGroupName}' already exists.`);
+                return;
+            }
+            await addDoc(groupsCollectionRef, groupData);
+        }
+        await clearFormBySection('groupFormContainer');
+    };
+
+    window.showProductForm = async function (type, rowData) {
+        const formContainer = document.getElementById('productFormContainer');
+        formContainer.style.display = 'flex';
+        formContainer.classList.add('modal-overlay');
+
+        populateDropdown('productGroupSelect', window.sp_list);
+        document.getElementById('productGroupSelect').value = rowData[7];
+        document.getElementById('newProductName').value = rowData[8];
+        document.getElementById('productAmount').value = rowData[6];
+        window.originalEditingValue = rowData[8];
+    };
+    window.saveProduct = async function () {
+        const productsCollectionRef = collection(db, "tran");
+        const docRef = doc(db, "tran", docId);
+        const docId = window.currentDocId;
+        const productGroupSelect = document.getElementById('productGroupSelect');
+        const newProductNameInput = document.getElementById('newProductName');
+        const productAmountInput = document.getElementById('productAmount');
+        const selectedGroup = productGroupSelect.value;
+        const newProductName = newProductNameInput.value.trim();
+        const productAmount = parseFloat(productAmountInput.value) || 0;
+
+        if (!productGroupSelect || !newProductNameInput || !productAmountInput) {
+            return alert("An internal error occurred. Please try again.");
+        }
+        const productData = {
+            ttype: 'Opening Stock',
+            fparty: newProductName,
+            grp: selectedGroup,
+            name: newProductName,
+            amt: productAmount
+        };
+        if (docId) {
+            const oldProductName = window.originalEditingValue;
+            await updateDoc(docRef, productData);
+            if (oldProductName && oldProductName !== newProductName) {
+                await updateReferences(oldProductName, newProductName, 'name');
+            }
+        } else {
+            const q = query(productsCollectionRef, where("name", "==", newProductName));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                alert(`Product name '${newProductName}' already exists.`);
+                return;
+            }
+            await addDoc(productsCollectionRef, productData);
+        }
+        clearFormBySection('productFormContainer');
+    };
+
+    window.showLedgerForm = async function (type, rowData) {
+        const formContainer = document.getElementById('ledgerFormContainer');
+        formContainer.style.display = 'flex';
+        formContainer.classList.add('modal-overlay');
+
+        populateDropdown('ledgerGroupSelect', window.grp_list);
+        document.getElementById('ledgerGroupSelect').value = rowData[7];
+        document.getElementById('newLedgerName').value = rowData[8];
+
+        if (rowData[3] === rowData[8]) {
+            document.getElementById('oldBalanceJama').value = rowData[6];
+            document.getElementById('oldBalanceKhate').value = '';
+        } else if (rowData[4] === rowData[8]) {
+            document.getElementById('oldBalanceJama').value = '';
+            document.getElementById('oldBalanceKhate').value = rowData[6];
+        } else {
+            document.getElementById('oldBalanceJama').value = '';
+            document.getElementById('oldBalanceKhate').value = '';
+        }
+        window.originalEditingValue = rowData[8];
+    };
+    window.saveLedger = async function () {
+        const transactionsCollectionRef = collection(db, "tran");
+        const docId = window.currentDocId;
+        const ledgerGroupSelect = document.getElementById('ledgerGroupSelect');
+        const newLedgerNameInput = document.getElementById('newLedgerName');
+        const oldBalanceJamaInput = document.getElementById('oldBalanceJama');
+        const oldBalanceKhateInput = document.getElementById('oldBalanceKhate');
+
+        if (!ledgerGroupSelect || !newLedgerNameInput || !oldBalanceJamaInput || !oldBalanceKhateInput) {
+            return alert("An internal error occurred. Please try again.");
+        }
+        const selectedGroup = ledgerGroupSelect.value;
+        const newLedgerName = newLedgerNameInput.value.trim();
+        const oldBalanceJama = parseFloat(oldBalanceJamaInput.value) || 0;
+        const oldBalanceKhate = parseFloat(oldBalanceKhateInput.value) || 0;
+
+        if (oldBalanceJama > 0 && oldBalanceKhate > 0) {
+            return alert("You cannot enter values for both 'Old Balance Jama' and 'Old Balance Khate'.\n Please enter only one or leave both empty.");
+        }
+        const ledgerData = {
+            ttype: 'Opening Balance',
+            grp: selectedGroup,
+            name: newLedgerName
+        };
+        if (oldBalanceJama > 0) {
+            ledgerData.amt = oldBalanceJama;
+            ledgerData.fparty = newLedgerName;
+            ledgerData.tparty = '';
+        } else if (oldBalanceKhate > 0) {
+            ledgerData.amt = oldBalanceKhate;
+            ledgerData.fparty = '';
+            ledgerData.tparty = newLedgerName;
+        } else {
+            ledgerData.amt = 0;
+            ledgerData.fparty = '';
+            ledgerData.tparty = '';
+        }
+        if (docId) {
+            const docRef = doc(db, "tran", docId);
+            const oldLedgerName = window.originalEditingValue;
+            await updateDoc(docRef, ledgerData);
+            if (oldLedgerName && oldLedgerName !== newLedgerName) {
+                await updateReferences(oldLedgerName, newLedgerName, 'name');
+            }
+        } else {
+            const q = query(transactionsCollectionRef, where("name", "==", newLedgerName));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                return alert(`Ledger name '${newLedgerName}' already exists.`);
+            }
+            await addDoc(transactionsCollectionRef, ledgerData);
+        }
+        clearFormBySection('ledgerFormContainer');
+    };
+
+    async function viewReceivables() {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+        const ledgerGroups = {};
+        const balances = {};
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const name = (data.name || "").trim().toLowerCase();
+            const grp = (data.grp || "").trim().toLowerCase();
+            if (name && grp) {
+                ledgerGroups[name] = grp;
+            }
+        });
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.fparty) {
+                const party = data.fparty.trim().toLowerCase();
+                balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+            }
+            if (data.tparty) {
+                const party = data.tparty.trim().toLowerCase();
+                balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
+            }
+        });
+        const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
+        const rows = [];
+        for (const [party, amount] of Object.entries(balances)) {
+            const grp = ledgerGroups[party];
+            if (amount < 0 && grp && allowedGroups.includes(grp)) {
+                rows.push({
+                    Party: capitalizeWords(party),
+                    Amount: Math.abs(amount).toFixed(0)
+                });
+            }
+        }
+        return rows;
+    }
+
+    async function viewPayables() {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+        const ledgerGroups = {};
+        const balances = {};
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const name = (data.name || "").trim().toLowerCase();
+            const grp = (data.grp || "").trim().toLowerCase();
+            if (name && grp) {
+                ledgerGroups[name] = grp;
+            }
+        });
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.fparty) {
+                const party = data.fparty.trim().toLowerCase();
+                balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+            }
+            if (data.tparty) {
+                const party = data.tparty.trim().toLowerCase();
+                balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
+            }
+        });
+        const allowedGroups = ["creditors", "debitors", "bank", "angadiya"];
+        const rows = [];
+
+        for (const [party, amount] of Object.entries(balances)) {
+            const grp = ledgerGroups[party];
+            if (amount > 0 && grp && allowedGroups.includes(grp)) {
+                rows.push({
+                    Party: capitalizeWords(party),
+                    Amount: amount.toFixed(0)
+                });
+            }
+        }
+        return rows;
+    }
+
+    async function khatavahi() {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+        const fromDate = document.getElementById("kfromDate").value;
+        const toDate = document.getElementById("ktoDate").value;
+        const partyName = capitalizeWords(document.getElementById("kparty").value.trim());
+
+        if (!fromDate || !toDate || !partyName) {
+            return alert("Please select both dates and party.");
+        }
+        let opBal = 0;
+        let transRows = [];
+        snapshot.forEach(docSnap => {
+            const data = docSnap.data();
+            const date = data.date || "";
+            const fparty = (data.fparty || "").trim().toLowerCase();
+            const tparty = (data.tparty || "").trim().toLowerCase();
+            const party = partyName.trim().toLowerCase();
+
+            if (date < fromDate) {
+                if (fparty === party) {
+                    opBal += Number(data.amt || "0");
+                } else if (tparty === party) {
+                    opBal -= Number(data.amt || "0");
+                }
+            }
+            if (
+                date >= fromDate &&
+                date <= toDate &&
+                (fparty === party || tparty === party)
+            ) {
+                transRows.push({
+                    Date: formatDate(data.date || ""),
+                    TranType: data.ttype || "",
+                    From: data.fparty || "",
+                    To: data.tparty || "",
+                    Narration: data.nar || "",
+                    Amount: Math.abs(Number(data.amt || "0")).toFixed(0)
+                });
+            }
+        });
+        let runningBal = opBal;
+        let finalRows = [];
+        let opLabel = "Opening Balance";
+        if (opBal < 0) opLabel += " Dr";
+        else if (opBal > 0) opLabel += " Cr";
+
+        finalRows.push({
+            Date: "",
+            TranType: "",
+            From: opLabel,
+            To: "",
+            Narration: "",
+            Amount: Math.abs(opBal).toFixed(0)
+        });
+        transRows.forEach(tran => {
+            if (tran.From?.toLowerCase() === partyName.toLowerCase()) {
+                runningBal += Number(tran.Amount);
+            } else if (tran.To?.toLowerCase() === partyName.toLowerCase()) {
+                runningBal -= Number(tran.Amount);
+            }
+            finalRows.push(tran);
+        });
+        let clLabel = "Closing Balance";
+        if (runningBal < 0) clLabel += " Dr";
+        else if (runningBal > 0) clLabel += " Cr";
+        finalRows.push({
+            Date: "",
+            TranType: "",
+            From: clLabel,
+            To: "",
+            Narration: "",
+            Amount: Math.abs(runningBal).toFixed(0)
+        });
+        return finalRows;
+    }
+
+    async function profit_loss() {
+        const tranCol = collection(db, "tran");
+        const snapshot = await getDocs(tranCol);
+        const fromDate = document.getElementById("plfromDate").value;
+        const toDate = document.getElementById("pltoDate").value;
+        const closingStock = parseFloat(document.getElementById("closingStock").value || 0);
+
+        if (!fromDate || !toDate) {
+            return alert("Please select both From Date and To Date.")
+        }
+        ;
+        let periodOpeningStock = 0;
+        let totalPurchase = 0;
+        let totalExpense = 0;
+        let totalSales = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const tranDate = data.date || "";
+            const amount = parseFloat(data.amt || 0);
+            const ttype = (data.ttype || "").toLowerCase();
+
+            if (ttype === "opening stock" && tranDate <= fromDate) {
+                periodOpeningStock += amount;
+            }
+
+            if (tranDate >= fromDate && tranDate <= toDate) {
+                if (ttype === "purchase") {
+                    totalPurchase += amount;
+                } else if (ttype === "expense") {
+                    totalExpense += amount;
+                } else if (ttype === "sales") {
+                    totalSales += amount;
+                }
+            }
+        });
+
+        const debitTotal = periodOpeningStock + totalPurchase + totalExpense;
+        const creditTotal = totalSales + closingStock;
+        const profit = creditTotal - debitTotal;
+        const rows = [
+            {Description: "Opening Stock", Amount: periodOpeningStock.toFixed(0)},
+            {Description: "Purchase", Amount: totalPurchase.toFixed(0)},
+            {Description: "Expense", Amount: totalExpense.toFixed(0)},
+            {Description: "Total (Op+Pur+Exp)", Amount: debitTotal.toFixed(0)},
+            {Description: "Sales", Amount: totalSales.toFixed(0)},
+            {Description: "Closing Stock", Amount: closingStock.toFixed(0)},
+            {Description: "Total (Sales+Clo)", Amount: creditTotal.toFixed(0)},
+            {Description: "Profit / Loss", Amount: profit.toFixed(0)},
+        ];
+        return rows;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('input:not([type="password"]):not([type="email"])').forEach(input => {
+            input.addEventListener('input', function () {
+                applyCapitalization(this);
+            });
+        });
+
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const salesDateInput = document.getElementById('salesDate');
+        if (salesDateInput) {
+            salesDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+        const kfromDateInput = document.getElementById('kfromDate');
+        const ktoDateInput = document.getElementById('ktoDate');
+        if (kfromDateInput) {
+            kfromDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+        if (ktoDateInput) {
+            ktoDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+        const plfromDateInput = document.getElementById('plfromDate');
+        const pltoDateInput = document.getElementById('pltoDate');
+        if (plfromDateInput) {
+            plfromDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+        if (pltoDateInput) {
+            pltoDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
+        window.createAndDeduplicateDocuments();
+        loadDropdownData();
+    });
+
+</script>
+</body>
+</html>
