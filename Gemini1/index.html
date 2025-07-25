@@ -869,10 +869,11 @@
     async function clearFormBySection(sectionId, resetDateId = null) {
         const section = document.getElementById(sectionId);
         if (!section) return;
-
         const inputs = section.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
-            input.value = '';
+            if (!input.disabled) {
+                input.value = '';
+            }
         });
         window.currentDocId = null;
         window.originalEditingValue = null;
@@ -1358,8 +1359,7 @@
         window.originalEditingValue = rowData[8];
     };
     window.saveProduct = async function () {
-        const productsCollectionRef = collection(db, "tran");
-        const docRef = doc(db, "tran", docId);
+        const productCollectionRef = collection(db, "tran");
         const docId = window.currentDocId;
         const productGroupSelect = document.getElementById('productGroupSelect');
         const newProductNameInput = document.getElementById('newProductName');
@@ -1385,13 +1385,13 @@
                 await updateReferences(oldProductName, newProductName, 'name');
             }
         } else {
-            const q = query(productsCollectionRef, where("name", "==", newProductName));
+            const q = query(productCollectionRef, where("name", "==", newProductName));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 alert(`Product name '${newProductName}' already exists.`);
                 return;
             }
-            await addDoc(productsCollectionRef, productData);
+            await addDoc(productCollectionRef, productData);
         }
         clearFormBySection('productFormContainer');
     };
