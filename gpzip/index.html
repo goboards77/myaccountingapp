@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Gopalji's Data</title>
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+<div style="display: flex; align-items: center; gap: 10px;">
+    <button class="w-[100px] text-white px-5 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
+    <input class="w-full px-3 border-2 border-gray-600 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
+</div>
+<div class="mx-auto" id="example-table"></div>
+
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {getFirestore, collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+        authDomain: "accounts-19d08.firebaseapp.com",
+        projectId: "accounts-19d08",
+        storageBucket: "accounts-19d08.appspot.com",
+        messagingSenderId: "247308606105",
+        appId: "1:247308606105:web:9bfc179368524244bf3608",
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let table;
+    let tableData = [];
+    let nameOptions = [];
+
+    async function loadNameList() {
+        const tranRef = collection(db, "gpzip");
+        const q = query(tranRef, where("party", "!=", ""));
+        const nameSnap = await getDocs(q);
+        nameOptions = nameSnap.docs
+            .map(doc => doc.data().party)
+            .filter(party => party !== "");
+    }
+
+    async function loadDataFromFirestore() {
+        const querySnapshot = await getDocs(collection(db, "gpzip"));
+        tableData = [];
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            tableData.push({
+                id: docSnap.id,
+                date: data.date || "",
+                party: data.party || "",
+                nar: data.nar || "",
+                camt: data.camt || "",
+                damt: data.damt || "",
+                lamt: data.lamt || "",
+            });
+        });
+        renderEditableTable();
+    }
+
+    function renderEditableTable() {
+        if (table) table.destroy();
+        const newRow = {
+            id: "NEW_ENTRY_ROW",
+            date: "",
+            party: "",
+            nar: "",
+            camt: "",
+            damt: "",
+            lamt: "",
+            _isNew: true,
+        };
+
+        const dataForTable = [newRow, ...tableData];
+        table = new Tabulator("#example-table", {
+            data: dataForTable,
+            layout: "fitData",
+            movableRows: false,
+            movableColumns: true,
+            initialSort: [{ field: "id", dir: "asc" }],
+
+            columns: [
+                {
+                    title: "ID", field: "id", visible: false,
+                    sorter: (a, b, aRow, bRow, column, dir) => {
+                        if (a === "NEW_ENTRY_ROW") return -1;
+                        if (b === "NEW_ENTRY_ROW") return 1;
+                        return String(a).localeCompare(String(b));
+                    }
+                },
+                {
+                    title: "Date",
+                    field: "date",
+                    editor: (cell, onRendered, success, cancel) => {
+                        const input = document.createElement("input");
+                        input.type = "date";
+                        input.className = "w-full p-1 border rounded";
+                        input.value = cell.getValue();
+
+                        onRendered(() => input.focus());
+                        input.addEventListener("change", () => success(input.value));
+                        input.addEventListener("blur", () => success(input.value));
+                        input.addEventListener("keydown", (e) => {
+                            if (e.key === "Enter") success(input.value);
+                            if (e.key === "Escape") cancel();
+                        });
+                        return input;
+                    }
+                },
+                {
+                    title: "Party",
+                    field: "party",
+                    editor: (cell, onRendered, success, cancel) => {
+                        const select = document.createElement("select");
+                        select.className = "w-full p-1 border rounded";
+                        nameOptions.forEach(name => {
+                            const option = document.createElement("option");
+                            option.value = name;
+                            option.textContent = name;
+                            select.appendChild(option);
+                        });
+                        select.value = cell.getValue();
+
+                        onRendered(() => select.focus());
+                        select.addEventListener("change", () => success(select.value));
+                        select.addEventListener("blur", () => success(select.value));
+                        return select;
+                    }
+                },
+                {title: "Narration", field: "nar", editor: "input", editorParams: { className: "w-full p-1 border rounded" }},
+                {title: "Jama", field: "camt", editor: "number", editorParams: { className: "w-full p-1 border rounded" }},
+                {title: "Khate", field: "damt", editor: "number", editorParams: { className: "w-full p-1 border rounded" }},
+                {title: "LAmt", field: "lamt", editor: "number", editorParams: { className: "w-full p-1 border rounded" }},
+                {
+                    title: "Action",
+                    field: "mainAction",
+                    formatter: (cell) => {
+                        const row = cell.getRow().getData();
+                        if (row._isNew) {
+                            return `<button class="bg-green-500 text-white px-4 rounded">Save</button>`;
+                        } else {
+                            return `<button class="bg-blue-500 text-white px-2 rounded">Update</button>`;
+                        }
+                    },
+                    width: 80,
+                    hozAlign: "center",
+                    cellClick: async (e, cell) => {
+                        const rowData = cell.getRow().getData();
+                        const clickedButtonText = e.target.textContent;
+
+                        if (rowData._isNew) {
+                            if (clickedButtonText === "Save") {
+                                if (!rowData.date || !rowData.party || (rowData.camt === 0 && rowData.damt === 0)) {
+                                    alert("Please fill Date, Party, and at least one amount (Jama or Khate) for the new entry.");
+                                    return;
+                                }
+                                try {
+                                    const docRef = await addDoc(collection(db, "gpzip"), {
+                                        date: rowData.date,
+                                        fparty: rowData.party,
+                                        nar: rowData.nar,
+                                        camt: Number(rowData.camt),
+                                        damt: Number(rowData.damt),
+                                        lamt: Number(rowData.lamt),
+                                    });
+                                    console.log("New row saved with ID:", docRef.id);
+                                    alert("New entry added!");
+                                    await loadDataFromFirestore();
+                                } catch (error) {
+                                    console.error("Error adding new document: ", error);
+                                    alert("Error adding new entry. Check console.");
+                                }
+                            }
+                        } else {
+                            if (clickedButtonText === "Update") {
+                                try {
+                                    const ref = doc(db, "gpzip", rowData.id);
+                                    await updateDoc(ref, {
+                                        date: rowData.date,
+                                        fparty: rowData.party,
+                                        nar: rowData.nar,
+                                        camt: Number(rowData.camt),
+                                        damt: Number(rowData.damt),
+                                        lamt: Number(rowData.lamt),
+                                    });
+                                    alert("Updated successfully!");
+                                } catch (error) {
+                                    console.error("Error updating document: ", error);
+                                    alert("Error updating data. Check console for details.");
+                                }
+                            }
+                        }
+                    },
+                },
+                {
+                    title: "Delete",
+                    field: "deleteAction",
+                    formatter: (cell) => {
+                        const row = cell.getRow().getData();
+                        return row._isNew ? '' : `<button class="bg-red-500 text-white px-2 rounded">Delete</button>`;
+                    },
+                    width: 70,
+                    hozAlign: "center",
+                    cellClick: async (e, cell) => {
+                        const rowData = cell.getRow().getData();
+                        const clickedButtonText = e.target.textContent;
+
+                        if (!rowData._isNew && clickedButtonText === "Delete") {
+                            const confirmDel = confirm("Are you sure you want to delete this row?");
+                            if (confirmDel) {
+                                try {
+                                    await deleteDoc(doc(db, "gpzip", rowData.id));
+                                    alert("Deleted successfully!");
+                                    await loadDataFromFirestore();
+                                } catch (error) {
+                                    console.error("Error deleting document: ", error);
+                                    alert("Error deleting data. Check console for details.");
+                                }
+                            }
+                        }
+                    },
+                },
+            ],
+        });
+
+        bindSearch();
+    }
+
+    function bindSearch() {
+        const searchBox = document.getElementById("search-box");
+        searchBox.addEventListener("input", function () {
+            const value = this.value.toLowerCase();
+            table.setFilter((data) => {
+                if (data._isNew) return true;
+                return Object.values(data).some((val) =>
+                    String(val).toLowerCase().includes(value)
+                );
+            });
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadNameList();
+        await loadDataFromFirestore();
+    });
+
+    window.exportExcel = () => table?.download("xlsx", "data.xlsx");
+</script>
+</body>
+</html>
