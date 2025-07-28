@@ -110,8 +110,10 @@
         table = new Tabulator("#example-table", {
             data: dataForTable,
             layout: "fitData",
+            rowHeight: 40,
+            maxHeight: "500px",
             movableRows: false,
-            movableColumns: true,
+            movableColumns: false,
             columns: [
                 {
                     title: "ID", field: "id", visible: false,
@@ -122,7 +124,7 @@
                     editor: (cell, onRendered, success, cancel) => {
                         const input = document.createElement("input");
                         input.type = "date";
-                        input.className = "w-full p-1 border rounded";
+                        input.className = "w-full p-1 border rounded h-10 leading-10";
                         input.value = cell.getValue();
 
                         onRendered(() => input.focus());
@@ -140,7 +142,7 @@
                     field: "party",
                     editor: (cell, onRendered, success, cancel) => {
                         const select = document.createElement("select");
-                        select.className = "w-full p-1 border rounded";
+                        select.className = "w-full p-1 border rounded h-10 leading-10";
                         nameOptions.forEach(name => {
                             const option = document.createElement("option");
                             option.value = name;
@@ -155,19 +157,19 @@
                         return select;
                     }
                 },
-                {title: "Narration", field: "nar", editor: "input", editorParams: {className: "w-full p-1 border rounded"}},
-                {title: "Jama", field: "camt", editor: "number", editorParams: {className: "w-full p-1 border rounded"}},
-                {title: "Khate", field: "damt", editor: "number", editorParams: {className: "w-full p-1 border rounded"}},
-                {title: "MAmt", field: "mamt", editor: "number", editorParams: {className: "w-full p-1 border rounded"}},
+                {title: "Narration", field: "nar", editor: "input", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
+                {title: "Jama", field: "camt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
+                {title: "Khate", field: "damt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
+                {title: "MAmt", field: "mamt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                 {
                     title: "Action",
                     field: "mainAction",
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
                         if (row._isNew) {
-                            return `<button class="bg-green-500 text-white px-4 rounded">Save</button>`;
+                            return `<button class="bg-green-500 text-white px-4 py-1 rounded">Save</button>`;
                         } else {
-                            return `<button class="bg-blue-500 text-white px-2 rounded">Update</button>`;
+                            return `<button class="bg-blue-500 text-white px-2 py-1 rounded">Update</button>`;
                         }
                     },
                     width: 80,
@@ -224,9 +226,9 @@
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
                         if (row._isNew) {
-                            return `<button class="bg-red-800 text-white px-4 rounded" onclick="window.meh()">MEH</button>`;
+                            return `<button class="bg-red-800 text-white px-4 py-1 rounded" onclick="window.meh()">MEH</button>`;
                         }
-                        return row._isNew ? '' : `<button class="bg-red-500 text-white px-2 rounded">Delete</button>`;
+                        return row._isNew ? '' : `<button class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>`;
                     },
                     width: 70,
                     hozAlign: "center",
