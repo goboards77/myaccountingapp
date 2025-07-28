@@ -10,17 +10,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body style="font-family: 'Inter', sans-serif; font-weight: bold; background-color: #f3f4f6; font-size: 14px;" class="bg-gray-100">
-<div style="display: flex; align-items: center; margin-left: 2px; margin-top: 2px">
-    <button class="w-[100px] text-white px-5 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
-    <input class="w-full px-3 border-2 border-gray-600 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
+<body class="bg-gray-100" style="font-family: 'Inter', sans-serif; font-weight: bold; background-color: #f3f4f6; font-size: 14px;">
+
+<button class="fixed top-0 left-0 w-full bg-blue-600 text-white text-lg font-bold px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
+<div class="hidden fixed top-0 left-0 w-[350px] h-[28vh] bg-blue-600 z-10 overflow-y-auto shadow-lg pt-[60px]" id="dropdownMenu">
+    <div class="w-[350px]" id="menuContent">
+        <button class="w-full text-left px-4 py-4 rounded text-white hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
+        <button class="w-full text-left px-4 py-4 rounded text-white hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
+        <button class="w-full text-left px-4 py-4 rounded text-white hover:bg-blue-900" onclick="viewLoans()">💳 Loans</button>
+    </div>
 </div>
-<div class="ml-[2px] mt-[2px] mx-auto" id="example-table"></div>
+<div class="m-[2px] mt-[53px]" id="btncont" style="display: flex; align-items: center;">
+    <button class="w-[70px] text-white px-1 py-2 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
+    <input class="w-full px-5 py-2 border-2 border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
+</div>
+<div id="example-table"></div>
 
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {getFirestore, collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {getFirestore, collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc, writeBatch} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
@@ -36,17 +45,38 @@
     let table;
     let tableData = [];
     let nameOptions = [];
+    document.addEventListener('DOMContentLoaded', () => {
+        const button = document.getElementById("dropdownBtn");
+        const menu = document.getElementById("dropdownMenu");
+        button.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menu.classList.toggle("hidden");
+        });
+        document.addEventListener("click", (e) => {
+            if (
+                !menu.contains(e.target) &&
+                !button.contains(e.target)
+            ) {
+                menu.classList.add("hidden");
+            }
+        });
+    });
 
     async function loadNameList() {
         const tranRef = collection(db, "gpzip");
         const q = query(tranRef, where("party", "!=", ""));
         const nameSnap = await getDocs(q);
-        nameOptions = nameSnap.docs
-            .map(doc => doc.data().party)
-            .filter(party => party !== "");
+        const partySet = new Set();
+        nameSnap.forEach(doc => {
+            const party = doc.data().party?.trim();
+            if (party) {
+                partySet.add(party);
+            }
+        });
+        nameOptions = Array.from(partySet);
     }
 
-    async function loadDataFromFirestore() {
+    window.daybook = async function () {
         const querySnapshot = await getDocs(collection(db, "gpzip"));
         tableData = [];
         querySnapshot.forEach((docSnap) => {
@@ -58,11 +88,11 @@
                 nar: data.nar || "",
                 camt: data.camt || "",
                 damt: data.damt || "",
-                lamt: data.lamt || "",
+                mamt: data.mamt || "",
             });
         });
         renderEditableTable();
-    }
+    };
 
     function renderEditableTable() {
         if (table) table.destroy();
@@ -73,26 +103,18 @@
             nar: "",
             camt: "",
             damt: "",
-            lamt: "",
+            mamt: "",
             _isNew: true,
         };
-
         const dataForTable = [newRow, ...tableData];
         table = new Tabulator("#example-table", {
             data: dataForTable,
             layout: "fitData",
             movableRows: false,
             movableColumns: true,
-            initialSort: [{ field: "id", dir: "asc" }],
-
             columns: [
                 {
                     title: "ID", field: "id", visible: false,
-                    sorter: (a, b, aRow, bRow, column, dir) => {
-                        if (a === "NEW_ENTRY_ROW") return -1;
-                        if (b === "NEW_ENTRY_ROW") return 1;
-                        return String(a).localeCompare(String(b));
-                    }
                 },
                 {
                     title: "Date",
@@ -133,10 +155,10 @@
                         return select;
                     }
                 },
-                {title: "Narration", field: "nar", editor: "input", editorParams: { className: "w-full p-1 border rounded" }},
-                {title: "Jama", field: "camt", editor: "number", editorParams: { className: "w-full p-1 border rounded" }},
-                {title: "Khate", field: "damt", editor: "number", editorParams: { className: "w-full p-1 border rounded" }},
-                {title: "LAmt", field: "lamt", editor: "number", editorParams: { className: "w-full p-1 border rounded" }},
+                {title: "Narration", field: "nar", editor: "input", editorParams: {className: "w-full p-1 border rounded"}},
+                {title: "Jama", field: "camt", editor: "number", editorParams: {className: "w-full p-1 border rounded"}},
+                {title: "Khate", field: "damt", editor: "number", editorParams: {className: "w-full p-1 border rounded"}},
+                {title: "MAmt", field: "mamt", editor: "number", editorParams: {className: "w-full p-1 border rounded"}},
                 {
                     title: "Action",
                     field: "mainAction",
@@ -153,46 +175,44 @@
                     cellClick: async (e, cell) => {
                         const rowData = cell.getRow().getData();
                         const clickedButtonText = e.target.textContent;
-
                         if (rowData._isNew) {
                             if (clickedButtonText === "Save") {
-                                if (!rowData.date || !rowData.party || (rowData.camt === 0 && rowData.damt === 0)) {
+                                const hasDate = rowData.date && rowData.date.trim() !== "";
+                                const hasParty = rowData.party && rowData.party.trim() !== "";
+                                const camtValue = Number(rowData.camt);
+                                const damtValue = Number(rowData.damt);
+                                const hasAmount = camtValue > 0 || damtValue > 0;
+                                if (!hasDate || !hasParty || !hasAmount) {
                                     alert("Please fill Date, Party, and at least one amount (Jama or Khate) for the new entry.");
                                     return;
                                 }
-                                try {
-                                    const docRef = await addDoc(collection(db, "gpzip"), {
-                                        date: rowData.date,
-                                        fparty: rowData.party,
-                                        nar: rowData.nar,
-                                        camt: Number(rowData.camt),
-                                        damt: Number(rowData.damt),
-                                        lamt: Number(rowData.lamt),
-                                    });
-                                    console.log("New row saved with ID:", docRef.id);
-                                    alert("New entry added!");
-                                    await loadDataFromFirestore();
-                                } catch (error) {
-                                    console.error("Error adding new document: ", error);
-                                    alert("Error adding new entry. Check console.");
-                                }
+                                const newDoc = {
+                                    date: rowData.date.trim(),
+                                    party: rowData.party.trim(),
+                                };
+                                if (rowData.nar && rowData.nar.trim() !== "") newDoc.nar = rowData.nar.trim();
+                                if (camtValue > 0) newDoc.camt = camtValue;
+                                if (damtValue > 0) newDoc.damt = damtValue;
+                                const mamtValue = Number(rowData.mamt);
+                                if (mamtValue > 0) newDoc.mamt = mamtValue;
+                                const docRef = await addDoc(collection(db, "gpzip"), newDoc);
+                                alert("New entry added!");
+                                await daybook();
                             }
                         } else {
                             if (clickedButtonText === "Update") {
-                                try {
-                                    const ref = doc(db, "gpzip", rowData.id);
-                                    await updateDoc(ref, {
-                                        date: rowData.date,
-                                        fparty: rowData.party,
-                                        nar: rowData.nar,
-                                        camt: Number(rowData.camt),
-                                        damt: Number(rowData.damt),
-                                        lamt: Number(rowData.lamt),
-                                    });
+                                const ref = doc(db, "gpzip", rowData.id);
+                                const updateObj = {};
+                                if (rowData.date !== "") updateObj.date = rowData.date;
+                                if (rowData.party !== "") updateObj.party = rowData.party;
+                                if (rowData.nar !== "") updateObj.nar = rowData.nar;
+                                if (rowData.camt !== "") updateObj.camt = Number(rowData.camt);
+                                if (rowData.damt !== "") updateObj.damt = Number(rowData.damt);
+                                if (rowData.mamt !== "") updateObj.mamt = Number(rowData.mamt);
+
+                                if (Object.keys(updateObj).length > 0) {
+                                    await updateDoc(ref, updateObj);
                                     alert("Updated successfully!");
-                                } catch (error) {
-                                    console.error("Error updating document: ", error);
-                                    alert("Error updating data. Check console for details.");
                                 }
                             }
                         }
@@ -203,6 +223,9 @@
                     field: "deleteAction",
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
+                        if (row._isNew) {
+                            return `<button class="bg-red-800 text-white px-4 rounded" onclick="window.meh()">MEH</button>`;
+                        }
                         return row._isNew ? '' : `<button class="bg-red-500 text-white px-2 rounded">Delete</button>`;
                     },
                     width: 70,
@@ -214,14 +237,8 @@
                         if (!rowData._isNew && clickedButtonText === "Delete") {
                             const confirmDel = confirm("Are you sure you want to delete this row?");
                             if (confirmDel) {
-                                try {
-                                    await deleteDoc(doc(db, "gpzip", rowData.id));
-                                    alert("Deleted successfully!");
-                                    await loadDataFromFirestore();
-                                } catch (error) {
-                                    console.error("Error deleting document: ", error);
-                                    alert("Error deleting data. Check console for details.");
-                                }
+                                await deleteDoc(doc(db, "gpzip", rowData.id));
+                                await daybook();
                             }
                         }
                     },
@@ -245,12 +262,142 @@
         });
     }
 
-    document.addEventListener("DOMContentLoaded", async () => {
-        await loadNameList();
-        await loadDataFromFirestore();
-    });
-
     window.exportExcel = () => table?.download("xlsx", "data.xlsx");
+
+    window.meh = async function () {
+        const confirmSave = confirm("Are you sure you want to Save month end havala?");
+        if (!confirmSave) return;
+        const gpzipCollectionRef = collection(db, 'gpzip');
+        const q = query(gpzipCollectionRef, where('mamt', '!=', null));
+        const gpzipSnapshot = await getDocs(q);
+        const fetchedItems = [];
+        gpzipSnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (
+                data.party !== undefined &&
+                data.mamt !== undefined &&
+                (typeof data.mamt !== 'string' || data.mamt !== '')
+            ) {
+                fetchedItems.push({
+                    id: docSnap.id,
+                    party: data.party,
+                    mamt: data.mamt,
+                });
+            }
+        });
+        const batch = writeBatch(db);
+        for (const item of fetchedItems) {
+            const newDoc = {
+                party: item.party,
+                damt: item.mamt,
+                date: new Date().toISOString().split('T')[0],
+                nar: 'BV',
+            };
+            const newDocRef = doc(collection(db, 'gpzip'));
+            batch.set(newDocRef, newDoc);
+        }
+        await batch.commit();
+        alert("Month-end havala entries added.");
+        await daybook();
+    };
+
+    function renderTable(containerId, columns, rows, widths, aligns) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = "";
+        if (!rows.length) {
+            container.textContent = "No data found.";
+            return;
+        }
+        const table = document.createElement("table");
+        table.style.borderCollapse = "collapse"; // for cleaner borders
+        const thead = document.createElement("thead");
+        const trHead = document.createElement("tr");
+        columns.forEach((col, i) => {
+            const th = document.createElement("th");
+            th.textContent = col;
+            th.style.width = widths?.[i] || "auto";
+            th.style.textAlign = aligns?.[i] || "left";
+            th.style.border = "1px solid #999";
+            th.style.padding = "6px";
+            th.style.backgroundColor = "#f0f0f0";
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
+        table.appendChild(thead);
+        const tbody = document.createElement("tbody");
+        rows.forEach(row => {
+            const tr = document.createElement("tr");
+            columns.forEach((col, i) => {
+                const td = document.createElement("td");
+                td.textContent = row[col] || "";
+                td.style.textAlign = aligns?.[i] || "left";
+                td.style.width = widths?.[i] || "auto"; // preserve cell width
+                td.style.border = "1px solid #ccc";
+                td.style.padding = "6px";
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
+    };
+
+    window.viewReceivables = async function () {
+        const tranCol = collection(db, "gpzip");
+        const snapshot = await getDocs(tranCol);
+        const partyMap = {};
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const party = data.party;
+            if (!party) return;
+            const camt = Number(data.camt) || 0;
+            const damt = Number(data.damt) || 0;
+            if (!partyMap[party]) {
+                partyMap[party] = {camt: 0, damt: 0};
+            }
+            partyMap[party].camt += camt;
+            partyMap[party].damt += damt;
+        });
+        const result = [];
+        for (const party in partyMap) {
+            const camt = partyMap[party].camt;
+            const damt = partyMap[party].damt;
+            const receivable = damt - camt;
+            if (receivable > 0) {
+                result.push({
+                    Party: party,
+                    Amount: receivable.toFixed(0),
+                });
+            }
+        }
+        renderTable("example-table", ["Party", "Amount"], result, ["200px", "100px"], ["left", "right"]);
+    };
+
+    window.viewLoans = async function () {
+        const tranCol = collection(db, "gpzip");
+        const snapshot = await getDocs(tranCol);
+        const loanMap = {};
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const party = data.party;
+            const lamt = Number(data.lamt) || 0;
+            if (party && lamt > 0) {
+                if (!loanMap[party]) {
+                    loanMap[party] = 0;
+                }
+                loanMap[party] += lamt;
+            }
+        });
+        const loans = [];
+        for (const party in loanMap) {
+            loans.push({
+                Party: party,
+                Loan: loanMap[party].toFixed(0),
+            });
+        }
+        renderTable("example-table", ["Party", "Loan"], loans, ["200px", "100px"], ["left", "right"]);
+    };
+    loadNameList();
 </script>
 </body>
 </html>
