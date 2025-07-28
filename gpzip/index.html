@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100" style="font-family: 'Inter', sans-serif; font-weight: bold; background-color: #f3f4f6; font-size: 14px;">
+<body class="bg-gray-100" style="font-family: 'Inter', sans-serif; background-color: #f3f4f6; font-size: 14px;">
 
 <button class="fixed top-0 left-0 w-full bg-blue-600 text-white text-lg font-bold px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
 <div class="hidden fixed top-0 left-0 w-[350px] h-[28vh] bg-blue-600 z-10 overflow-y-auto shadow-lg pt-[60px]" id="dropdownMenu">
@@ -249,20 +249,22 @@
         });
 
         bindSearch();
-    }
+    };
 
     function bindSearch() {
-        const searchBox = document.getElementById("search-box");
-        searchBox.addEventListener("input", function () {
-            const value = this.value.toLowerCase();
-            table.setFilter((data) => {
-                if (data._isNew) return true;
-                return Object.values(data).some((val) =>
-                    String(val).toLowerCase().includes(value)
-                );
+            const searchBox = document.getElementById("search-box");
+            searchBox.addEventListener("input", function () {
+                const value = this.value.toLowerCase().trim();
+                table.setFilter(function(data){
+                    if (value === "") {
+                        return true;
+                    }
+                    return Object.values(data).some(val =>
+                        String(val).toLowerCase().includes(value)
+                    );
+                });
             });
-        });
-    }
+        };
 
     window.exportExcel = () => table?.download("xlsx", "data.xlsx");
 
