@@ -3,29 +3,26 @@
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Gopalji's Data</title>
+    <title>Data</title>
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-    <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-latest/package/dist/shim.min.js"></script>
-    <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/shim.min.js" type="text/javascript"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" type="text/javascript"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>#example-table {font-size: 16px;}</style>
+    <style>#example-table {font-family: sans-serif; font-size: 14px; }</style>
 </head>
-<body class="bg-gray-100" style="font-family: 'Inter', sans-serif; background-color: #f3f4f6; font-size: 14px;">
-
-<button class="fixed top-0 left-0 w-full bg-blue-600 text-white text-lg font-bold px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
-<div class="hidden fixed top-0 left-0 w-[350px] h-[28vh] bg-blue-600 z-10 overflow-y-auto shadow-lg pt-[60px]" id="dropdownMenu">
-    <div class="w-[350px]" id="menuContent">
-        <button class="w-full text-left px-4 py-4 rounded text-white hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
-        <button class="w-full text-left px-4 py-4 rounded text-white hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
-        <button class="w-full text-left px-4 py-4 rounded text-white hover:bg-blue-900" onclick="viewLoans()">💳 Loans</button>
-    </div>
+<body>
+<button class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 text-white text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">Menu ▼</button>
+<div class="hidden fixed top-0 left-0 w-[350px] bg-blue-600 overflow-y-auto rounded pt-[50px] z-10" id="dropdownMenu">
+    <button class="w-full text-left px-4 py-2 text-white hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
+    <button class="w-full text-left px-4 py-2 text-white hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
+    <button class="w-full text-left px-4 py-2 text-white hover:bg-blue-900" onclick="viewLoans()">💳 Loans</button>
 </div>
-<div class="ml-2 mt-[53px]" id="btncont" style="display: flex; align-items: center;">
-    <button class="w-[70px] text-white px-1 py-2 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
-    <input autocomplete="off" class="w-full px-5 py-2 border-2 border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
+<div class="ml-1 mt-[51px]" id="btncont" style="display: flex; align-items: center;">
+    <button class="w-[70px] text-white px-1 py-1 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
+    <input autocomplete="off" class="w-full py-1 px-5 border border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
 </div>
-<div class="ml-2" id="example-table"></div>
+<div class="ml-1" id="example-table"></div>
 
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -57,7 +54,9 @@
             if (
                 !menu.contains(e.target) &&
                 !button.contains(e.target)
-            ) {menu.classList.add("hidden");}
+            ) {
+                menu.classList.add("hidden");
+            }
         });
     });
 
@@ -68,12 +67,14 @@
         const partySet = new Set();
         nameSnap.forEach(doc => {
             const party = doc.data().party?.trim();
-            if (party) {partySet.add(party);}
+            if (party) {
+                partySet.add(party);
+            }
         });
         nameOptions = Array.from(partySet);
     }
 
-    function renderEditableTable() {
+    function editableTable() {
         if (table) table.destroy();
         const newRow = {
             id: "NEW_ENTRY_ROW",
@@ -82,14 +83,13 @@
             nar: "",
             camt: "",
             damt: "",
-            mamt: "",
             _isNew: true,
         };
         const dataForTable = [newRow, ...tableData];
         table = new Tabulator("#example-table", {
             data: dataForTable,
             layout: "fitData",
-            rowHeight: 50,
+            rowHeight: 40,
             maxHeight: "600px",
             movableRows: false,
             movableColumns: false,
@@ -137,16 +137,18 @@
                 {title: "Narration", field: "nar", editor: "input", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                 {title: "Jama", field: "camt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                 {title: "Khate", field: "damt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
-                {title: "MAmt", field: "mamt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                 {
                     title: "Action",
                     field: "mainAction",
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
-                        if (row._isNew) {return `<button class="bg-green-500 text-white px-4 py-2 rounded">Save</button>`;}
-                        else {return `<button class="bg-blue-500 text-white px-2 py-2 rounded">Update</button>`;}
+                        if (row._isNew) {
+                            return `<button class="bg-green-800 text-white px-3 py-2 rounded">Save</button>`;
+                        } else {
+                            return `<button class="bg-blue-800 text-white px-2 py-2 rounded">Update</button>`;
+                        }
                     },
-                    width: 80,
+                    width: 70,
                     hozAlign: "center",
                     cellClick: async (e, cell) => {
                         const rowData = cell.getRow().getData();
@@ -158,7 +160,9 @@
                                 const camtValue = Number(rowData.camt);
                                 const damtValue = Number(rowData.damt);
                                 const hasAmount = camtValue > 0 || damtValue > 0;
-                                if (!hasDate || !hasParty || !hasAmount) {return alert("Please fill Date, Party, and at least one amount (Jama or Khate) for the new entry.");}
+                                if (!hasDate || !hasParty || !hasAmount) {
+                                    return alert("Please fill Date, Party, and at least one amount (Jama or Khate) for the new entry.");
+                                }
                                 const newDoc = {
                                     date: rowData.date.trim(),
                                     party: rowData.party.trim(),
@@ -179,7 +183,6 @@
                                 if (rowData.nar !== "") updateObj.nar = rowData.nar;
                                 if (rowData.camt !== "") updateObj.camt = Number(rowData.camt);
                                 if (rowData.damt !== "") updateObj.damt = Number(rowData.damt);
-                                if (rowData.mamt !== "") updateObj.mamt = Number(rowData.mamt);
 
                                 if (Object.keys(updateObj).length > 0) {
                                     await updateDoc(ref, updateObj);
@@ -195,8 +198,11 @@
                     field: "deleteAction",
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
-                        if (row._isNew) {return `<button class="bg-red-800 text-white px-4 py-2 rounded" onclick="window.meh()">MEH</button>`;}
-                                         return row._isNew ? '' : `<button class="bg-red-500 text-white px-2 py-2 rounded">Delete</button>`;},
+                        if (row._isNew) {
+                            return `<button class="bg-yellow-800 text-white px-3 py-2 rounded" onclick="window.meh()">MEH</button>`;
+                        }
+                        return row._isNew ? '' : `<button class="bg-red-800 text-white px-2 py-2 rounded">Delete</button>`;
+                    },
                     width: 70,
                     hozAlign: "center",
                     cellClick: async (e, cell) => {
@@ -217,7 +223,7 @@
         bindSearch();
     };
 
-    function showCustomTable(data, columnsConfig) {
+    function customTable(data, columnsConfig) {
         if (table) table.destroy();
         table = new Tabulator("#example-table", {
             data: data,
@@ -253,10 +259,9 @@
                 nar: data.nar || "",
                 camt: data.camt || "",
                 damt: data.damt || "",
-                mamt: data.mamt || "",
             });
         });
-        renderEditableTable();
+        editableTable();
     };
 
     window.meh = async function () {
@@ -322,7 +327,7 @@
             {title: "Party", field: "Party", width: 200, hozAlign: "left"},
             {title: "Loan", field: "Loan", width: 100, hozAlign: "right"},
         ];
-        showCustomTable(loans, loanColumns);
+        customTable(loans, loanColumns);
     };
 
     window.viewReceivables = async function () {
@@ -353,11 +358,11 @@
                 });
             }
         }
-        const loanColumns = [
+        const recColumns = [
             {title: "Party", field: "Party", width: 200, hozAlign: "left"},
             {title: "Amount", field: "Amount", width: 100, hozAlign: "right"},
         ];
-        showCustomTable(result, loanColumns);
+        customTable(result, recColumns);
     };
 
     loadNameList();
