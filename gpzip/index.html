@@ -234,15 +234,14 @@
         bindSearch();
     };
 
-    function showCustomTable(elementId, data, columnsConfig) {
+    function showCustomTable(data, columnsConfig) {
         if (table) table.destroy();
         table = new Tabulator("#example-table", {
             data: data,
-            rowHeight: 50,
+            rowHeight: 40,
             columns: columnsConfig,
         });
         bindSearch();
-        return tableInstance;
     }
 
     function bindSearch() {
@@ -340,7 +339,7 @@
             {title: "Party", field: "Party", width: 200, hozAlign: "left"},
             {title: "Loan", field: "Loan", width: 100, hozAlign: "right"},
         ];
-        showCustomTable("example-table", loans, loanColumns);
+        showCustomTable(loans, loanColumns);
     };
 
     window.viewReceivables = async function () {
@@ -373,9 +372,9 @@
         }
         const loanColumns = [
             {title: "Party", field: "Party", width: 200, hozAlign: "left"},
-            {title: "Loan", field: "Loan", width: 100, hozAlign: "right"},
+            {title: "Amount", field: "Amount", width: 100, hozAlign: "right"},
         ];
-        showCustomTable("example-table", result, loanColumns);
+        showCustomTable(result, loanColumns);
     };
 
     loadNameList();
