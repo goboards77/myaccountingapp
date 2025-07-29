@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>#example-table {font-size: 16px;}</style>
 </head>
 <body class="bg-gray-100" style="font-family: 'Inter', sans-serif; background-color: #f3f4f6; font-size: 14px;">
 
@@ -75,24 +76,6 @@
         });
         nameOptions = Array.from(partySet);
     }
-
-    window.daybook = async function () {
-        const querySnapshot = await getDocs(collection(db, "gpzip"));
-        tableData = [];
-        querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            tableData.push({
-                id: docSnap.id,
-                date: data.date || "",
-                party: data.party || "",
-                nar: data.nar || "",
-                camt: data.camt || "",
-                damt: data.damt || "",
-                mamt: data.mamt || "",
-            });
-        });
-        renderEditableTable();
-    };
 
     function renderEditableTable() {
         if (table) table.destroy();
@@ -251,22 +234,48 @@
         bindSearch();
     };
 
+    function showCustomTable(elementId, data, columnsConfig) {
+        if (table) table.destroy();
+        table = new Tabulator("#example-table", {
+            data: data,
+            rowHeight: 50,
+            columns: columnsConfig,
+        });
+        bindSearch();
+        return tableInstance;
+    }
+
     function bindSearch() {
-            const searchBox = document.getElementById("search-box");
-            searchBox.addEventListener("input", function () {
-                const value = this.value.toLowerCase().trim();
-                table.setFilter(function(data){
-                    if (value === "") {
-                        return true;
-                    }
-                    return Object.values(data).some(val =>
-                        String(val).toLowerCase().includes(value)
-                    );
-                });
+        const searchBox = document.getElementById("search-box");
+        searchBox.addEventListener("input", function () {
+            const value = this.value.toLowerCase();
+            table.setFilter((data) => {
+                return Object.values(data).some(val =>
+                    String(val).toLowerCase().includes(value)
+                );
             });
-        };
+        });
+    }
 
     window.exportExcel = () => table?.download("xlsx", "data.xlsx");
+
+    window.daybook = async function () {
+        const querySnapshot = await getDocs(collection(db, "gpzip"));
+        tableData = [];
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            tableData.push({
+                id: docSnap.id,
+                date: data.date || "",
+                party: data.party || "",
+                nar: data.nar || "",
+                camt: data.camt || "",
+                damt: data.damt || "",
+                mamt: data.mamt || "",
+            });
+        });
+        renderEditableTable();
+    };
 
     window.meh = async function () {
         const confirmSave = confirm("Are you sure you want to Save month end havala?");
@@ -305,45 +314,33 @@
         await daybook();
     };
 
-    function renderTable(containerId, columns, rows, widths, aligns) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = "";
-        if (!rows.length) {
-            container.textContent = "No data found.";
-            return;
-        }
-        const table = document.createElement("table");
-        table.style.borderCollapse = "collapse"; // for cleaner borders
-        const thead = document.createElement("thead");
-        const trHead = document.createElement("tr");
-        columns.forEach((col, i) => {
-            const th = document.createElement("th");
-            th.textContent = col;
-            th.style.width = widths?.[i] || "auto";
-            th.style.textAlign = aligns?.[i] || "left";
-            th.style.border = "1px solid #999";
-            th.style.padding = "6px";
-            th.style.backgroundColor = "#f0f0f0";
-            trHead.appendChild(th);
+    window.viewLoans = async function () {
+        const tranCol = collection(db, "gpzip");
+        const snapshot = await getDocs(tranCol);
+        const loanMap = {};
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const party = data.party;
+            const lamt = Number(data.lamt) || 0;
+            if (party && lamt > 0) {
+                if (!loanMap[party]) {
+                    loanMap[party] = 0;
+                }
+                loanMap[party] += lamt;
+            }
         });
-        thead.appendChild(trHead);
-        table.appendChild(thead);
-        const tbody = document.createElement("tbody");
-        rows.forEach(row => {
-            const tr = document.createElement("tr");
-            columns.forEach((col, i) => {
-                const td = document.createElement("td");
-                td.textContent = row[col] || "";
-                td.style.textAlign = aligns?.[i] || "left";
-                td.style.width = widths?.[i] || "auto"; // preserve cell width
-                td.style.border = "1px solid #ccc";
-                td.style.padding = "6px";
-                tr.appendChild(td);
+        const loans = [];
+        for (const party in loanMap) {
+            loans.push({
+                Party: party,
+                Loan: loanMap[party].toFixed(0),
             });
-            tbody.appendChild(tr);
-        });
-        table.appendChild(tbody);
-        container.appendChild(table);
+        }
+        const loanColumns = [
+            {title: "Party", field: "Party", width: 200, hozAlign: "left"},
+            {title: "Loan", field: "Loan", width: 100, hozAlign: "right"},
+        ];
+        showCustomTable("example-table", loans, loanColumns);
     };
 
     window.viewReceivables = async function () {
@@ -374,33 +371,13 @@
                 });
             }
         }
-        renderTable("example-table", ["Party", "Amount"], result, ["200px", "100px"], ["left", "right"]);
+        const loanColumns = [
+            {title: "Party", field: "Party", width: 200, hozAlign: "left"},
+            {title: "Loan", field: "Loan", width: 100, hozAlign: "right"},
+        ];
+        showCustomTable("example-table", result, loanColumns);
     };
 
-    window.viewLoans = async function () {
-        const tranCol = collection(db, "gpzip");
-        const snapshot = await getDocs(tranCol);
-        const loanMap = {};
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const party = data.party;
-            const lamt = Number(data.lamt) || 0;
-            if (party && lamt > 0) {
-                if (!loanMap[party]) {
-                    loanMap[party] = 0;
-                }
-                loanMap[party] += lamt;
-            }
-        });
-        const loans = [];
-        for (const party in loanMap) {
-            loans.push({
-                Party: party,
-                Loan: loanMap[party].toFixed(0),
-            });
-        }
-        renderTable("example-table", ["Party", "Loan"], loans, ["200px", "100px"], ["left", "right"]);
-    };
     loadNameList();
 </script>
 </body>
