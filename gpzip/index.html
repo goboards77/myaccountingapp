@@ -6,8 +6,8 @@
     <title>Gopalji's Data</title>
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-latest/package/dist/shim.min.js"></script>
+    <script type="text/javascript" src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>#example-table {font-size: 16px;}</style>
 </head>
@@ -23,7 +23,7 @@
 </div>
 <div class="ml-2 mt-[53px]" id="btncont" style="display: flex; align-items: center;">
     <button class="w-[70px] text-white px-1 py-2 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
-    <input class="w-full px-5 py-2 border-2 border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
+    <input autocomplete="off" class="w-full px-5 py-2 border-2 border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
 </div>
 <div class="ml-2" id="example-table"></div>
 
@@ -57,9 +57,7 @@
             if (
                 !menu.contains(e.target) &&
                 !button.contains(e.target)
-            ) {
-                menu.classList.add("hidden");
-            }
+            ) {menu.classList.add("hidden");}
         });
     });
 
@@ -70,9 +68,7 @@
         const partySet = new Set();
         nameSnap.forEach(doc => {
             const party = doc.data().party?.trim();
-            if (party) {
-                partySet.add(party);
-            }
+            if (party) {partySet.add(party);}
         });
         nameOptions = Array.from(partySet);
     }
@@ -109,7 +105,6 @@
                         input.type = "date";
                         input.className = "w-full p-1 border rounded h-10 leading-10";
                         input.value = cell.getValue();
-
                         onRendered(() => input.focus());
                         input.addEventListener("change", () => success(input.value));
                         input.addEventListener("blur", () => success(input.value));
@@ -133,7 +128,6 @@
                             select.appendChild(option);
                         });
                         select.value = cell.getValue();
-
                         onRendered(() => select.focus());
                         select.addEventListener("change", () => success(select.value));
                         select.addEventListener("blur", () => success(select.value));
@@ -149,11 +143,8 @@
                     field: "mainAction",
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
-                        if (row._isNew) {
-                            return `<button class="bg-green-500 text-white px-4 py-2 rounded">Save</button>`;
-                        } else {
-                            return `<button class="bg-blue-500 text-white px-2 py-2 rounded">Update</button>`;
-                        }
+                        if (row._isNew) {return `<button class="bg-green-500 text-white px-4 py-2 rounded">Save</button>`;}
+                        else {return `<button class="bg-blue-500 text-white px-2 py-2 rounded">Update</button>`;}
                     },
                     width: 80,
                     hozAlign: "center",
@@ -167,10 +158,7 @@
                                 const camtValue = Number(rowData.camt);
                                 const damtValue = Number(rowData.damt);
                                 const hasAmount = camtValue > 0 || damtValue > 0;
-                                if (!hasDate || !hasParty || !hasAmount) {
-                                    alert("Please fill Date, Party, and at least one amount (Jama or Khate) for the new entry.");
-                                    return;
-                                }
+                                if (!hasDate || !hasParty || !hasAmount) {return alert("Please fill Date, Party, and at least one amount (Jama or Khate) for the new entry.");}
                                 const newDoc = {
                                     date: rowData.date.trim(),
                                     party: rowData.party.trim(),
@@ -178,8 +166,6 @@
                                 if (rowData.nar && rowData.nar.trim() !== "") newDoc.nar = rowData.nar.trim();
                                 if (camtValue > 0) newDoc.camt = camtValue;
                                 if (damtValue > 0) newDoc.damt = damtValue;
-                                const mamtValue = Number(rowData.mamt);
-                                if (mamtValue > 0) newDoc.mamt = mamtValue;
                                 const docRef = await addDoc(collection(db, "gpzip"), newDoc);
                                 alert("New entry added!");
                                 await daybook();
@@ -198,6 +184,7 @@
                                 if (Object.keys(updateObj).length > 0) {
                                     await updateDoc(ref, updateObj);
                                     alert("Updated successfully!");
+                                    await daybook();
                                 }
                             }
                         }
@@ -208,17 +195,13 @@
                     field: "deleteAction",
                     formatter: (cell) => {
                         const row = cell.getRow().getData();
-                        if (row._isNew) {
-                            return `<button class="bg-red-800 text-white px-4 py-2 rounded" onclick="window.meh()">MEH</button>`;
-                        }
-                        return row._isNew ? '' : `<button class="bg-red-500 text-white px-2 py-2 rounded">Delete</button>`;
-                    },
+                        if (row._isNew) {return `<button class="bg-red-800 text-white px-4 py-2 rounded" onclick="window.meh()">MEH</button>`;}
+                                         return row._isNew ? '' : `<button class="bg-red-500 text-white px-2 py-2 rounded">Delete</button>`;},
                     width: 70,
                     hozAlign: "center",
                     cellClick: async (e, cell) => {
                         const rowData = cell.getRow().getData();
                         const clickedButtonText = e.target.textContent;
-
                         if (!rowData._isNew && clickedButtonText === "Delete") {
                             const confirmDel = confirm("Are you sure you want to delete this row?");
                             if (confirmDel) {
@@ -303,7 +286,7 @@
                 party: item.party,
                 damt: item.mamt,
                 date: new Date().toISOString().split('T')[0],
-                nar: 'BV',
+                nar: 'Bhadu Vyaj',
             };
             const newDocRef = doc(collection(db, 'gpzip'));
             batch.set(newDocRef, newDoc);
