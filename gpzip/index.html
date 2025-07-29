@@ -9,14 +9,13 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/shim.min.js" type="text/javascript"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" type="text/javascript"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>#example-table {font-family: sans-serif; font-size: 14px; }</style>
 </head>
 <body>
 <button class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 text-white text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">Menu ▼</button>
 <div class="hidden fixed top-0 left-0 w-[350px] bg-blue-600 overflow-y-auto rounded pt-[50px] z-10" id="dropdownMenu">
-    <button class="w-full text-left px-4 py-2 text-white hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
-    <button class="w-full text-left px-4 py-2 text-white hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
-    <button class="w-full text-left px-4 py-2 text-white hover:bg-blue-900" onclick="viewLoans()">💳 Loans</button>
+    <button class="w-full text-left px-4 py-3 text-white hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
+    <button class="w-full text-left px-4 py-3 text-white hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
+    <button class="w-full text-left px-4 py-3 text-white hover:bg-blue-900" onclick="viewLoans()">💳 Loans</button>
 </div>
 <div class="ml-1 mt-[51px]" id="btncont" style="display: flex; align-items: center;">
     <button class="w-[70px] text-white px-1 py-1 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
