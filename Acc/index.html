@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Tailwind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<button class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 text-white text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
+<div class="hidden fixed top-0 left-0 w-[350px] h-[75vh] bg-white z-10 overflow-y-auto shadow-lg transition-all duration-300 pt-[60px]" id="dropdownMenu">
+    <div class="flex flex-col px-4 space-y-2 py-2" id="menuContent">
+        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Transaction')">💰 Transaction</button>
+        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Group')">🤝 Group</button>
+        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Opening Stock')">📦 Product</button>
+        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Opening Balance')">📘 Ledger</button>
+        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertTran()">✏️ Update Transaction</button>
+        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertProduct()">✏️ Update Product</button>
+        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertLedger()">✏️ Update Ledger</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-orange-400" onclick="viewDaybook()">📚 Daybook</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewGroup()">📚 Groups/Ledgers/Products</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewReceivables()">📤 Receivables</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewPayables()">📬 Payables</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400">📈 Profit & Loss</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400">🧾 Khatavahi</button>
+        <button class="w-full flex items-center gap-3 px-4 py-2 rounded bg-red-100 hover:bg-red-200 text-red-800 font-semibold">🔒 Logout</button>
+    </div>
+</div>
+<!-- Login Form -->
+<div id="loginContainer" style="display: none;">
+    <h2>Login</h2>
+    <label for="loginEmail"></label><input id="loginEmail" placeholder="Email" type="email">
+    <label for="loginPassword"></label><input id="loginPassword" placeholder="Password" type="password">
+    <button class="action-button" onclick="login()">Login</button>
+    <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+</div>
+<!-- Register Form -->
+<div id="registerContainer" style="display:none;">
+    <h2>Register</h2>
+    <label for="registerEmail"></label><input id="registerEmail" placeholder="Email" type="email">
+    <label for="registerPassword"></label><input id="registerPassword" placeholder="Password" type="password">
+    <button class="action-button" onclick="register()">Register</button>
+    <div class="small-link"><a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a></div>
+</div>
+<!-- Sales Section -->
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Transaction">
+    <label for="ttype">Transaction Type</label><select class="input-box" id="ttype"></select>
+    <label for="date">Date</label><input class="input-box" id="date" type="date"/>
+    <label for="txtfrom">From</label><select class="input-box" id="txtfrom"></select>
+    <label for="txtto">To</label><select class="input-box" id="txtto"></select>
+    <label for="amt">Amount</label><input class="input-box" id="amt" placeholder="Amount" type="number"/>
+    <label for="nar">Narration</label><input autocomplete="off" class="input-box" id="nar" placeholder="Narration" type="text"/>
+    <button Class="input-box mt-5" onclick="window.saveTransaction()">💾 Transaction</button>
+</div>
+<!-- Group Section -->
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Group">
+    <label>New/Update Group</label><input autocomplete="off" class="input-box" id="newgrp" placeholder="Group Name" type="text"/>
+    <button Class="input-box mt-5" onclick="saveGroup()">💾 Group</button>
+</div>
+<!-- Product Section -->
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Opening Stock">
+    <label for="sp1">Select Product Group</label><select class="input-box" id="spprod" type="text"></select>
+    <label for="prodname">Product Name</label><input autocomplete="off" class="input-box" id="prodname" placeholder="Product Name" type="text"/>
+    <label for="opstock">Opening Stock Amount</label><input class="input-box" id="opstock" placeholder="Opening Stock Amount" type="number"/>
+    <button Class="input-box mt-5" onclick="saveProduct()">💾 Product</button>
+</div>
+<!-- Ledger Section -->
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Opening Balance">
+    <label for="grp1">Select Ledger Group</label><select class="input-box" id="ledgrp" type="text"></select>
+    <label for="ledname">Ledger Name</label><input autocomplete="off" class="input-box" id="ledname" placeholder="Ledger Name" type="text"/>
+    <label for="opbal">Opening Balance</label><input class="input-box" id="opbal" placeholder="Opening Balance" type="number"/>
+    <button Class="input-box mt-5" onclick="saveLedger()">💾 Ledger</button>
+</div>
+<!-- Tabulator Table Container -->
+<div class="hidden fixed top-[60px] w-full mx-auto my-5" id="fulltableCont">
+    <div class="p-4">
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
+            <button class="bg-green-500 px-2 py-1 text-white rounded" id="excelBtn">Excel</button>
+            <button class="bg-red-500 px-2 py-1 text-white rounded" id="pdfBtn">PDF</button>
+            <button class="bg-blue-500 px-2 py-1 text-white rounded" id="printBtn">Print</button>
+            <div class="w-full max-w-xs sm:w-auto">
+                <label for="searchBox"></label><input autocomplete="off" class="w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/>
+            </div>
+        </div>
+        <div id="tableCont"></div>
+    </div>
+</div>
+<script type="module">
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+        getAuth,
+        onAuthStateChanged,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        signOut,
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+        getFirestore,
+        collection,
+        getDocs,
+        getDoc,
+        setDoc,
+        deleteDoc,
+        doc,
+        updateDoc,
+        query,
+        where,
+        addDoc,
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
+        authDomain: "accounts-19d08.firebaseapp.com",
+        projectId: "accounts-19d08",
+        storageBucket: "accounts-19d08.appspot.com",
+        messagingSenderId: "247308606105",
+        appId: "1:247308606105:web:9bfc179368524244bf3608",
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const tranCol = collection(db, "tran");
+    const listNames = ["sproduct_list", "crdb_list", "crdbcsbkangexp_list", "grp_list", "sp_list", "pproduct_list", "crdbcsbkang_list", "allnames_list",];
+    listNames.forEach((name) => {
+        window[name] = [];
+    });
+    window.currentDocId = null;
+    window.originalEditingValue = null;
+    window.showLogin = function () {
+        document.getElementById("loginContainer").style.display = "flex";
+    };
+    window.showRegister = function () {
+        document.getElementById("registerContainer").style.display = "flex";
+    };
+    window.login = async function () {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        await signInWithEmailAndPassword(auth, email, password);
+    };
+    window.register = async function () {
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        await createUserWithEmailAndPassword(auth, email, password);
+    };
+    window.logout = async function () {
+        await signOut(auth);
+    };
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            await createAndDeduplicateDocuments();
+            await loadDropdownData();
+            await updateCashLabel();
+            populateDropdown("ttype", window.ttype_list);
+            populateDropdown("spprod", window.sp_list);
+            populateDropdown("ledgrp", window.grp_list);
+        } else {
+            document.getElementById("loginContainer").style.display = "flex";
+            document.getElementById("dropdownBtn").textContent = "Menu";
+        }
+    });
+    const dcolumns = [{title: "Date", field: "date"}, {title: "Type", field: "ttype"}, {title: "From Party", field: "fparty"}, {title: "To Party", field: "tparty"},
+        {title: "Narration", field: "nar"}, {title: "Amount", field: "amt", hozAlign: "right"}, {title: "ID", field: "id", visible: false}];
+    const createGroupDefinition = (groupName) => ({
+        data: {grp: groupName, ttype: "Group"},
+        queryConditions: [where("grp", "==", groupName), where("ttype", "==", "Group"),],
+    });
+    const uniqueDocumentDefinitions = [createGroupDefinition("Cash"), createGroupDefinition("Bank"), createGroupDefinition("Creditors"), createGroupDefinition("Debitors"), createGroupDefinition("Angadiya"), createGroupDefinition("Expense"), createGroupDefinition("Sales Products"), createGroupDefinition("Purchase Products"),];
+    window.createAndDeduplicateDocuments = async function () {
+        for (const docDef of uniqueDocumentDefinitions) {
+            const q = query(tranCol, ...docDef.queryConditions);
+            const snapshot = await getDocs(q);
+            if (snapshot.empty) {
+                await addDoc(tranCol, docDef.data);
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const inputClass = "w-full pl-[10px] pr-2 pt-2 pb-2 border-2 border-gray-500 rounded";
+        document.querySelectorAll('.input-box').forEach(input => {
+            input.classList.add(...inputClass.split(' '));
+            if ((input.tagName === "INPUT" && input.type === "text") || input.tagName === "TEXTAREA") {
+                input.addEventListener('input', function () {
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    this.value = this.value.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+                    this.setSelectionRange(start, end);
+                });
+            }
+        });
+        const labelClass = "mt-3 pl-[10px] block text-gray-500 font-medium mb-1";
+        document.querySelectorAll('label').forEach(label => {
+            label.classList.add(...labelClass.split(' '));
+        });
+        const button = document.getElementById("dropdownBtn");
+        const menu = document.getElementById("dropdownMenu");
+        button.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menu.classList.toggle("hidden");
+        });
+        document.addEventListener("click", (e) => {
+            if (!menu.contains(e.target) && !button.contains(e.target)) {
+                menu.classList.add("hidden");
+            }
+        });
+    });
+
+    window.showOnly = function (idToShow) {
+        const menu = document.getElementById("dropdownMenu");
+        if (menu) menu.classList.add("hidden");
+        const allIds = ['Transaction', 'Group', 'Opening Stock', 'Opening Balance', 'fulltableCont',];
+        allIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add("hidden");
+                el.style.setProperty('display', 'none', 'important');
+            }
+        });
+        const toShow = document.getElementById(idToShow);
+        if (toShow) {
+            toShow.classList.remove("hidden");
+            toShow.style.setProperty('display', 'block', 'important');
+        }
+    };
+
+    async function clear() {
+        window.currentDocId = null;
+        document.querySelectorAll("input").forEach(el => el.value = "");
+        document.querySelectorAll("select").forEach(select => {
+            select.selectedIndex = 0;
+        });
+    };
+
+    async function updateCashLabel() {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        let inflow = 0;
+        let outflow = 0;
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.tparty === "Cash On Hand") {
+                inflow += Number(data.amt || 0);
+            }
+            if (data.fparty === "Cash On Hand") {
+                outflow += Number(data.amt || 0);
+            }
+        });
+        const balance = inflow - outflow;
+        document.getElementById("dropdownBtn").textContent = `☰ Cash: ₹${balance.toFixed(0)}`;
+    }
+
+    async function loadDropdownData() {
+        const snapshot = await getDocs(tranCol);
+        const grpSet = new Set();
+        const nameSet = new Set();
+        const sproductSet = new Set();
+        const pproductSet = new Set();
+        const crdbSet = new Set();
+        const crdbcsbkangSet = new Set();
+        const crdbcsbkangexpSet = new Set();
+        const crdbGroups = ["Creditors", "Debitors"];
+        const crdbcsbkangGroups = ["Creditors", "Debitors", "Cash", "Bank", "Angadiya",];
+        const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const grp = (data.grp || "").trim();
+            const name = (data.name || "").trim();
+            if (grp.length === 0) return;
+            if (!["Sales Products", "Purchase Products"].includes(grp)) {
+                grpSet.add(grp);
+            }
+            if (name.length > 0) {
+                nameSet.add(name);
+            }
+            if (grp === "Sales Products" && name.length > 0) {
+                sproductSet.add(name);
+            }
+            if (grp === "Purchase Products" && name.length > 0) {
+                pproductSet.add(name);
+            }
+            if (crdbGroups.includes(grp) && name.length > 0) {
+                crdbSet.add(name);
+            }
+            if (crdbcsbkangGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangSet.add(name);
+            }
+            if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {
+                crdbcsbkangexpSet.add(name);
+            }
+        });
+        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
+        window.sp_list = ["Sales Products", "Purchase Products"];
+        window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
+        window.ttype_list = ["Sales", "Purchase", "Receipt", "Payment"]
+        window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
+        window.pproduct_list = [...pproductSet].sort((a, b) => a.localeCompare(b));
+        window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
+        window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
+    }
+
+    function populateDropdown(selectElementId, dataList) {
+        const selectElement = document.getElementById(selectElementId);
+        if (!selectElement) {
+            return;
+        }
+        selectElement.innerHTML = '<option value="">Select...</option>';
+        dataList.forEach((item) => {
+            const option = document.createElement("option");
+            option.value = item;
+            option.textContent = item;
+            selectElement.appendChild(option);
+        });
+    }
+
+    function createEditableTable(rows, columns, showDelete = true, showUpdate = true, editable = false) {
+        const searchId = document.getElementById('searchBox');
+        const fullColumns = columns.map(col => ({
+            ...col, editor: editable ? col.editor || "input" : false,
+        }));
+        if (showDelete) {
+            fullColumns.push({
+                title: "",
+                field: "__delete",
+                formatter: () => `<div class="text-center cursor-pointer">🗑️</div>`,
+                width: 50,
+                hozAlign: "center",
+                cellClick: async (e, cell) => {
+                    e.stopPropagation();
+                    const rowData = cell.getRow().getData();
+                    const confirmed = confirm(`Delete ${rowData.name || rowData.id}?`);
+                    if (confirmed && rowData.id) {
+                        await deleteDoc(doc(db, collectionName, rowData.id));
+                        cell.getRow().delete();
+                    }
+                },
+            });
+        }
+        if (showUpdate) {
+            fullColumns.push({
+                title: "",
+                field: "__update",
+                formatter: () => `<div class="text-center cursor-pointer">🔄</div>`,
+                width: 50,
+                hozAlign: "center",
+                cellClick: (e, cell) => {
+                    e.stopPropagation();
+                    const rowData = cell.getRow().getData();
+                    window.currentDocId = rowData.id;
+                    showTransactionContainer(rowData);
+                }
+            });
+        }
+        window.table = new Tabulator(document.getElementById('tableCont'), {
+            data: rows,
+            layout: "fitData",
+            reactiveData: true,
+            rowHeight: 50,
+            maxHeight: "600px",
+            columns: fullColumns,
+        });
+        document.getElementById('excelBtn')?.addEventListener("click", () => {
+            window.table.download("xlsx", "data.xlsx", {sheetName: "Sheet1"});
+        });
+        document.getElementById('pdfBtn')?.addEventListener("click", () => {
+            window.table.download("pdf", "data.pdf", {orientation: "portrait"});
+        });
+        document.getElementById('printBtn')?.addEventListener("click", () => {
+            window.table.print(false, true);
+        });
+        bindSearch();
+    };
+
+    function bindSearch() {
+        const searchbox = document.getElementById("searchBox");
+        searchbox.addEventListener("input", function () {
+            const value = this.value.toLowerCase().trim();
+            table.setFilter(function (data) {
+                if (value === "") {
+                    return true;
+                }
+                return Object.values(data).some(val => String(val).toLowerCase().includes(value));
+            });
+        });
+    };
+
+    function showTransactionContainer(rowData) {
+        const payablesContainer = document.getElementById("fulltableCont");
+        if (payablesContainer) {
+            payablesContainer.classList.add('hidden');
+            payablesContainer.style.setProperty('display', 'none', 'important');
+        }
+        const type = (rowData.ttype || "").trim();
+        let group = type;
+
+        if (["Sales", "Purchase", "Receipt", "Payment"].includes(type)) {
+            group = "Transaction";
+        }
+        if (type === "Opening Balance") {
+            group = "Opening Balance";
+        }
+        if (type === "Opening Stock") {
+            group = "Opening Stock";
+        }
+
+        ["Transaction", "Opening Balance", "Opening Stock"].forEach(typeName => {
+            const container = document.getElementById(typeName);
+            if (container) container.style.setProperty('display', 'none', 'important');
+        });
+
+        const targetContainer = document.getElementById(group);
+        targetContainer.classList.remove("hidden");
+        targetContainer.style.setProperty('display', 'block', 'important');
+        document.getElementById("ttype").value = type;
+        document.querySelectorAll("input:not(#ttype)").forEach(el => el.value = "");
+        changeLists();
+
+        switch (group) {
+            case "Transaction":
+                document.getElementById("ttype").value = rowData.ttype || "";
+                document.getElementById("date").value = rowData.date || "";
+                document.getElementById("txtfrom").value = rowData.fparty || "";
+                document.getElementById("txtto").value = rowData.tparty || "";
+                document.getElementById("amt").value = rowData.amt || "";
+                document.getElementById("nar").value = rowData.nar || "";
+                break;
+            case "Opening Stock":
+                document.getElementById("spprod").value = rowData.grp || "";
+                document.getElementById("prodname").value = rowData.name || "";
+                document.getElementById("opstock").value = rowData.amt || "";
+                break;
+            case "Opening Balance":
+                document.getElementById("ledgrp").value = rowData.grp || "";
+                document.getElementById("ledname").value = rowData.name || "";
+                document.getElementById("opbal").value = rowData.amt || "";
+                break;
+        }
+    }
+
+    function changeLists() {
+        const ttype = document.getElementById("ttype").value;
+        const txtfrom = document.getElementById("txtfrom");
+        const txtto = document.getElementById("txtto");
+        if (ttype === "Sales") {
+            populateDropdown("txtfrom", window.sproduct_list);
+            populateDropdown("txtto", window.crdb_list);
+        } else if (ttype === "Purchase") {
+            populateDropdown("txtfrom", window.crdb_list);
+            populateDropdown("txtto", window.pproduct_list);
+        } else if (ttype === "Receipt") {
+            populateDropdown("txtfrom", window.crdbcsbkang_list);
+            populateDropdown("txtto", window.crdbcsbkangexp_list);
+        } else if (ttype === "Payment") {
+            populateDropdown("txtfrom", window.crdbcsbkang_list);
+            populateDropdown("txtto", window.crdbcsbkangexp_list);
+        } else if (ttype === "Opening Stock") {
+            populateDropdown("spprod", window.sp_list);
+        } else if (ttype === "Opening Balance") {
+            populateDropdown("ledgrp", window.grp_list);
+        }
+    };
+
+    window.saveGroup = async function () {
+        const input = document.getElementById("newgrp");
+        const groupName = input.value.trim();
+        if (!groupName) {
+            return alert("Please enter a group name.");
+        }
+        const q = query(collection(db, "tran"), where("grp", "==", groupName));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+            return alert("Group name already exists.");
+        }
+        await addDoc(collection(db, "tran"), {
+            grp: groupName
+        });
+        input.value = "";
+        alert("Group saved successfully.");
+    };
+
+    window.insertLedger = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const grp = (data.grp || "").trim();
+            const name = (data.name || "").trim();
+            const ttype = (data.ttype || "").trim();
+            const amt = (data.amt || "");
+            if (grp && name && grp !== "Sales Products" && grp !== "Purchase Products") {
+                rows.push({id: docSnap.id, grp, name, ttype, amt,});
+            }
+        });
+        const columns = [{title: "Group", field: "grp"}, {title: "Ledger Name", field: "name"}, {
+            title: "Type",
+            field: "ttype"
+        }, {title: "Amount", field: "amt"}];
+        createEditableTable(rows, columns, false, true, false);
+        showOnly("fulltableCont");
+    };
+    window.saveLedger = async function () {
+        const docId = window.currentDocId;
+        const group = document.getElementById("ledgrp").value.trim();
+        const newName = document.getElementById("ledname").value.trim();
+        const amt = parseFloat(document.getElementById("opbal").value) || 0;
+        if (!group || !newName) {
+            return alert("Group and Name are required.");
+        }
+        if (docId) {
+            const existingDoc = await getDoc(doc(db, "tran", docId));
+            if (!existingDoc.exists()) {
+                return alert("Document not found to update.");
+            }
+            const oldName = existingDoc.data().name || "";
+            await updateDoc(doc(db, "tran", docId), {
+                grp: group, name: newName, amt: amt, ttype: "Opening Balance"
+            });
+            const querySnapshot = await getDocs(tranCol);
+            const batch = writeBatch(db);
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const updates = {};
+                let shouldUpdate = false;
+                if (data.fparty === oldName) {
+                    updates.fparty = newName;
+                    shouldUpdate = true;
+                }
+                if (data.tparty === oldName) {
+                    updates.tparty = newName;
+                    shouldUpdate = true;
+                }
+                if (shouldUpdate) {
+                    const docRef = doc(db, "tran", docSnap.id);
+                    batch.update(docRef, updates);
+                }
+            });
+            await batch.commit();
+            alert("Ledger and linked entries updated successfully.");
+        } else {
+            await addDoc(tranCol, {
+                grp: group, name: newName, amt: amt, ttype: "Opening Balance"
+            });
+            alert("New ledger saved successfully.");
+        }
+        clear();
+    };
+
+    window.insertProduct = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const grp = (data.grp || "").trim();
+            const name = (data.name || "").trim();
+            const ttype = ("Opening Stock");
+            const amt = (data.amt || "");
+            if (grp && name && (grp === "Sales Products" || grp === "Purchase Products")) {
+                rows.push({id: docSnap.id, grp, name, ttype, amt,});
+            }
+        });
+        const columns = [{title: "Group", field: "grp"}, {title: "Ledger Name", field: "name"}, {title: "Type", field: "ttype"}, {title: "Amount", field: "amt"}];
+        createEditableTable(rows, columns, false, true, false);
+        showOnly("fulltableCont");
+    };
+    window.saveProduct = async function () {
+        const grp = document.getElementById("spprod").value.trim();
+        const name = document.getElementById("prodname").value.trim();
+        const amt = parseFloat(document.getElementById("opstock").value.trim());
+        if (!grp || !name) {
+            return alert("Please fill all fields properly. Opening stock must be a number > 0.");
+        }
+        if (!window.currentDocId) {
+            const q = query(collection(db, "tran"), where("name", "==", name));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                return alert("Product name already exists.");
+            }
+        }
+        const prodData = {ttype: "Opening Stock", grp, name, amt};
+        if (window.currentDocId) {
+            const docRef = doc(db, "tran", window.currentDocId);
+            await updateDoc(docRef, prodData);
+            alert("Product updated successfully.");
+        } else {
+            await addDoc(collection(db, "tran"), prodData);
+        }
+        clear();
+        alert("Product saved successfully.");
+    };
+
+    window.insertTran = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        const allowedTypes = ["Sales", "Purchase", "Receipt", "Payment"];
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const ttype = (data.ttype || "").trim();
+            if (allowedTypes.includes(ttype)) {
+                rows.push({
+                    id: docSnap.id,
+                    date: data.date || "",
+                    ttype: ttype,
+                    fparty: data.fparty || "",
+                    tparty: data.tparty || "",
+                    nar: data.nar || "",
+                    amt: data.amt || "",
+                });
+            }
+        });
+        createEditableTable(rows, dcolumns, true, true, false);
+        showOnly("fulltableCont");
+    };
+    window.saveTransaction = async function () {
+        const ttype = document.getElementById("ttype").value.trim();
+        const date = document.getElementById("date").value.trim();
+        const fparty = document.getElementById("txtfrom").value.trim();
+        const tparty = document.getElementById("txtto").value.trim();
+        const amt = parseFloat(document.getElementById("amt").value.trim()) || 0;
+        const nar = document.getElementById("nar").value.trim();
+        if (!ttype || !date || !fparty || !tparty || isNaN(amt) || amt <= 0) {
+            return alert("Please fill all required fields properly (Amount must be a number > 0).");
+        }
+        const tranData = {ttype, date, fparty, tparty, amt, nar};
+        if (window.currentDocId) {
+            const docRef = doc(db, "tran", window.currentDocId);
+            await updateDoc(docRef, tranData);
+            alert("Transaction updated successfully.");
+        } else {
+            await addDoc(collection(db, "tran"), tranData);
+        }
+        clear();
+        alert("Transaction saved successfully.");
+    };
+
+    window.viewGroup = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            const grp = (data.grp || "").trim();
+            const name = (data.name || "").trim();
+            if (grp && name) {
+                rows.push({id: docSnap.id, grp: grp, name: name});
+            }
+        });
+        const columns = [{title: "Group", field: "grp"}, {title: "Name", field: "name"}];
+        createEditableTable(rows, columns, false, false, false);
+        showOnly("fulltableCont");
+    };
+    window.viewDaybook = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            const ttype = d.ttype || "";
+            if (ttype === "Opening Balance" || ttype === "Opening Stock" || ttype === "Group" || ttype.trim() === "") {
+                return;
+            }
+            rows.push({
+                id: doc.id,
+                date: d.date || "",
+                ttype: d.ttype || "",
+                fparty: d.fparty || "",
+                tparty: d.tparty || "",
+                nar: d.nar || "",
+                amt: d.amt || ""
+            });
+        });
+        createEditableTable(rows, dcolumns, false, false, false);
+        showOnly("fulltableCont");
+    }
+    window.viewReceivables = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        const ledgerGroups = {};
+        const balances = {};
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const name = (data.name || "").trim();
+            const grp = (data.grp || "").trim();
+            if (name && grp) {
+                ledgerGroups[name] = grp;
+            }
+        });
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.fparty) {
+                const party = data.fparty.trim();
+                balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+            }
+            if (data.tparty) {
+                const party = data.tparty.trim();
+                balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
+            }
+        });
+        const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
+        for (const [party, amount] of Object.entries(balances)) {
+            const grp = ledgerGroups[party];
+            if (amount < 0 && grp && allowedGroups.includes(grp)) {
+                rows.push({party: party, amount: Math.abs(amount).toFixed(0),});
+            }
+        }
+        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
+        createEditableTable(rows, columns, false, false, false);
+        showOnly("fulltableCont");
+    }
+    window.viewPayables = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        const ledgerGroups = {};
+        const balances = {};
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const name = (data.name || "").trim();
+            const grp = (data.grp || "").trim();
+            if (name && grp) {
+                ledgerGroups[name] = grp;
+            }
+        });
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            if (data.fparty) {
+                const party = data.fparty.trim();
+                balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+            }
+            if (data.tparty) {
+                const party = data.tparty.trim();
+                balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
+            }
+        });
+        const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
+        for (const [party, amount] of Object.entries(balances)) {
+            const grp = ledgerGroups[party];
+            if (amount > 0 && grp && allowedGroups.includes(grp)) {
+                rows.push({party: party, amount: Number(amount).toFixed(0),});
+            }
+        }
+        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
+        createEditableTable(rows, columns, false, false, false);
+        showOnly("fulltableCont");
+    };
+
+    document.getElementById("ttype").addEventListener("change", changeLists);
+</script>
+</body>
+</html>
