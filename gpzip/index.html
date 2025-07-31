@@ -9,14 +9,13 @@
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/shim.min.js" type="text/javascript"></script>
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js" type="text/javascript"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: 'Poppins', sans-serif; font-size: 15px; color: #333;"></body>
-<button class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 text-white text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">Menu ▼</button>
-<div class="hidden fixed top-0 left-0 w-[360px] bg-blue-600 overflow-y-auto rounded pt-[60px] z-10" id="dropdownMenu">
-    <button class="w-full text-left px-4 py-3 text-white hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
-    <button class="w-full text-left px-4 py-3 text-white hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
-    <button class="w-full text-left px-4 py-3 text-white hover:bg-blue-900" onclick="viewLoans()">💳 Loans</button>
+<body style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #800606;"></body>
+<div class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 shadow z-20">
+    <div class="flex h-full">
+        <button class="flex-1 text-white text-lg px-4 py-3 text-center hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
+        <button class="flex-1 text-white text-lg px-4 py-3 text-center hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
+    </div>
 </div>
 <div class="ml-1 mt-[51px]" id="btncont" style="display: flex; align-items: center;">
     <button class="w-[70px] text-white px-1 py-1 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
@@ -25,7 +24,7 @@
 <div class="ml-1" id="example-table"></div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {getAuth,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {getFirestore, collection, getDocs, deleteDoc, doc, updateDoc, query, where, addDoc, writeBatch} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -42,23 +41,7 @@
     let table;
     let tableData = [];
     let nameOptions = [];
-    document.addEventListener('DOMContentLoaded', () => {
-        const button = document.getElementById("dropdownBtn");
-        const menu = document.getElementById("dropdownMenu");
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            menu.classList.toggle("hidden");
-        });
-        document.addEventListener("click", (e) => {
-            if (
-                !menu.contains(e.target) &&
-                !button.contains(e.target)
-            ) {
-                menu.classList.add("hidden");
-            }
-        });
-    });
-
+    
     async function loadNameList() {
         const tranRef = collection(db, "gpzip");
         const q = query(tranRef, where("party", "!=", ""));
@@ -66,26 +49,14 @@
         const partySet = new Set();
         nameSnap.forEach(doc => {
             const party = doc.data().party?.trim();
-            if (party) {
-                partySet.add(party);
-            }
+            if (party) {partySet.add(party);}
         });
         nameOptions = Array.from(partySet);
     }
 
     function editableTable() {
         if (table) table.destroy();
-        const newRow = {
-            id: "NEW_ENTRY_ROW",
-            date: "",
-            party: "",
-            nar: "",
-            camt: "",
-            damt: "",
-            lamt: "",
-            mamt: "",
-            _isNew: true,
-        };
+        const newRow = {id: "NEW_ENTRY_ROW", date: "", party: "", nar: "", camt: "", damt: "", mamt: "",  _isNew: true,};
         const dataForTable = [newRow, ...tableData];
         table = new Tabulator("#example-table", {
                 data: dataForTable,
@@ -95,12 +66,8 @@
                 movableRows: false,
                 movableColumns: false,
                 columns: [
-                    {
-                        title: "ID", field: "id", visible: false,
-                    },
-                    {
-                        title: "Date",
-                        field: "date",
+                    {title: "ID", field: "id", visible: false,},
+                    {title: "Date", field: "date",
                         editor: (cell, onRendered, success, cancel) => {
                             const input = document.createElement("input");
                             input.type = "date";
@@ -116,49 +83,39 @@
                             return input;
                         }
                     },
-                    {
-                        title: "Party",
-                        field: "party",
+                    {title: "Party", field: "party",
                         editor: (cell, onRendered, success, cancel) => {
                             const input = document.createElement("input");
                             input.className = "w-full p-1 border rounded h-10 leading-10";
-                            input.setAttribute("list", "party-list");  // connect to datalist
+                            input.setAttribute("list", "party-list");
                             input.value = cell.getValue();
 
-                            // Create datalist only once if not already in DOM
-                            if (!document.getElementById("party-list")) {
-                                const datalist = document.createElement("datalist");
-                                datalist.id = "party-list";
-                                nameOptions.forEach(name => {
-                                    const option = document.createElement("option");
-                                    option.value = name;
-                                    datalist.appendChild(option);
-                                });
-                                document.body.appendChild(datalist);
-                            }
+                                if (!document.getElementById("party-list")) {
+                                    const datalist = document.createElement("datalist");
+                                    datalist.id = "party-list";
+                                    nameOptions.forEach(name => {
+                                        const option = document.createElement("option");
+                                        option.value = name;
+                                        datalist.appendChild(option);
+                                    });
+                                    document.body.appendChild(datalist);
+                                }
 
-                            onRendered(() => input.focus());
-                            input.addEventListener("change", () => success(input.value));
-                            input.addEventListener("blur", () => success(input.value));
-
-                            return input;
-                        },
+                                onRendered(() => input.focus());
+                                input.addEventListener("change", () => success(input.value));
+                                input.addEventListener("blur", () => success(input.value));
+                                return input;
+                            },
                     },
                     {title: "Narration", field: "nar", editor: "input", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                     {title: "Jama", field: "camt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                     {title: "Khate", field: "damt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
-                    {title: "Lamt", field: "lamt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                     {title: "Mamt", field: "mamt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
-                    {
-                        title: "Action",
-                        field: "mainAction",
+                    {title: "Action", field: "mainAction",
                         formatter: (cell) => {
                             const row = cell.getRow().getData();
-                            if (row._isNew) {
-                                return `<button class="bg-green-800 text-white px-3 py-2 rounded">Save</button>`;
-                            } else {
-                                return `<button class="bg-blue-800 text-white px-2 py-2 rounded">Update</button>`;
-                            }
+                            if (row._isNew) {return `<button class="bg-green-800 text-white px-3 py-2 rounded">Save</button>`;}
+                            else {return `<button class="bg-blue-800 text-white px-2 py-2 rounded">Update</button>`;}
                         },
                         width: 70,
                         hozAlign: "center",
@@ -171,11 +128,10 @@
                                     const hasParty = rowData.party && rowData.party.trim() !== "";
                                     const camtValue = Number(rowData.camt);
                                     const damtValue = Number(rowData.damt);
-                                    const lamtValue = Number(rowData.lamt);
                                     const mamtValue = Number(rowData.mamt);
-                                    const hasAmount = camtValue > 0 || damtValue > 0 || lamtValue > 0 || mamtValue > 0;
+                                    const hasAmount = camtValue > 0 || damtValue > 0 || mamtValue > 0;
                                     if (!hasDate || !hasParty || !hasAmount) {
-                                        return alert("Please fill Date, Party, and at least one amount (Jama,khate,loan,mamount) for the new entry.");
+                                        return alert("Please fill Date, Party, and at least one amount (Jama,khate,mamount) for the new entry.");
                                     }
                                     const newDoc = {
                                         date: rowData.date.trim(),
@@ -184,7 +140,6 @@
                                     if (rowData.nar && rowData.nar.trim() !== "") newDoc.nar = rowData.nar.trim();
                                     if (camtValue > 0) newDoc.camt = camtValue;
                                     if (damtValue > 0) newDoc.damt = damtValue;
-                                    if (lamtValue > 0) newDoc.lamt = lamtValue;
                                     if (mamtValue > 0) newDoc.mamt = mamtValue;
                                     const docRef = await addDoc(collection(db, "gpzip"), newDoc);
                                     alert("New entry added!");
@@ -194,14 +149,12 @@
                                 if (clickedButtonText === "Update") {
                                     const ref = doc(db, "gpzip", rowData.id);
                                     const updateObj = {};
-                                    updateObj.date = rowData.date === "" ? null : rowData.date;
-                                    updateObj.party = rowData.party === "" ? null : rowData.party;
-                                    updateObj.nar = rowData.nar === "" ? null : rowData.nar;
-                                    updateObj.camt = rowData.camt === "" ? null : Number(rowData.camt);
-                                    updateObj.damt = rowData.damt === "" ? null : Number(rowData.damt);
-                                    updateObj.lamt = rowData.lamt === "" ? null : Number(rowData.lamt);
-                                    updateObj.mamt = rowData.mamt === "" ? null : Number(rowData.mamt);
-
+                                    if (rowData.date && rowData.date.trim() !== "") {updateObj.date = rowData.date.trim();}
+                                    if (rowData.party && rowData.party.trim() !== "") {updateObj.party = rowData.party.trim();}
+                                    if (rowData.nar && rowData.nar.trim() !== "") {updateObj.nar = rowData.nar.trim();}
+                                    if (rowData.camt && Number(rowData.camt) > 0) {updateObj.camt = Number(rowData.camt);}
+                                    if (rowData.damt && Number(rowData.damt) > 0) {updateObj.damt = Number(rowData.damt);}
+                                    if (rowData.mamt && Number(rowData.mamt) > 0) {updateObj.mamt = Number(rowData.mamt);}
                                     if (Object.keys(updateObj).length > 0) {
                                         await updateDoc(ref, updateObj);
                                         alert("Updated successfully!");
@@ -211,15 +164,11 @@
                             }
                         },
                     },
-                    {
-                        title: "Delete",
-                        field: "deleteAction",
+                    {title: "Delete", field: "deleteAction",
                         formatter: (cell) => {
                             const row = cell.getRow().getData();
-                            if (row._isNew) {
-                                return `<button class="bg-yellow-800 text-white px-3 py-2 rounded" onclick="window.meh()">MEH</button>`;
-                            }
-                            return row._isNew ? '' : `<button class="bg-red-800 text-white px-2 py-2 rounded">Delete</button>`;
+                            if (row._isNew) {return `<button class="bg-yellow-800 text-white px-3 py-2 rounded" onclick="window.meh()">MEH</button>`;}
+                                            return row._isNew ? '' : `<button class="bg-red-800 text-white px-2 py-2 rounded">Delete</button>`;
                         },
                         width: 70,
                         hozAlign: "center",
@@ -237,12 +186,9 @@
                     },
                 ],
             }
-        )
-        ;
-
+        );
         bindSearch();
     }
-    ;
 
     function customTable(data, columnsConfig) {
         if (table) table.destroy();
@@ -280,7 +226,6 @@
                 nar: data.nar || "",
                 camt: data.camt || "",
                 damt: data.damt || "",
-                lamt: data.lamt || "",
                 mamt: data.mamt || "",
             });
         });
@@ -322,35 +267,6 @@
         await batch.commit();
         alert("Month-end havala entries added.");
         await daybook();
-    };
-
-    window.viewLoans = async function () {
-        const tranCol = collection(db, "gpzip");
-        const snapshot = await getDocs(tranCol);
-        const loanMap = {};
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const party = data.party;
-            const lamt = Number(data.lamt) || 0;
-            if (party && lamt > 0) {
-                if (!loanMap[party]) {
-                    loanMap[party] = 0;
-                }
-                loanMap[party] += lamt;
-            }
-        });
-        const loans = [];
-        for (const party in loanMap) {
-            loans.push({
-                Party: party,
-                Loan: loanMap[party].toFixed(0),
-            });
-        }
-        const loanColumns = [
-            {title: "Party", field: "Party", width: 200, hozAlign: "left"},
-            {title: "Loan", field: "Loan", width: 100, hozAlign: "right"},
-        ];
-        customTable(loans, loanColumns);
     };
 
     window.viewReceivables = async function () {
