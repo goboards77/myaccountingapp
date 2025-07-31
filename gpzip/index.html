@@ -159,7 +159,6 @@
                                         await updateDoc(ref, updateObj);
                                         alert("Updated successfully!");
                                         await daybook();
-                                        loadNameList();
                                     }
                                 }
                             }
@@ -181,7 +180,6 @@
                                 if (confirmDel) {
                                     await deleteDoc(doc(db, "gpzip", rowData.id));
                                     await daybook();
-                                    loadNameList();
                                 }
                             }
                         },
