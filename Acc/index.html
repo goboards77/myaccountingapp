@@ -267,7 +267,7 @@
                 cellClick: async (e, cell) => {
                     e.stopPropagation();
                     const rowData = cell.getRow().getData();
-                    const confirmed = confirm(`Delete ${rowData.name || rowData.id}?`);
+                    const confirmed = confirm("Delete? Are You Sure?");
                     if (confirmed && rowData.id) {
                         await deleteDoc(doc(db, collectionName, rowData.id));
                         cell.getRow().delete();
