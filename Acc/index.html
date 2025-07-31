@@ -12,16 +12,14 @@
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: 'Poppins', sans-serif; font-size: 15px; color: #333;"></body>
+<body style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #800606;"></body>
 <button class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 text-white text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
-<div class="hidden fixed top-[50px] left-0 w-[350px] h-[56vh] bg-white z-10 overflow-y-auto" id="dropdownMenu">
+<div class="hidden fixed top-[50px] left-0 w-[360px] h-[56vh] bg-white z-10 overflow-y-auto" id="dropdownMenu">
     <div class="flex flex-col px-4 space-y-2 py-2" id="menuContent">
         <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Transaction')">💰 Transaction</button>
-        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Group')">🤝 Group</button>
-        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('ProdLed')">📦 Product  📘Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertTran()">👀 View ✏️Update Transaction</button>
-        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertProductLedger()">✏️ Update 📦Product 📘Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewGrpProdLed()">👀 View Groups/Ledgers/Products</button>
+        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('ProdLed')">📦📘 Product/Ledger</button>
+        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertTran()">👀✏️ View/Update Transaction</button>
+        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertProductLedger()">👀✏️ View/Update Product/Ledger</button>
         <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewReceivables()">💵 Receivables</button>
         <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewPayables()">💳 Payables</button>
         <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400">📈 Profit & Loss</button>
@@ -65,11 +63,6 @@
     <label for="nar">Narration</label><input autocomplete="off" class="input-box" id="nar" placeholder="Narration" type="text"/>
     <button Class="input-box mt-5" onclick="window.saveTransaction()">💾 Transaction</button>
 </div>
-<!-- Group Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-white shadow p-2 rounded" id="Group">
-    <label>New/Update Group</label><input autocomplete="off" class="input-box" id="newgrp" placeholder="Group Name" type="text"/>
-    <button Class="input-box mt-5" onclick="saveGroup()">💾 Group</button>
-</div>
 <!-- Product Ledger Section -->
 <div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-white shadow p-2 rounded" id="ProdLed">
     <label for="sp1">Select Group For Product/Ledger</label><select class="input-box" id="prodledgrp" type="text"></select>
@@ -104,8 +97,6 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const tranCol = collection(db, "tran");
-    const listNames = ["sproduct_list", "crdb_list", "crdbcsbkangexp_list", "grp_list", "sp_list", "pproduct_list", "crdbcsbkang_list", "allnames_list",];
-    listNames.forEach((name) => {window[name] = [];});
     window.currentDocId = null;
     window.originalEditingValue = null;
     window.showLogin = function () {document.getElementById("loginContainer").style.display = "flex";};
@@ -149,7 +140,6 @@
             if (snapshot.empty) {await addDoc(tranCol, docDef.data);}
         }
     };
-
     document.addEventListener('DOMContentLoaded', () => {
         const inputClass = "w-full pl-[10px] pr-2 pt-2 pb-2 border-2 border-gray-500 rounded";
         document.querySelectorAll('.input-box').forEach(input => {
@@ -208,7 +198,6 @@
 
     async function loadDropdownData() {
         const snapshot = await getDocs(tranCol);
-        
         const nameSet = new Set();
         const sproductSet = new Set();
         const pproductSet = new Set();
@@ -216,7 +205,6 @@
         const crdbcsbkangSet = new Set();
         const crdbcsbkangexpSet = new Set();
         const prodledSet = new Set();
-        
         snapshot.forEach((doc) => {
             const data = doc.data();
             const grp = (data.grp || "").trim();
@@ -316,8 +304,7 @@
             const value = this.value.toLowerCase().trim();
             table.setFilter(function (data) {
                 if (value === "") {
-                    return true;
-                }
+                    return true;}
                 return Object.values(data).some(val => String(val).toLowerCase().includes(value));
             });
         });
@@ -333,19 +320,16 @@
         let group = type;
         if (["Sales", "Purchase", "Receipt", "Payment"].includes(type)) {group = "Transaction";}
         if (["Opening Balance", "Opening Stock"].includes(type)) {group = "ProdLed";}
-
         ["Transaction", "prodLed"].forEach(typeName => {
             const container = document.getElementById(typeName);
             if (container) container.style.setProperty('display', 'none', 'important');
         });
-
         const targetContainer = document.getElementById(group);
         targetContainer.classList.remove("hidden");
         targetContainer.style.setProperty('display', 'block', 'important');
         document.getElementById("ttype").value = type;
         document.querySelectorAll("input:not(#ttype)").forEach(el => el.value = "");
         changeLists();
-
         switch (group) {
             case "Transaction":
                 document.getElementById("ttype").value = rowData.ttype || "";
@@ -382,20 +366,6 @@
         }
     };
 
-    window.saveGroup = async function () {
-        const input = document.getElementById("newgrp");
-        const groupName = input.value.trim();
-        if (!groupName) {
-            return alert("Please enter a group name.");
-        }
-        const q = query(collection(db, "tran"), where("grp", "==", groupName));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {return alert("Group name already exists.");}
-        await addDoc(collection(db, "tran"), {grp: groupName});
-        input.value = "";
-        alert("Group saved successfully.");
-    };
-
     window.insertProductLedger = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
@@ -416,24 +386,17 @@
         const group = document.getElementById("prodledgrp").value.trim();
         const newName = document.getElementById("prodledname").value.trim();
         const amt = parseFloat(document.getElementById("opstkbal").value) || 0;
-        if (!group || !newName) {
-            return alert("Group and Name are required.");}
+        if (!group || !newName) {return alert("Group and Name are required.");}
         
         let ttype;
-        if (group === "Sales Products" || group === "Purchase Products") {
-            ttype = "Opening Stock";}
-        else {
-            ttype = "Opening Balance";}
-
+        if (group === "Sales Products" || group === "Purchase Products") {ttype = "Opening Stock";}
+        else {ttype = "Opening Balance";}
         if (docId) {
             const existingDoc = await getDoc(doc(db, "tran", docId));
             const oldName = existingDoc.data().name || "";
-            await updateDoc(doc(db, "tran", docId), {
-                grp: group, name: newName, amt: amt, ttype: ttype});
-
+            await updateDoc(doc(db, "tran", docId), {grp: group, name: newName, amt: amt, ttype: ttype});
             const querySnapshot = await getDocs(tranCol);
             const batch = writeBatch(db);
-
             querySnapshot.forEach((docSnap) => {
                 const data = docSnap.data(); 
                 const updates = {}; 
@@ -500,27 +463,11 @@
             const docRef = doc(db, "tran", window.currentDocId);
             await updateDoc(docRef, tranData);
             alert("Transaction updated successfully.");
-        } else {
-            await addDoc(collection(db, "tran"), tranData);
-        }
+        } else {await addDoc(collection(db, "tran"), tranData);}
         clear();
         alert("Transaction saved successfully.");
     };
 
-    window.viewGrpProdLed = async function () {
-        const snapshot = await getDocs(tranCol);
-        const rows = [];
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const grp = (data.grp || "").trim();
-            const name = (data.name || "").trim();
-            if (grp && name) {
-                rows.push({id: docSnap.id, grp: grp, name: name});}
-        });
-        const columns = [{title: "Group", field: "grp"}, {title: "Name", field: "name"}];
-        createEditableTable(rows, columns, false, false, false);
-        showOnly("fulltableCont");
-    };
     window.viewReceivables = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
@@ -530,9 +477,7 @@
             const data = doc.data();
             const name = (data.name || "").trim();
             const grp = (data.grp || "").trim();
-            if (name && grp) {
-                ledgerGroups[name] = grp;
-            }
+            if (name && grp) {ledgerGroups[name] = grp;}
         });
         snapshot.forEach((doc) => {
             const data = doc.data();
@@ -565,9 +510,7 @@
             const data = doc.data();
             const name = (data.name || "").trim();
             const grp = (data.grp || "").trim();
-            if (name && grp) {
-                ledgerGroups[name] = grp;
-            }
+            if (name && grp) {ledgerGroups[name] = grp;}
         });
         snapshot.forEach((doc) => {
             const data = doc.data();
@@ -583,9 +526,7 @@
         const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
         for (const [party, amount] of Object.entries(balances)) {
             const grp = ledgerGroups[party];
-            if (amount > 0 && grp && allowedGroups.includes(grp)) {
-                rows.push({party: party, amount: Number(amount).toFixed(0),});
-            }
+            if (amount > 0 && grp && allowedGroups.includes(grp)) {rows.push({party: party, amount: Number(amount).toFixed(0),});}
         }
         const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
         createEditableTable(rows, columns, false, false, false);
