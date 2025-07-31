@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Tailwind</title>
+    <title>Accounts</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
@@ -13,42 +13,49 @@
 </head>
 <body>
 <button class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 text-white text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
-<div class="hidden fixed top-0 left-0 w-[350px] h-[75vh] bg-white z-10 overflow-y-auto shadow-lg transition-all duration-300 pt-[60px]" id="dropdownMenu">
+<div class="hidden fixed top-[50px] left-0 w-[350px] h-[56vh] bg-white z-10 overflow-y-auto" id="dropdownMenu">
     <div class="flex flex-col px-4 space-y-2 py-2" id="menuContent">
         <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Transaction')">💰 Transaction</button>
         <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Group')">🤝 Group</button>
-        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Opening Stock')">📦 Product</button>
-        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Opening Balance')">📘 Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertTran()">✏️ Update Transaction</button>
-        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertProduct()">✏️ Update Product</button>
-        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertLedger()">✏️ Update Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-orange-400" onclick="viewDaybook()">📚 Daybook</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewGroup()">📚 Groups/Ledgers/Products</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewReceivables()">📤 Receivables</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewPayables()">📬 Payables</button>
+        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('ProdLed')">📦 Product  📘Ledger</button>
+        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertTran()">👀 View ✏️Update Transaction</button>
+        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertProductLedger()">✏️ Update 📦Product 📘Ledger</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewGrpProdLed()">👀 View Groups/Ledgers/Products</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewReceivables()">💵 Receivables</button>
+        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewPayables()">💳 Payables</button>
         <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400">📈 Profit & Loss</button>
         <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400">🧾 Khatavahi</button>
-        <button class="w-full flex items-center gap-3 px-4 py-2 rounded bg-red-100 hover:bg-red-200 text-red-800 font-semibold">🔒 Logout</button>
+        <button class="w-full flex items-center gap-3 px-4 py-2 rounded bg-red-100 hover:bg-red-200 text-red-800 font-semibold" onclick="window.logout()">🔒 Logout</button>
     </div>
 </div>
-<!-- Login Form -->
-<div id="loginContainer" style="display: none;">
-    <h2>Login</h2>
-    <label for="loginEmail"></label><input id="loginEmail" placeholder="Email" type="email">
-    <label for="loginPassword"></label><input id="loginPassword" placeholder="Password" type="password">
-    <button class="action-button" onclick="login()">Login</button>
-    <a href="#" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+<div id="loginContainer" class="flex flex-col items-center justify-center min-h-screen bg-gray-100" style="display: none;">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
+        <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+        <div class="space-y-4">
+            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginEmail" placeholder="Email" type="email">
+            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginPassword" placeholder="Password" type="password">
+            <button class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors" onclick="login()">Login</button>
+        </div>
+        <div class="mt-4 text-center">
+            <a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
+        </div>
+    </div>
 </div>
-<!-- Register Form -->
-<div id="registerContainer" style="display:none;">
-    <h2>Register</h2>
-    <label for="registerEmail"></label><input id="registerEmail" placeholder="Email" type="email">
-    <label for="registerPassword"></label><input id="registerPassword" placeholder="Password" type="password">
-    <button class="action-button" onclick="register()">Register</button>
-    <div class="small-link"><a href="#" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a></div>
+<div id="registerContainer" class="flex flex-col items-center justify-center min-h-screen bg-gray-100" style="display: none;">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
+        <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
+        <div class="space-y-4">
+            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="registerEmail" placeholder="Email" type="email">
+            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="registerPassword" placeholder="Password" type="password">
+            <button class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors" onclick="register()">Register</button>
+        </div>
+        <div class="mt-4 text-center">
+            <a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
+        </div>
+    </div>
 </div>
 <!-- Sales Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Transaction">
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-white shadow p-2 rounded" id="Transaction">
     <label for="ttype">Transaction Type</label><select class="input-box" id="ttype"></select>
     <label for="date">Date</label><input class="input-box" id="date" type="date"/>
     <label for="txtfrom">From</label><select class="input-box" id="txtfrom"></select>
@@ -58,60 +65,31 @@
     <button Class="input-box mt-5" onclick="window.saveTransaction()">💾 Transaction</button>
 </div>
 <!-- Group Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Group">
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-white shadow p-2 rounded" id="Group">
     <label>New/Update Group</label><input autocomplete="off" class="input-box" id="newgrp" placeholder="Group Name" type="text"/>
     <button Class="input-box mt-5" onclick="saveGroup()">💾 Group</button>
 </div>
-<!-- Product Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Opening Stock">
-    <label for="sp1">Select Product Group</label><select class="input-box" id="spprod" type="text"></select>
-    <label for="prodname">Product Name</label><input autocomplete="off" class="input-box" id="prodname" placeholder="Product Name" type="text"/>
-    <label for="opstock">Opening Stock Amount</label><input class="input-box" id="opstock" placeholder="Opening Stock Amount" type="number"/>
-    <button Class="input-box mt-5" onclick="saveProduct()">💾 Product</button>
-</div>
-<!-- Ledger Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[60px] bg-white shadow p-2 rounded" id="Opening Balance">
-    <label for="grp1">Select Ledger Group</label><select class="input-box" id="ledgrp" type="text"></select>
-    <label for="ledname">Ledger Name</label><input autocomplete="off" class="input-box" id="ledname" placeholder="Ledger Name" type="text"/>
-    <label for="opbal">Opening Balance</label><input class="input-box" id="opbal" placeholder="Opening Balance" type="number"/>
-    <button Class="input-box mt-5" onclick="saveLedger()">💾 Ledger</button>
+<!-- Product Ledger Section -->
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-white shadow p-2 rounded" id="ProdLed">
+    <label for="sp1">Select Group For Product/Ledger</label><select class="input-box" id="prodledgrp" type="text"></select>
+    <label for="prodname">Product/Ledger Name</label><input autocomplete="off" class="input-box" id="prodledname" placeholder="Product/Ledger Name" type="text"/>
+    <label for="opstock">Opening Stock/Balance</label><input class="input-box" id="opstkbal" placeholder="Opening Stock/Balance" type="number"/>
+    <button Class="input-box mt-5" onclick="saveProductLedger()">💾 Product/Ledger</button>
 </div>
 <!-- Tabulator Table Container -->
-<div class="hidden fixed top-[60px] w-full mx-auto my-5" id="fulltableCont">
-    <div class="p-4">
-        <div class="flex items-center gap-2 mb-2 flex-wrap">
-            <button class="bg-green-500 px-2 py-1 text-white rounded" id="excelBtn">Excel</button>
-            <button class="bg-red-500 px-2 py-1 text-white rounded" id="pdfBtn">PDF</button>
-            <button class="bg-blue-500 px-2 py-1 text-white rounded" id="printBtn">Print</button>
-            <div class="w-full max-w-xs sm:w-auto">
-                <label for="searchBox"></label><input autocomplete="off" class="w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/>
-            </div>
-        </div>
-        <div id="tableCont"></div>
+<div class="hidden fixed top-[50px] w-full mx-auto p-1" id="fulltableCont">
+    <div class="flex items-center gap-1 mb-1 flex-wrap">
+        <button class="bg-green-500 px-2 py-1 text-white rounded" id="excelBtn">Excel</button>
+        <button class="bg-red-500 px-2 py-1 text-white rounded" id="pdfBtn">PDF</button>
+        <button class="bg-blue-500 px-2 py-1 text-white rounded" id="printBtn">Print</button>
+        <div class="w-full max-w-xs sm:w-auto"><input autocomplete="off" class="w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/></div>
     </div>
+    <div id="tableCont"></div>
 </div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {
-        getAuth,
-        onAuthStateChanged,
-        signInWithEmailAndPassword,
-        createUserWithEmailAndPassword,
-        signOut,
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {
-        getFirestore,
-        collection,
-        getDocs,
-        getDoc,
-        setDoc,
-        deleteDoc,
-        doc,
-        updateDoc,
-        query,
-        where,
-        addDoc,
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {getFirestore, collection, getDocs, getDoc, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
@@ -126,16 +104,13 @@
     const db = getFirestore(app);
     const tranCol = collection(db, "tran");
     const listNames = ["sproduct_list", "crdb_list", "crdbcsbkangexp_list", "grp_list", "sp_list", "pproduct_list", "crdbcsbkang_list", "allnames_list",];
-    listNames.forEach((name) => {
-        window[name] = [];
-    });
+    listNames.forEach((name) => {window[name] = [];});
     window.currentDocId = null;
     window.originalEditingValue = null;
-    window.showLogin = function () {
-        document.getElementById("loginContainer").style.display = "flex";
-    };
+    window.showLogin = function () {document.getElementById("loginContainer").style.display = "flex";};
     window.showRegister = function () {
         document.getElementById("registerContainer").style.display = "flex";
+        document.getElementById("loginContainer").style.display = "none";
     };
     window.login = async function () {
         const email = document.getElementById("loginEmail").value;
@@ -147,21 +122,17 @@
         const password = document.getElementById("registerPassword").value;
         await createUserWithEmailAndPassword(auth, email, password);
     };
-    window.logout = async function () {
-        await signOut(auth);
-    };
+    window.logout = async function () {await signOut(auth);};
     onAuthStateChanged(auth, async (user) => {
         if (user) {
+            document.getElementById("loginContainer").style.display = "none";
+            document.getElementById("registerContainer").style.display = "none";
             await createAndDeduplicateDocuments();
             await loadDropdownData();
             await updateCashLabel();
             populateDropdown("ttype", window.ttype_list);
-            populateDropdown("spprod", window.sp_list);
-            populateDropdown("ledgrp", window.grp_list);
-        } else {
-            document.getElementById("loginContainer").style.display = "flex";
-            document.getElementById("dropdownBtn").textContent = "Menu";
-        }
+            populateDropdown("prodledgrp", window.prodledgrp_list);
+        } else {document.getElementById("loginContainer").style.display = "flex";}
     });
     const dcolumns = [{title: "Date", field: "date"}, {title: "Type", field: "ttype"}, {title: "From Party", field: "fparty"}, {title: "To Party", field: "tparty"},
         {title: "Narration", field: "nar"}, {title: "Amount", field: "amt", hozAlign: "right"}, {title: "ID", field: "id", visible: false}];
@@ -174,9 +145,7 @@
         for (const docDef of uniqueDocumentDefinitions) {
             const q = query(tranCol, ...docDef.queryConditions);
             const snapshot = await getDocs(q);
-            if (snapshot.empty) {
-                await addDoc(tranCol, docDef.data);
-            }
+            if (snapshot.empty) {await addDoc(tranCol, docDef.data);}
         }
     };
 
@@ -194,26 +163,16 @@
             }
         });
         const labelClass = "mt-3 pl-[10px] block text-gray-500 font-medium mb-1";
-        document.querySelectorAll('label').forEach(label => {
-            label.classList.add(...labelClass.split(' '));
-        });
+        document.querySelectorAll('label').forEach(label => {label.classList.add(...labelClass.split(' '));});
         const button = document.getElementById("dropdownBtn");
         const menu = document.getElementById("dropdownMenu");
-        button.addEventListener("click", (e) => {
-            e.stopPropagation();
-            menu.classList.toggle("hidden");
-        });
-        document.addEventListener("click", (e) => {
-            if (!menu.contains(e.target) && !button.contains(e.target)) {
-                menu.classList.add("hidden");
-            }
-        });
+        button.addEventListener("click", (e) => {e.stopPropagation(); menu.classList.toggle("hidden");});
+        document.addEventListener("click", (e) => {if (!menu.contains(e.target) && !button.contains(e.target)) {menu.classList.add("hidden");}});
     });
-
     window.showOnly = function (idToShow) {
         const menu = document.getElementById("dropdownMenu");
         if (menu) menu.classList.add("hidden");
-        const allIds = ['Transaction', 'Group', 'Opening Stock', 'Opening Balance', 'fulltableCont',];
+        const allIds = ['Transaction', 'Group', 'ProdLed', 'fulltableCont',];
         allIds.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
@@ -227,15 +186,11 @@
             toShow.style.setProperty('display', 'block', 'important');
         }
     };
-
     async function clear() {
         window.currentDocId = null;
         document.querySelectorAll("input").forEach(el => el.value = "");
-        document.querySelectorAll("select").forEach(select => {
-            select.selectedIndex = 0;
-        });
+        document.querySelectorAll("select").forEach(select => {select.selectedIndex = 0;});
     };
-
     async function updateCashLabel() {
         const snapshot = await getDocs(tranCol);
         const rows = [];
@@ -243,12 +198,8 @@
         let outflow = 0;
         snapshot.forEach((doc) => {
             const data = doc.data();
-            if (data.tparty === "Cash On Hand") {
-                inflow += Number(data.amt || 0);
-            }
-            if (data.fparty === "Cash On Hand") {
-                outflow += Number(data.amt || 0);
-            }
+            if (data.tparty === "Cash On Hand") {inflow += Number(data.amt || 0);}
+            if (data.fparty === "Cash On Hand") {outflow += Number(data.amt || 0);}
         });
         const balance = inflow - outflow;
         document.getElementById("dropdownBtn").textContent = `☰ Cash: ₹${balance.toFixed(0)}`;
@@ -256,46 +207,28 @@
 
     async function loadDropdownData() {
         const snapshot = await getDocs(tranCol);
-        const grpSet = new Set();
+        
         const nameSet = new Set();
         const sproductSet = new Set();
         const pproductSet = new Set();
         const crdbSet = new Set();
         const crdbcsbkangSet = new Set();
         const crdbcsbkangexpSet = new Set();
-        const crdbGroups = ["Creditors", "Debitors"];
-        const crdbcsbkangGroups = ["Creditors", "Debitors", "Cash", "Bank", "Angadiya",];
-        const crdbcsbkangexpGroups = [...crdbcsbkangGroups, "Expense"];
-
+        const prodledSet = new Set();
+        
         snapshot.forEach((doc) => {
             const data = doc.data();
             const grp = (data.grp || "").trim();
             const name = (data.name || "").trim();
             if (grp.length === 0) return;
-            if (!["Sales Products", "Purchase Products"].includes(grp)) {
-                grpSet.add(grp);
-            }
-            if (name.length > 0) {
-                nameSet.add(name);
-            }
-            if (grp === "Sales Products" && name.length > 0) {
-                sproductSet.add(name);
-            }
-            if (grp === "Purchase Products" && name.length > 0) {
-                pproductSet.add(name);
-            }
-            if (crdbGroups.includes(grp) && name.length > 0) {
-                crdbSet.add(name);
-            }
-            if (crdbcsbkangGroups.includes(grp) && name.length > 0) {
-                crdbcsbkangSet.add(name);
-            }
-            if (crdbcsbkangexpGroups.includes(grp) && name.length > 0) {
-                crdbcsbkangexpSet.add(name);
-            }
+            if (name.length > 0) {nameSet.add(name);}
+            if (grp === "Sales Products" && name.length > 0) {sproductSet.add(name);}
+            if (grp === "Purchase Products" && name.length > 0) {pproductSet.add(name);}
+            if (["Creditors", "Debitors"].includes(grp) && name.length > 0) {crdbSet.add(name);}
+            if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya",].includes(grp) && name.length > 0) {crdbcsbkangSet.add(name);}
+            if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense"].includes(grp) && name.length > 0) {crdbcsbkangexpSet.add(name);}
+            if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense", "Sales Products", "Purchase Products"].includes(grp) && name.length > 0) {prodledSet.add(grp);}
         });
-        window.grp_list = [...grpSet].sort((a, b) => a.localeCompare(b));
-        window.sp_list = ["Sales Products", "Purchase Products"];
         window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
         window.ttype_list = ["Sales", "Purchase", "Receipt", "Payment"]
         window.sproduct_list = [...sproductSet].sort((a, b) => a.localeCompare(b));
@@ -303,8 +236,8 @@
         window.crdb_list = [...crdbSet].sort((a, b) => a.localeCompare(b));
         window.crdbcsbkang_list = [...crdbcsbkangSet].sort((a, b) => a.localeCompare(b));
         window.crdbcsbkangexp_list = [...crdbcsbkangexpSet].sort((a, b) => a.localeCompare(b));
+        window.prodledgrp_list = [...prodledSet].sort((a, b) => a.localeCompare(b));
     }
-
     function populateDropdown(selectElementId, dataList) {
         const selectElement = document.getElementById(selectElementId);
         if (!selectElement) {
@@ -326,10 +259,10 @@
         }));
         if (showDelete) {
             fullColumns.push({
-                title: "",
+                title: "Delete",
                 field: "__delete",
-                formatter: () => `<div class="text-center cursor-pointer">🗑️</div>`,
-                width: 50,
+                formatter: () => `<div class="text-center cursor-pointer">⛔</div>`,
+                width: 60,
                 hozAlign: "center",
                 cellClick: async (e, cell) => {
                     e.stopPropagation();
@@ -344,10 +277,10 @@
         }
         if (showUpdate) {
             fullColumns.push({
-                title: "",
+                title: "Update",
                 field: "__update",
-                formatter: () => `<div class="text-center cursor-pointer">🔄</div>`,
-                width: 50,
+                formatter: () => `<div class="text-center cursor-pointer">✏️</div>`,
+                width: 60,
                 hozAlign: "center",
                 cellClick: (e, cell) => {
                     e.stopPropagation();
@@ -361,7 +294,7 @@
             data: rows,
             layout: "fitData",
             reactiveData: true,
-            rowHeight: 50,
+            rowHeight: 40,
             maxHeight: "600px",
             columns: fullColumns,
         });
@@ -376,7 +309,6 @@
         });
         bindSearch();
     };
-
     function bindSearch() {
         const searchbox = document.getElementById("searchBox");
         searchbox.addEventListener("input", function () {
@@ -398,18 +330,10 @@
         }
         const type = (rowData.ttype || "").trim();
         let group = type;
+        if (["Sales", "Purchase", "Receipt", "Payment"].includes(type)) {group = "Transaction";}
+        if (["Opening Balance", "Opening Stock"].includes(type)) {group = "ProdLed";}
 
-        if (["Sales", "Purchase", "Receipt", "Payment"].includes(type)) {
-            group = "Transaction";
-        }
-        if (type === "Opening Balance") {
-            group = "Opening Balance";
-        }
-        if (type === "Opening Stock") {
-            group = "Opening Stock";
-        }
-
-        ["Transaction", "Opening Balance", "Opening Stock"].forEach(typeName => {
+        ["Transaction", "prodLed"].forEach(typeName => {
             const container = document.getElementById(typeName);
             if (container) container.style.setProperty('display', 'none', 'important');
         });
@@ -430,19 +354,13 @@
                 document.getElementById("amt").value = rowData.amt || "";
                 document.getElementById("nar").value = rowData.nar || "";
                 break;
-            case "Opening Stock":
-                document.getElementById("spprod").value = rowData.grp || "";
-                document.getElementById("prodname").value = rowData.name || "";
-                document.getElementById("opstock").value = rowData.amt || "";
-                break;
-            case "Opening Balance":
-                document.getElementById("ledgrp").value = rowData.grp || "";
-                document.getElementById("ledname").value = rowData.name || "";
-                document.getElementById("opbal").value = rowData.amt || "";
+            case "ProdLed":
+                document.getElementById("prodledgrp").value = rowData.grp || "";
+                document.getElementById("prodledname").value = rowData.name || "";  
+                document.getElementById("opstkbal").value = rowData.amt || "";
                 break;
         }
     }
-
     function changeLists() {
         const ttype = document.getElementById("ttype").value;
         const txtfrom = document.getElementById("txtfrom");
@@ -453,16 +371,13 @@
         } else if (ttype === "Purchase") {
             populateDropdown("txtfrom", window.crdb_list);
             populateDropdown("txtto", window.pproduct_list);
-        } else if (ttype === "Receipt") {
-            populateDropdown("txtfrom", window.crdbcsbkang_list);
-            populateDropdown("txtto", window.crdbcsbkangexp_list);
-        } else if (ttype === "Payment") {
+        } else if (ttype === "Receipt" || ttype === "Payment") {
             populateDropdown("txtfrom", window.crdbcsbkang_list);
             populateDropdown("txtto", window.crdbcsbkangexp_list);
         } else if (ttype === "Opening Stock") {
-            populateDropdown("spprod", window.sp_list);
+            populateDropdown("prodledgrp", window.sp_list);
         } else if (ttype === "Opening Balance") {
-            populateDropdown("ledgrp", window.grp_list);
+            populateDropdown("prodledgrp", window.grp_list);
         }
     };
 
@@ -474,17 +389,13 @@
         }
         const q = query(collection(db, "tran"), where("grp", "==", groupName));
         const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-            return alert("Group name already exists.");
-        }
-        await addDoc(collection(db, "tran"), {
-            grp: groupName
-        });
+        if (!snapshot.empty) {return alert("Group name already exists.");}
+        await addDoc(collection(db, "tran"), {grp: groupName});
         input.value = "";
         alert("Group saved successfully.");
     };
 
-    window.insertLedger = async function () {
+    window.insertProductLedger = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
         snapshot.forEach((docSnap) => {
@@ -493,107 +404,64 @@
             const name = (data.name || "").trim();
             const ttype = (data.ttype || "").trim();
             const amt = (data.amt || "");
-            if (grp && name && grp !== "Sales Products" && grp !== "Purchase Products") {
-                rows.push({id: docSnap.id, grp, name, ttype, amt,});
-            }
+            if (grp && name) {rows.push({id: docSnap.id, grp, name, ttype, amt,});}
         });
-        const columns = [{title: "Group", field: "grp"}, {title: "Ledger Name", field: "name"}, {
-            title: "Type",
-            field: "ttype"
-        }, {title: "Amount", field: "amt"}];
+        const columns = [{title: "Group", field: "grp"}, {title: "Name", field: "name"}, {title: "Type", field: "ttype"}, {title: "Amount", field: "amt"}];
         createEditableTable(rows, columns, false, true, false);
         showOnly("fulltableCont");
     };
-    window.saveLedger = async function () {
+    window.saveProductLedger = async function () {
         const docId = window.currentDocId;
-        const group = document.getElementById("ledgrp").value.trim();
-        const newName = document.getElementById("ledname").value.trim();
-        const amt = parseFloat(document.getElementById("opbal").value) || 0;
+        const group = document.getElementById("prodledgrp").value.trim();
+        const newName = document.getElementById("prodledname").value.trim();
+        const amt = parseFloat(document.getElementById("opstkbal").value) || 0;
         if (!group || !newName) {
-            return alert("Group and Name are required.");
-        }
+            return alert("Group and Name are required.");}
+        
+        let ttype;
+        if (group === "Sales Products" || group === "Purchase Products") {
+            ttype = "Opening Stock";}
+        else {
+            ttype = "Opening Balance";}
+
         if (docId) {
             const existingDoc = await getDoc(doc(db, "tran", docId));
-            if (!existingDoc.exists()) {
-                return alert("Document not found to update.");
-            }
             const oldName = existingDoc.data().name || "";
             await updateDoc(doc(db, "tran", docId), {
-                grp: group, name: newName, amt: amt, ttype: "Opening Balance"
-            });
+                grp: group, name: newName, amt: amt, ttype: ttype});
+
             const querySnapshot = await getDocs(tranCol);
             const batch = writeBatch(db);
+
             querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const updates = {};
+                const data = docSnap.data(); 
+                const updates = {}; 
                 let shouldUpdate = false;
                 if (data.fparty === oldName) {
-                    updates.fparty = newName;
-                    shouldUpdate = true;
-                }
+                    updates.fparty = newName; 
+                    shouldUpdate = true;}
                 if (data.tparty === oldName) {
                     updates.tparty = newName;
-                    shouldUpdate = true;
-                }
+                    shouldUpdate = true;}
                 if (shouldUpdate) {
-                    const docRef = doc(db, "tran", docSnap.id);
-                    batch.update(docRef, updates);
-                }
+                    const docRef = doc(db, "tran", docSnap.id); 
+                    batch.update(docRef, updates);}
             });
             await batch.commit();
             alert("Ledger and linked entries updated successfully.");
         } else {
-            await addDoc(tranCol, {
-                grp: group, name: newName, amt: amt, ttype: "Opening Balance"
-            });
+            const newDocData = {grp: group, name: newName, amt: amt, ttype: ttype};
+            if (group === "Creditors") {
+                newDocData.fparty = newName;} 
+            else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {
+                newDocData.tparty = newName;}
+            await addDoc(tranCol, newDocData);
             alert("New ledger saved successfully.");
         }
         clear();
+        loadDropdownData();
     };
-
-    window.insertProduct = async function () {
-        const snapshot = await getDocs(tranCol);
-        const rows = [];
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const grp = (data.grp || "").trim();
-            const name = (data.name || "").trim();
-            const ttype = ("Opening Stock");
-            const amt = (data.amt || "");
-            if (grp && name && (grp === "Sales Products" || grp === "Purchase Products")) {
-                rows.push({id: docSnap.id, grp, name, ttype, amt,});
-            }
-        });
-        const columns = [{title: "Group", field: "grp"}, {title: "Ledger Name", field: "name"}, {title: "Type", field: "ttype"}, {title: "Amount", field: "amt"}];
-        createEditableTable(rows, columns, false, true, false);
-        showOnly("fulltableCont");
-    };
-    window.saveProduct = async function () {
-        const grp = document.getElementById("spprod").value.trim();
-        const name = document.getElementById("prodname").value.trim();
-        const amt = parseFloat(document.getElementById("opstock").value.trim());
-        if (!grp || !name) {
-            return alert("Please fill all fields properly. Opening stock must be a number > 0.");
-        }
-        if (!window.currentDocId) {
-            const q = query(collection(db, "tran"), where("name", "==", name));
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
-                return alert("Product name already exists.");
-            }
-        }
-        const prodData = {ttype: "Opening Stock", grp, name, amt};
-        if (window.currentDocId) {
-            const docRef = doc(db, "tran", window.currentDocId);
-            await updateDoc(docRef, prodData);
-            alert("Product updated successfully.");
-        } else {
-            await addDoc(collection(db, "tran"), prodData);
-        }
-        clear();
-        alert("Product saved successfully.");
-    };
-
+    
     window.insertTran = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
@@ -638,7 +506,7 @@
         alert("Transaction saved successfully.");
     };
 
-    window.viewGroup = async function () {
+    window.viewGrpProdLed = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
         snapshot.forEach((docSnap) => {
@@ -646,35 +514,12 @@
             const grp = (data.grp || "").trim();
             const name = (data.name || "").trim();
             if (grp && name) {
-                rows.push({id: docSnap.id, grp: grp, name: name});
-            }
+                rows.push({id: docSnap.id, grp: grp, name: name});}
         });
         const columns = [{title: "Group", field: "grp"}, {title: "Name", field: "name"}];
         createEditableTable(rows, columns, false, false, false);
         showOnly("fulltableCont");
     };
-    window.viewDaybook = async function () {
-        const snapshot = await getDocs(tranCol);
-        const rows = [];
-        snapshot.forEach(doc => {
-            const d = doc.data();
-            const ttype = d.ttype || "";
-            if (ttype === "Opening Balance" || ttype === "Opening Stock" || ttype === "Group" || ttype.trim() === "") {
-                return;
-            }
-            rows.push({
-                id: doc.id,
-                date: d.date || "",
-                ttype: d.ttype || "",
-                fparty: d.fparty || "",
-                tparty: d.tparty || "",
-                nar: d.nar || "",
-                amt: d.amt || ""
-            });
-        });
-        createEditableTable(rows, dcolumns, false, false, false);
-        showOnly("fulltableCont");
-    }
     window.viewReceivables = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
