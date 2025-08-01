@@ -5,26 +5,26 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Accounts</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_midnight.min.css" rel="stylesheet">
     <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #800606;"></body>
-<button class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 text-white text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
-<div class="hidden fixed top-[50px] left-0 w-[360px] h-[56vh] bg-white z-10 overflow-y-auto" id="dropdownMenu">
+<body style="font-family: 'Poppins', sans-serif; font-size: 16px;" class="bg-gray-900 text-white"></body>
+<button class="h-[50px] fixed top-0 left-0 w-full bg-gray-800 text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
+<div class="hidden fixed top-[50px] left-0 w-[360px] h-[56vh] bg-gray-700 z-10 overflow-y-auto" id="dropdownMenu">
     <div class="flex flex-col px-4 space-y-2 py-2" id="menuContent">
-        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('Transaction')">💰 Transaction</button>
-        <button class="w-full flex px-4 py-2 rounded bg-green-100 hover:bg-green-400" onclick="showOnly('ProdLed')">📦📘 Product/Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertTran()">👀✏️ View/Update Transaction</button>
-        <button class="w-full flex px-4 py-2 rounded bg-orange-100 hover:bg-orange-400" onclick="insertProductLedger()">👀✏️ View/Update Product/Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewReceivables()">💵 Receivables</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400" onclick="viewPayables()">💳 Payables</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400">📈 Profit & Loss</button>
-        <button class="w-full flex px-4 py-2 rounded bg-yellow-100 hover:bg-yellow-400">🧾 Khatavahi</button>
-        <button class="w-full flex items-center gap-3 px-4 py-2 rounded bg-red-100 hover:bg-red-200 text-red-800 font-semibold" onclick="window.logout()">🔒 Logout</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="showOnly('Transaction')">💰 Transaction</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="showOnly('ProdLed')">📦📘 Product/Ledger</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="insertTran()">👀✏️ View/Update Transaction</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="insertProductLedger()">👀✏️ View/Update Product/Ledger</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="viewReceivables()">💵 Receivables</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="viewPayables()">💳 Payables</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600">📈 Profit & Loss</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600">🧾 Khatavahi</button>
+        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600 font-semibold" onclick="window.logout()">🔒 Logout</button>
     </div>
 </div>
 <div id="loginContainer" class="flex flex-col items-center justify-center min-h-screen bg-gray-100" style="display: none;">
@@ -54,29 +54,29 @@
     </div>
 </div>
 <!-- Sales Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-white shadow p-2 rounded" id="Transaction">
-    <label for="ttype">Transaction Type</label><select class="input-box" id="ttype"></select>
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-gray-800 p-2 rounded" id="Transaction">
+    <label>Transaction Type</label><select class="input-box" id="ttype"></select>
     <label for="date">Date</label><input class="input-box" id="date" type="date"/>
     <label for="txtfrom">From</label><select class="input-box" id="txtfrom"></select>
     <label for="txtto">To</label><select class="input-box" id="txtto"></select>
-    <label for="amt">Amount</label><input class="input-box" id="amt" placeholder="Amount" type="number"/>
-    <label for="nar">Narration</label><input autocomplete="off" class="input-box" id="nar" placeholder="Narration" type="text"/>
-    <button Class="input-box mt-5" onclick="window.saveTransaction()">💾 Transaction</button>
+    <label for="amt">Amount</label><input class="input-box" id="amt" type="number"/>
+    <label for="nar">Narration</label><input autocomplete="off" class="input-box" id="nar" type="text"/>
+    <button Class="w-full px-2 py-3 text-base rounded-lg mt-10 bg-green-800" onclick="window.saveTransaction()">💾 Transaction</button>
 </div>
 <!-- Product Ledger Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-white shadow p-2 rounded" id="ProdLed">
+<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-gray-800 p-2 rounded" id="ProdLed">
     <label for="sp1">Select Group For Product/Ledger</label><select class="input-box" id="prodledgrp" type="text"></select>
-    <label for="prodname">Product/Ledger Name</label><input autocomplete="off" class="input-box" id="prodledname" placeholder="Product/Ledger Name" type="text"/>
-    <label for="opstock">Opening Stock/Balance</label><input class="input-box" id="opstkbal" placeholder="Opening Stock/Balance" type="number"/>
-    <button Class="input-box mt-5" onclick="saveProductLedger()">💾 Product/Ledger</button>
+    <label for="prodname">Product/Ledger Name</label><input autocomplete="off" class="input-box" id="prodledname" type="text"/>
+    <label for="opstock">Opening Stock/Balance</label><input class="input-box" id="opstkbal" type="number"/>
+    <button Class="w-full px-2 py-3 text-base rounded-lg mt-10 bg-green-800" onclick="saveProductLedger()">💾 Product/Ledger</button>
 </div>
 <!-- Tabulator Table Container -->
 <div class="hidden fixed top-[50px] w-full mx-auto p-1" id="fulltableCont">
     <div class="flex items-center gap-1 mb-1 flex-wrap">
-        <button class="bg-green-500 px-2 py-1 text-white rounded" id="excelBtn">Excel</button>
-        <button class="bg-red-500 px-2 py-1 text-white rounded" id="pdfBtn">PDF</button>
-        <button class="bg-blue-500 px-2 py-1 text-white rounded" id="printBtn">Print</button>
-        <div class="w-full max-w-xs sm:w-auto"><input autocomplete="off" class="w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/></div>
+        <button class="bg-green-500 px-2 py-3 text-white rounded" id="excelBtn">Excel</button>
+        <button class="bg-red-500 px-2 py-3 text-white rounded" id="pdfBtn">PDF</button>
+        <button class="bg-blue-500 px-2 py-3 text-white rounded" id="printBtn">Print</button>
+        <div class="w-full max-w-xs sm:w-auto"><input autocomplete="off" class="input-box w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/></div>
     </div>
     <div id="tableCont"></div>
 </div>
@@ -141,7 +141,7 @@
         }
     };
     document.addEventListener('DOMContentLoaded', () => {
-        const inputClass = "w-full pl-[10px] pr-2 pt-2 pb-2 border-2 border-gray-500 rounded";
+        const inputClass = "w-full px-2 py-3 text-base bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400";
         document.querySelectorAll('.input-box').forEach(input => {
             input.classList.add(...inputClass.split(' '));
             if ((input.tagName === "INPUT" && input.type === "text") || input.tagName === "TEXTAREA") {
@@ -153,7 +153,7 @@
                 });
             }
         });
-        const labelClass = "mt-3 pl-[10px] block text-gray-500 font-medium mb-1";
+        const labelClass = "mt-3 pl-[10px] text-gray-400 block font-medium mb-1";
         document.querySelectorAll('label').forEach(label => {label.classList.add(...labelClass.split(' '));});
         const button = document.getElementById("dropdownBtn");
         const menu = document.getElementById("dropdownMenu");
@@ -248,28 +248,29 @@
         }));
         if (showDelete) {
             fullColumns.push({
-                title: "Delete",
+                title: "",
                 field: "__delete",
                 formatter: () => `<div class="text-center cursor-pointer">⛔</div>`,
-                width: 60,
+                width: 40,
                 hozAlign: "center",
                 cellClick: async (e, cell) => {
                     e.stopPropagation();
                     const rowData = cell.getRow().getData();
                     const confirmed = confirm("Delete? Are You Sure?");
                     if (confirmed && rowData.id) {
-                        await deleteDoc(doc(db, collectionName, rowData.id));
+                        await deleteDoc(doc(db, "tran", rowData.id));
                         cell.getRow().delete();
+                        updateCashLabel();
                     }
                 },
             });
         }
         if (showUpdate) {
             fullColumns.push({
-                title: "Update",
+                title: "",
                 field: "__update",
                 formatter: () => `<div class="text-center cursor-pointer">✏️</div>`,
-                width: 60,
+                width: 40,
                 hozAlign: "center",
                 cellClick: (e, cell) => {
                     e.stopPropagation();
@@ -328,6 +329,7 @@
         targetContainer.classList.remove("hidden");
         targetContainer.style.setProperty('display', 'block', 'important');
         document.getElementById("ttype").value = type;
+        document.getElementById("ttype").disabled = true;
         document.querySelectorAll("input:not(#ttype)").forEach(el => el.value = "");
         changeLists();
         switch (group) {
@@ -412,6 +414,7 @@
                     batch.update(docRef, updates);}
             });
             await batch.commit();
+            window.insertProductLedger();
             alert("Ledger and linked entries updated successfully.");
         } else {
             const newDocData = {grp: group, name: newName, amt: amt, ttype: ttype};
@@ -420,6 +423,7 @@
             else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {
                 newDocData.tparty = newName;}
             await addDoc(tranCol, newDocData);
+            showOnly('ProdLed');
             alert("New ledger saved successfully.");
         }
         clear();
@@ -462,10 +466,16 @@
         if (window.currentDocId) {
             const docRef = doc(db, "tran", window.currentDocId);
             await updateDoc(docRef, tranData);
+            window.insertTran();
             alert("Transaction updated successfully.");
-        } else {await addDoc(collection(db, "tran"), tranData);}
+        } else {
+            await addDoc(collection(db, "tran"), tranData);
+            showOnly('Transaction');
+            alert("Transaction saved successfully.");
+        }
         clear();
-        alert("Transaction saved successfully.");
+        updateCashLabel();
+        document.getElementById("ttype").disabled = false;
     };
 
     window.viewReceivables = async function () {
