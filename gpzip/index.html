@@ -102,7 +102,7 @@
                             dropdown.style.backgroundColor = "#fff";
                             dropdown.style.border = "1px solid #ccc";
                             dropdown.style.width = "100%";
-                            dropdown.style.maxHeight = "150px";
+                            dropdown.style.maxHeight = "300px";
                             dropdown.style.overflowY = "auto";
                             dropdown.style.display = "none";
                             container.appendChild(dropdown);
@@ -112,7 +112,7 @@
                                 filtered.forEach(optionText => {
                                     const option = document.createElement("div");
                                     option.textContent = optionText;
-                                    option.className = "px-2 py-2 hover:bg-blue-200 cursor-pointer";
+                                    option.className = "px-2 py-3 hover:bg-blue-200 cursor-pointer";
                                     option.addEventListener("mousedown", () => {
                                         input.value = optionText;
                                         dropdown.style.display = "none";
