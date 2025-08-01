@@ -11,17 +11,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>.tabulator-cell {overflow: visible !important;}.tabulator {overflow: visible !important;}</style>
 </head>
-<body style="font-family: 'Poppins', sans-serif; font-size: 16px; color: #800606;">
-
-<div class="h-[50px] fixed top-0 left-0 w-full bg-blue-600 shadow z-20">
-    <div class="flex h-full">
-        <button class="flex-1 text-white text-lg px-4 py-3 text-center hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
-        <button class="flex-1 text-white text-lg px-4 py-3 text-center hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
-    </div>
+<body style="font-family: 'Poppins', sans-serif; font-size: 16px;">
+<div class="fixed top-0 left-0 flex w-full h-[50px]">
+    <button class="flex-1 text-lg px-4 py-3 text-white text-left bg-blue-600 hover:bg-blue-900" onclick="daybook()">📖 Daybook</button>
+    <button class="flex-1 text-lg px-4 py-3 text-white text-center bg-green-600 hover:bg-green-900" onclick="viewReceivables()">💰 Receivables</button>
 </div>
-<div class="ml-1 fixed top-[51px]" id="btncont" style="display: flex; align-items: center;">
+<div class="ml-1 mt-0 fixed top-[51px]" id="btncont" style="display: flex; align-items: center;">
     <button class="w-[70px] text-white px-1 py-2 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
-    <input class="w-full py-2 px-5 border border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
+    <input class="w-full w-[300px] py-2 px-5 border border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
 </div>
 <div class="ml-1 fixed top-[95px] w-full" id="example-table"></div>
 <script type="module">
@@ -159,7 +156,7 @@
                     {title: "Jama", field: "camt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                     {title: "Khate", field: "damt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
                     {title: "Mamt", field: "mamt", editor: "number", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
-                    {title: "Action", field: "mainAction",
+                    {title: "", field: "mainAction",
                         formatter: (cell) => {
                             const row = cell.getRow().getData();
                             if (row._isNew) {return `<button class="bg-green-800 text-white px-3 py-2 rounded">Save</button>`;}
@@ -212,7 +209,7 @@
                             }
                         },
                     },
-                    {title: "Delete", field: "deleteAction",
+                    {title: "", field: "deleteAction",
                         formatter: (cell) => {
                             const row = cell.getRow().getData();
                             if (row._isNew) {return `<button class="bg-yellow-800 text-white px-3 py-2 rounded" onclick="window.meh()">MEH</button>`;}
