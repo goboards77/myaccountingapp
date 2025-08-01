@@ -50,7 +50,7 @@
             const party = doc.data().party?.trim();
             if (party) {partySet.add(party);}
         });
-        nameOptions = Array.from(partySet);
+        window.nameOptions = Array.from(partySet).sort((a, b) => a.localeCompare(b));
     }
 
     function editableTable() {
@@ -84,72 +84,29 @@
                     },
                     {title: "Party", field: "party",
                         editor: (cell, onRendered, success, cancel) => {
-                            const container = document.createElement("div");
-                            container.style.position = "relative";
-
-                            const input = document.createElement("input");
-                            input.type = "text";
-                            input.className = "w-full p-1 border rounded h-10 leading-10";
-                            input.value = cell.getValue();
-                            container.appendChild(input);
-
-                            const dropdown = document.createElement("div");
-                            dropdown.style.position = "absolute";
-                            dropdown.style.zIndex = "100";
-                            dropdown.style.backgroundColor = "#fff";
-                            dropdown.style.border = "1px solid #ccc";
-                            dropdown.style.width = "100%";
-                            dropdown.style.maxHeight = "300px";
-                            dropdown.style.overflowY = "auto";
-                            dropdown.style.display = "none";
-                            container.appendChild(dropdown);
-
-                            function showDropdown(filtered) {
-                                dropdown.innerHTML = "";
-                                filtered.forEach(optionText => {
-                                    const option = document.createElement("div");
-                                    option.textContent = optionText;
-                                    option.className = "px-2 py-3 hover:bg-blue-200 cursor-pointer";
-                                    option.addEventListener("mousedown", () => {
-                                        input.value = optionText;
-                                        dropdown.style.display = "none";
-                                        success(optionText);
-                                    });
-                                    dropdown.appendChild(option);
+                            const select = document.createElement("select");
+                            select.className = "w-full p-2 border rounded h-10 leading-10";
+                            const defaultOption = document.createElement("option");
+                            defaultOption.value = "";
+                            defaultOption.textContent = "Select party...";
+                            select.appendChild(defaultOption);
+                            const currentValue = cell.getValue();
+                            if (currentValue) {select.value = currentValue;}
+                            const fillOptions = async () => {
+                                if (!window.nameOptions || window.nameOptions.length === 0) {await window.loadNameList();}
+                                window.nameOptions.forEach((name) => {
+                                    const option = document.createElement("option");
+                                    option.value = name;
+                                    option.textContent = name;
+                                    select.appendChild(option);
                                 });
-                                dropdown.style.display = filtered.length ? "block" : "none";
-                            }
-                            function filterOptions(value) {
-                                if (!value.trim()) {
-                                    showDropdown(nameOptions);  // Show full list if input is empty
-                                    return;
-                                }
-                                const filtered = nameOptions.filter(opt =>
-                                    opt.toLowerCase().includes(value.toLowerCase())
-                                );
-                                showDropdown(filtered);
-                            }
-                            input.addEventListener("input", () => filterOptions(input.value));
-                            input.addEventListener("focus", async () => {
-                                if (!nameOptions || nameOptions.length === 0) {
-                                    await window.loadNameList();
-                                }
-                                filterOptions(input.value);
-                            });
-                            input.addEventListener("blur", () => {
-                                setTimeout(() => dropdown.style.display = "none", 300); // safer for PC click
-                            });
-                            input.addEventListener("keydown", (e) => {
-                                if (e.key === "Enter") {
-                                    dropdown.style.display = "none";
-                                    success(input.value);
-                                } else if (e.key === "Escape") {
-                                    dropdown.style.display = "none";
-                                    cancel();
-                                }
-                            });
-                            onRendered(() => input.focus());
-                            return container;
+                                if (currentValue) {select.value = currentValue;}
+                            };
+                            fillOptions();
+                            select.addEventListener("change", () => {success(select.value);});
+                            select.addEventListener("blur", () => {success(select.value);});
+                            onRendered(() => select.focus());
+                            return select;
                         }
                     },
                     {title: "Narration", field: "nar", editor: "input", editorParams: {className: "w-full p-1 border rounded h-10 leading-10"}},
@@ -159,16 +116,16 @@
                     {title: "", field: "mainAction",
                         formatter: (cell) => {
                             const row = cell.getRow().getData();
-                            if (row._isNew) {return `<button class="bg-green-800 text-white px-3 py-2 rounded">Save</button>`;}
-                            else {return `<button class="bg-blue-800 text-white px-2 py-2 rounded">Update</button>`;}
+                            if (row._isNew) {return `<button class="py-2 rounded">💾</button>`;}
+                            else {return `<button class="py-2 rounded">✏️</button>`;}
                         },
-                        width: 70,
+                        width: 30,
                         hozAlign: "center",
                         cellClick: async (e, cell) => {
                             const rowData = cell.getRow().getData();
                             const clickedButtonText = e.target.textContent;
                             if (rowData._isNew) {
-                                if (clickedButtonText === "Save") {
+                                if (clickedButtonText === "💾") {
                                     const hasDate = rowData.date && rowData.date.trim() !== "";
                                     const hasParty = rowData.party && rowData.party.trim() !== "";
                                     const camtValue = Number(rowData.camt);
@@ -191,7 +148,7 @@
                                     await daybook();
                                 }
                             } else {
-                                if (clickedButtonText === "Update") {
+                                if (clickedButtonText === "✏️") {
                                     const ref = doc(db, "gpzip", rowData.id);
                                     const updateObj = {};
                                     if (rowData.date && rowData.date.trim() !== "") {updateObj.date = rowData.date.trim();}
@@ -212,15 +169,15 @@
                     {title: "", field: "deleteAction",
                         formatter: (cell) => {
                             const row = cell.getRow().getData();
-                            if (row._isNew) {return `<button class="bg-yellow-800 text-white px-3 py-2 rounded" onclick="window.meh()">MEH</button>`;}
-                                            return row._isNew ? '' : `<button class="bg-red-800 text-white px-2 py-2 rounded">Delete</button>`;
+                            if (row._isNew) {return `<button class="py-2 rounded" onclick="window.meh()">💼</button>`;}
+                                            return row._isNew ? '' : `<button class="py-2 rounded">⛔</button>`;
                         },
-                        width: 70,
+                        width: 30,
                         hozAlign: "center",
                         cellClick: async (e, cell) => {
                             const rowData = cell.getRow().getData();
                             const clickedButtonText = e.target.textContent;
-                            if (!rowData._isNew && clickedButtonText === "Delete") {
+                            if (!rowData._isNew && clickedButtonText === "⛔") {
                                 const confirmDel = confirm("Are you sure you want to delete this row?");
                                 if (confirmDel) {
                                     await deleteDoc(doc(db, "gpzip", rowData.id));
