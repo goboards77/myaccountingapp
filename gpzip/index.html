@@ -17,11 +17,11 @@
         <button class="flex-1 text-white text-lg px-4 py-3 text-center hover:bg-blue-900" onclick="viewReceivables()">💰 Receivables</button>
     </div>
 </div>
-<div class="ml-1 mt-[51px]" id="btncont" style="display: flex; align-items: center;">
-    <button class="w-[70px] text-white px-1 py-1 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
-    <input autocomplete="off" class="w-full py-1 px-5 border border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
+<div class="ml-1 fixed top-[51px]" id="btncont" style="display: flex; align-items: center;">
+    <button class="w-[70px] text-white px-1 py-2 rounded bg-green-600 hover:bg-green-700" onclick="exportExcel()">Excel</button>
+    <input class="w-full py-2 px-5 border border-gray-800 rounded shadow-sm" id="search-box" placeholder="Search..." type="text"/>
 </div>
-<div class="ml-1" id="example-table"></div>
+<div class="ml-1 fixed top-[95px]" id="example-table"></div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {getAuth,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -42,7 +42,7 @@
     let tableData = [];
     let nameOptions = [];
     
-    async function loadNameList() {
+    window.loadNameList = async function () {
         const tranRef = collection(db, "gpzip");
         const q = query(tranRef, where("party", "!=", ""));
         const nameSnap = await getDocs(q);
@@ -299,7 +299,7 @@
         }
         const recColumns = [
             {title: "Party", field: "Party", width: 200, hozAlign: "left"},
-            {title: "Amount", field: "Amount", width: 150, hozAlign: "right"},
+            {title: "Amount", field: "Amount", width: 100, hozAlign: "right"},
         ];
         customTable(result, recColumns);
     };
