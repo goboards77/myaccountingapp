@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -16,14 +16,14 @@
 <body class="bg-gray-900 text-white text-[16px] font-[Poppins]">  
     <select id="emojiSelect" class="fixed top-0 left-0 w-full h-[50px] px-4 bg-gray-900 hover:bg-gray-800">
     <option value="">Select Options 👈</option>
-    <option value="transaction">New Transaction</option>
-    <option value="prodled">New Product Ledger</option>
-    <option value="transprodled">Update Transaction Product Ledger</option>
-    <option value="receivables">View Receivables</option>
-    <option value="payables">View Payables</option>
-    <option value="stock">View Stock</option>
-    <option value="profit">View Profit & Loss</option>
-    <option value="khatavahi">View Khatavahi</option>
+    <option value="transaction">Transaction</option>
+    <option value="prodled">Product/Ledger</option>
+    <option value="transprodled">Update</option>
+    <option value="receivables">Receivables</option>
+    <option value="payables">Payables</option>
+    <option value="spreg">SP Register</option>
+    <option value="profit">Profit & Loss</option>
+    <option value="khatavahi">Khatavahi</option>
     <option value="loginContainer">⏻ Logout</option>
 </select>
 <!--LOGIN-->
@@ -50,14 +50,14 @@
     <button class="button block mx-auto mt-5 bg-green-800" onclick="saveTransaction()">👉Click to Save👈</button>
 </div>
 <!--TABLE-->
-<div class="form-section hidden fixed top-[57px] w-full mx-auto ml-1" id="tableCont">
+<div class="form-section hidden fixed top-[57px] w-full mx-auto ml-1 mr-1" id="tableCont">
     <div class="flex items-center gap-1 mb-1 flex-nowrap">
-        <button class="bg-green-800 text-white rounded h-10" id="excelBtn">𝄜</button>
-        <button class="bg-red-800 text-white rounded h-10" id="pdfBtn">PDF</button>
-        <button class="bg-blue-800 text-white rounded h-10" id="printBtn">🖨️</button>
-        <input class="input-box rounded h-10 px-3 w-full mr-2" id="searchBox" placeholder="Search..." type="text" style="display: flex; align-items: center;"/>
+        <button class="bg-green-800 text-white h-10" id="excelBtn">𝄜XL</button>
+        <button class="bg-red-800 text-white h-10" id="pdfBtn">PDF</button>
+        <button class="bg-blue-800 text-white h-10" id="printBtn">🖨️</button>
+        <input class="input-box h-10 px-3 w-full mr-1" id="searchBox" placeholder="Search..." type="text" style="display: flex; align-items: center;"/>
     </div>
-    <div id="table"></div>
+    <div class="mr-1 rounded-lg" id="table"></div>
 </div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -109,7 +109,7 @@
     });
     const dcolumns = [{title: "Date", field: "date"}, {title: "Type", field: "ttype"}, {title: "From Party", field: "fparty"}, {title: "To Party", field: "tparty"},
         {title: "Narration", field: "nar"}, {title: "Amount", field: "amt", hozAlign: "right"}, {title: "Group", field: "grp"}, {title: "Name", field: "name"}, {title: "ID", field: "id", visible: false}];
-    const groupNames = ["Cash", "Bank", "Creditors", "Debitors", "Angadiya", "Expense", "Sales Products", "Purchase Products"];
+    const groupNames = ["Cash", "Bank", "Creditors", "Debitors", "Angadiya", "Expense", "Sproducts", "Pproducts"];
     const createGroupDefinition = (groupName) => ({
         data: {grp: groupName, ttype: "Group"},
         queryConditions: [where("grp", "==", groupName), where("ttype", "==", "Group")],
@@ -163,12 +163,12 @@
             const name = (data.name || "").trim();
             if (grp.length === 0) return;
             if (name.length > 0) {nameSet.add(name);}
-            if (grp === "Sales Products" && name.length > 0) {sproductSet.add(name);}
-            if (grp === "Purchase Products" && name.length > 0) {pproductSet.add(name);}
+            if (grp === "Sproducts" && name.length > 0) {sproductSet.add(name);}
+            if (grp === "Pproducts" && name.length > 0) {pproductSet.add(name);}
             if (["Creditors", "Debitors"].includes(grp) && name.length > 0) {crdbSet.add(name);}
             if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya",].includes(grp) && name.length > 0) {crdbcsbkangSet.add(name);}
             if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense"].includes(grp) && name.length > 0) {crdbcsbkangexpSet.add(name);}
-            if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense", "Sales Products", "Purchase Products"].includes(grp)) {prodledSet.add(grp);}
+            if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense", "Sproducts", "Pproducts"].includes(grp)) {prodledSet.add(grp);}
         });
         window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
         window.ttype_list = ["Sales", "Purchase", "Receipt", "Payment"]
@@ -366,7 +366,7 @@
             if (!snapshot.empty) {return alert("A ledger with this name already exists in the selected group.");}
         }
         let ttype;
-        if (group === "Sales Products" || group === "Purchase Products") {ttype = "Opening Stock";} 
+        if (group === "Sproducts" || group === "Pproducts") {ttype = "Opening Stock";} 
         else {ttype = "Opening Balance";}
 
         if (docId) {
@@ -402,7 +402,7 @@
             const newDocData = { grp: group, name: newName, ttype: ttype };
             if (amt !== undefined) {
                 newDocData.amt = amt;
-                if (group === "Creditors" || group === "Sales Products" || group === "Purchase Products") {newDocData.fparty = newName;}
+                if (group === "Creditors" || group === "Sproducts" || group === "Pproducts") {newDocData.fparty = newName;}
                 else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {newDocData.tparty = newName;}
             }
             await addDoc(tranCol, newDocData);
@@ -441,7 +441,7 @@
                 rows.push({party: party, amount: Math.abs(amount).toFixed(0),});
             }
         }
-        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
+        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"}];
         createEditableTable(rows, columns, false, false, false);
         document.getElementById("tableCont").classList.remove("hidden");
     }
@@ -472,7 +472,36 @@
             const grp = ledgerGroups[party];
             if (amount > 0 && grp && allowedGroups.includes(grp)) {rows.push({party: party, amount: Number(amount).toFixed(0),});}
         }
-        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
+        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"}];
+        createEditableTable(rows, columns, false, false, false);
+        document.getElementById("tableCont").classList.remove("hidden");
+    };
+    window.viewSPRegister = async function () {
+        const snapshot = await getDocs(tranCol);
+        const rows = [];
+        const ledgerGroups = {};
+        const balances = {};
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const name = (data.name || "").trim();
+            const grp = (data.grp || "").trim();
+            if (name && grp) {ledgerGroups[name] = grp;}
+        });
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            ["fparty", "tparty"].forEach(key => {
+                if (data[key]) {
+                    const party = data[key].trim();
+                    balances[party] = (balances[party] || 0) + parseFloat(data.amt || "0");
+                }
+            });
+        });
+        const allowedGroups = ["Sproducts", "Pproducts"];
+        for (const [party, amount] of Object.entries(balances)) {
+            const grp = ledgerGroups[party];
+            if (amount && grp && allowedGroups.includes(grp)) {rows.push({party: party, amount: Number(amount).toFixed(0),});}
+        }
+        const columns = [{title: "Products", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"}];
         createEditableTable(rows, columns, false, false, false);
         document.getElementById("tableCont").classList.remove("hidden");
     };
@@ -491,9 +520,10 @@
             const selectedForm = document.getElementById(selectedValue);
             if (selectedForm) selectedForm.classList.remove("hidden");
         };
+        if (selectedValue === "transprodled") {insertTranProdLed();}
         if (selectedValue === "payables") {viewPayables();}
         if (selectedValue === "receivables") {viewReceivables();}
-        if (selectedValue === "transprodled") {insertTranProdLed();}
+        if (selectedValue === "spreg") {viewSPRegister();}
         clear();
     });
 
