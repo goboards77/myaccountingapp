@@ -57,7 +57,7 @@
         <button class="bg-blue-800 text-white h-10" id="printBtn">🖨️</button>
         <input class="input-box h-10 px-3 w-full mr-1" id="searchBox" placeholder="Search..." type="text" style="display: flex; align-items: center;"/>
     </div>
-    <div class="mr-1 rounded-lg mx-auto" id="table"></div>
+    <div class="overflow-x-auto"><div id="table" class="mr-1 rounded-lg mx-auto"></div></div>
 </div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -539,3 +539,4 @@
 </script>
 </body>
 </html>
+
