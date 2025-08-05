@@ -1,82 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Accounts</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dark Mode Select</title>    
+    <script src="https://cdn.tailwindcss.com"></script>    
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_midnight.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>
+    <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/tabulator-tables@5.5.0/dist/js/tabulator.min.js"></script>    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>    
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>    
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 </head>
-<body style="font-family: 'Poppins', sans-serif; font-size: 16px;" class="bg-gray-900 text-white"></body>
-<button class="h-[50px] fixed top-0 left-0 w-full bg-gray-800 text-lg px-4 py-3 text-left shadow z-20" id="dropdownBtn">☰ Open Menu</button>
-<div class="hidden fixed top-[50px] left-0 w-[360px] h-[56vh] bg-gray-700 z-10 overflow-y-auto" id="dropdownMenu">
-    <div class="flex flex-col px-4 space-y-2 py-2" id="menuContent">
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="showOnly('Transaction')">💰 Transaction</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="showOnly('ProdLed')">📦📘 Product/Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="insertTran()">👀✏️ View/Update Transaction</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="insertProductLedger()">👀✏️ View/Update Product/Ledger</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="viewReceivables()">💵 Receivables</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600" onclick="viewPayables()">💳 Payables</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600">📈 Profit & Loss</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600">🧾 Khatavahi</button>
-        <button class="w-full flex px-4 py-2 rounded-lg bg-gray-700 hover:bg-blue-600 font-semibold" onclick="window.logout()">🔒 Logout</button>
-    </div>
+<body class="bg-gray-900 text-white text-[16px] font-[Poppins]">  
+    <select id="emojiSelect" class="fixed top-0 left-0 w-full h-[50px] px-4 bg-gray-900 hover:bg-gray-800">
+    <option value="">Select Options 👈</option>
+    <option value="transaction">New Transaction</option>
+    <option value="prodled">New Product Ledger</option>
+    <option value="transprodled">Update Transaction Product Ledger</option>
+    <option value="receivables">View Receivables</option>
+    <option value="payables">View Payables</option>
+    <option value="stock">View Stock</option>
+    <option value="profit">View Profit & Loss</option>
+    <option value="khatavahi">View Khatavahi</option>
+    <option value="loginContainer">⏻ Logout</option>
+</select>
+<!--LOGIN-->
+<div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="loginContainer">
+    <input class="input-box" id="loginEmail" placeholder="Email ....." type="email"><br><br>
+    <input class="input-box" id="loginPassword" placeholder="Password ....." type="password"><br><br>
+    <button class="button mb-3" onclick="login()">🏠︎ Login</button>
 </div>
-<div id="loginContainer" class="flex flex-col items-center justify-center min-h-screen bg-gray-100" style="display: none;">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-        <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
-        <div class="space-y-4">
-            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginEmail" placeholder="Email" type="email">
-            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="loginPassword" placeholder="Password" type="password">
-            <button class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors" onclick="login()">Login</button>
-        </div>
-        <div class="mt-4 text-center">
-            <a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); showRegister();">Don’t have an account? Register</a>
-        </div>
-    </div>
+<!--PRODUCT LEDGER-->
+<div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="prodled">
+    <label>Select Group:</label><select class="input-box" id="prodledgrp"></select>
+    <label>Ledger Name:</label><input class="input-box" id="prodledname" type="text" autocomplete="off">
+    <label>Opening Balance/Stock:</label><input class="input-box" id="opstkbal" type="number">
+    <button class="button" onclick="saveProductLedger()">👉Click to Save👈</button>
 </div>
-<div id="registerContainer" class="flex flex-col items-center justify-center min-h-screen bg-gray-100" style="display: none;">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-        <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
-        <div class="space-y-4">
-            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="registerEmail" placeholder="Email" type="email">
-            <input class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" id="registerPassword" placeholder="Password" type="password">
-            <button class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition-colors" onclick="register()">Register</button>
-        </div>
-        <div class="mt-4 text-center">
-            <a href="#" class="text-blue-600 hover:underline" onclick="event.preventDefault(); showLogin();">Already have an account? Login</a>
-        </div>
-    </div>
-</div>
-<!-- Sales Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-gray-800 p-2 rounded" id="Transaction">
+<!--TRANSACTION-->
+<div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="transaction">
     <label>Transaction Type</label><select class="input-box" id="ttype"></select>
     <label for="date">Date</label><input class="input-box" id="date" type="date"/>
     <label for="txtfrom">From</label><select class="input-box" id="txtfrom"></select>
     <label for="txtto">To</label><select class="input-box" id="txtto"></select>
     <label for="amt">Amount</label><input class="input-box" id="amt" type="number"/>
-    <label for="nar">Narration</label><input autocomplete="off" class="input-box" id="nar" type="text"/>
-    <button Class="w-full px-2 py-3 text-base rounded-lg mt-10 bg-green-800" onclick="window.saveTransaction()">💾 Transaction</button>
+    <label for="nar">Narration</label><input class="input-box" id="nar" type="text" autocomplete="off"/>
+    <button class="button" onclick="saveTransaction()">👉Click to Save👈</button>
 </div>
-<!-- Product Ledger Section -->
-<div class="hidden w-[350px] px-2 pb-4 fixed top-[50px] bg-gray-800 p-2 rounded" id="ProdLed">
-    <label for="sp1">Select Group For Product/Ledger</label><select class="input-box" id="prodledgrp" type="text"></select>
-    <label for="prodname">Product/Ledger Name</label><input autocomplete="off" class="input-box" id="prodledname" type="text"/>
-    <label for="opstock">Opening Stock/Balance</label><input class="input-box" id="opstkbal" type="number"/>
-    <button Class="w-full px-2 py-3 text-base rounded-lg mt-10 bg-green-800" onclick="saveProductLedger()">💾 Product/Ledger</button>
-</div>
-<!-- Tabulator Table Container -->
-<div class="hidden fixed top-[50px] w-full mx-auto p-1" id="fulltableCont">
+<!--TABLE-->
+<div class="form-section hidden fixed top-[50px] w-full mx-auto p-1" id="fulltableCont">
     <div class="flex items-center gap-1 mb-1 flex-wrap">
         <button class="bg-green-500 px-2 py-3 text-white rounded" id="excelBtn">Excel</button>
         <button class="bg-red-500 px-2 py-3 text-white rounded" id="pdfBtn">PDF</button>
         <button class="bg-blue-500 px-2 py-3 text-white rounded" id="printBtn">Print</button>
-        <div class="w-full max-w-xs sm:w-auto"><input autocomplete="off" class="input-box w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/></div>
+        <div class="w-full max-w-xs sm:w-auto"><input class="input-box w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/></div>
     </div>
     <div id="tableCont"></div>
 </div>
@@ -84,7 +63,6 @@
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {getFirestore, collection, getDocs, getDoc, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
         authDomain: "accounts-19d08.firebaseapp.com",
@@ -99,35 +77,38 @@
     const tranCol = collection(db, "tran");
     window.currentDocId = null;
     window.originalEditingValue = null;
-    window.showLogin = function () {document.getElementById("loginContainer").style.display = "flex";};
-    window.showRegister = function () {
-        document.getElementById("registerContainer").style.display = "flex";
-        document.getElementById("loginContainer").style.display = "none";
-    };
+    window.showLogin = function () {document.getElementById("loginContainer").classList.remove("hidden");}
     window.login = async function () {
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
-        await signInWithEmailAndPassword(auth, email, password);
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            const docRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists() && docSnap.data().approved === true) {
+                alert("Login successful and approved!");
+                document.getElementById("loginContainer").classList.add("hidden");
+                document.getElementById("emojiSelect").selectedIndex = 0;
+            }
+        } catch (error) {
+            alert("Login failed\nEnter registered email/password\nor\nContact Gopalji");
+        }
     };
-    window.register = async function () {
-        const email = document.getElementById("registerEmail").value;
-        const password = document.getElementById("registerPassword").value;
-        await createUserWithEmailAndPassword(auth, email, password);
-    };
-    window.logout = async function () {await signOut(auth);};
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            document.getElementById("loginContainer").style.display = "none";
-            document.getElementById("registerContainer").style.display = "none";
+            document.getElementById("emojiSelect").disabled = false;
             await createAndDeduplicateDocuments();
             await loadDropdownData();
-            await updateCashLabel();
             populateDropdown("ttype", window.ttype_list);
             populateDropdown("prodledgrp", window.prodledgrp_list);
-        } else {document.getElementById("loginContainer").style.display = "flex";}
+        } else {
+            document.getElementById("emojiSelect").disabled = true;
+            document.getElementById("loginContainer").classList.remove("hidden");
+        }
     });
     const dcolumns = [{title: "Date", field: "date"}, {title: "Type", field: "ttype"}, {title: "From Party", field: "fparty"}, {title: "To Party", field: "tparty"},
-        {title: "Narration", field: "nar"}, {title: "Amount", field: "amt", hozAlign: "right"}, {title: "ID", field: "id", visible: false}];
+        {title: "Narration", field: "nar"}, {title: "Amount", field: "amt", hozAlign: "right"}, {title: "Group", field: "grp"}, {title: "Name", field: "name"}, {title: "ID", field: "id", visible: false}];
     const createGroupDefinition = (groupName) => ({
         data: {grp: groupName, ttype: "Group"},
         queryConditions: [where("grp", "==", groupName), where("ttype", "==", "Group"),],
@@ -141,7 +122,9 @@
         }
     };
     document.addEventListener('DOMContentLoaded', () => {
-        const inputClass = "w-full px-2 py-3 text-base bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400";
+        const inputClass = "w-full px-2 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400";
+        const labelClass = "mt-3 pl-[10px] text-gray-400 block font-medium mb-1";
+        const buttonClass = "block mx-auto px-4 py-2 mt-5 bg-gray-700 text-white hover:bg-blue-600 rounded-lg";
         document.querySelectorAll('.input-box').forEach(input => {
             input.classList.add(...inputClass.split(' '));
             if ((input.tagName === "INPUT" && input.type === "text") || input.tagName === "TEXTAREA") {
@@ -153,49 +136,15 @@
                 });
             }
         });
-        const labelClass = "mt-3 pl-[10px] text-gray-400 block font-medium mb-1";
         document.querySelectorAll('label').forEach(label => {label.classList.add(...labelClass.split(' '));});
-        const button = document.getElementById("dropdownBtn");
-        const menu = document.getElementById("dropdownMenu");
-        button.addEventListener("click", (e) => {e.stopPropagation(); menu.classList.toggle("hidden");});
-        document.addEventListener("click", (e) => {if (!menu.contains(e.target) && !button.contains(e.target)) {menu.classList.add("hidden");}});
+        document.querySelectorAll('button').forEach(button => {button.classList.add(...buttonClass.split(' '));});
     });
-    window.showOnly = function (idToShow) {
-        const menu = document.getElementById("dropdownMenu");
-        if (menu) menu.classList.add("hidden");
-        const allIds = ['Transaction', 'Group', 'ProdLed', 'fulltableCont',];
-        allIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.classList.add("hidden");
-                el.style.setProperty('display', 'none', 'important');
-            }
-        });
-        const toShow = document.getElementById(idToShow);
-        if (toShow) {
-            toShow.classList.remove("hidden");
-            toShow.style.setProperty('display', 'block', 'important');
-        }
-    };
+    
     async function clear() {
         window.currentDocId = null;
         document.querySelectorAll("input").forEach(el => el.value = "");
         document.querySelectorAll("select").forEach(select => {select.selectedIndex = 0;});
     };
-    async function updateCashLabel() {
-        const snapshot = await getDocs(tranCol);
-        const rows = [];
-        let inflow = 0;
-        let outflow = 0;
-        snapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.tparty === "Cash On Hand") {inflow += Number(data.amt || 0);}
-            if (data.fparty === "Cash On Hand") {outflow += Number(data.amt || 0);}
-        });
-        const balance = inflow - outflow;
-        document.getElementById("dropdownBtn").textContent = `☰ Cash: ₹${balance.toFixed(0)}`;
-    }
-
     async function loadDropdownData() {
         const snapshot = await getDocs(tranCol);
         const nameSet = new Set();
@@ -242,6 +191,7 @@
     }
 
     function createEditableTable(rows, columns, showDelete = true, showUpdate = true, editable = false) {
+        if (window.table) {window.table.destroy();}
         const searchId = document.getElementById('searchBox');
         const fullColumns = columns.map(col => ({
             ...col, editor: editable ? col.editor || "input" : false,
@@ -260,7 +210,6 @@
                     if (confirmed && rowData.id) {
                         await deleteDoc(doc(db, "tran", rowData.id));
                         cell.getRow().delete();
-                        updateCashLabel();
                     }
                 },
             });
@@ -312,28 +261,20 @@
     };
 
     function showTransactionContainer(rowData) {
-        const payablesContainer = document.getElementById("fulltableCont");
-        if (payablesContainer) {
-            payablesContainer.classList.add('hidden');
-            payablesContainer.style.setProperty('display', 'none', 'important');
-        }
         const type = (rowData.ttype || "").trim();
         let group = type;
-        if (["Sales", "Purchase", "Receipt", "Payment"].includes(type)) {group = "Transaction";}
-        if (["Opening Balance", "Opening Stock"].includes(type)) {group = "ProdLed";}
-        ["Transaction", "prodLed"].forEach(typeName => {
-            const container = document.getElementById(typeName);
-            if (container) container.style.setProperty('display', 'none', 'important');
-        });
+        if (["Sales", "Purchase", "Receipt", "Payment"].includes(type)) {group = "transaction";}
+        if (["Opening Balance", "Opening Stock"].includes(type)) {group = "prodled";}
+        
+        document.getElementById("fulltableCont").classList.add("hidden");
         const targetContainer = document.getElementById(group);
         targetContainer.classList.remove("hidden");
-        targetContainer.style.setProperty('display', 'block', 'important');
         document.getElementById("ttype").value = type;
         document.getElementById("ttype").disabled = true;
         document.querySelectorAll("input:not(#ttype)").forEach(el => el.value = "");
         changeLists();
         switch (group) {
-            case "Transaction":
+            case "transaction":
                 document.getElementById("ttype").value = rowData.ttype || "";
                 document.getElementById("date").value = rowData.date || "";
                 document.getElementById("txtfrom").value = rowData.fparty || "";
@@ -341,7 +282,7 @@
                 document.getElementById("amt").value = rowData.amt || "";
                 document.getElementById("nar").value = rowData.nar || "";
                 break;
-            case "ProdLed":
+            case "prodled":
                 document.getElementById("prodledgrp").value = rowData.grp || "";
                 document.getElementById("prodledname").value = rowData.name || "";  
                 document.getElementById("opstkbal").value = rowData.amt || "";
@@ -368,20 +309,49 @@
         }
     };
 
-    window.insertProductLedger = async function () {
+    window.insertTranProdLed = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
         snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const grp = (data.grp || "").trim();
-            const name = (data.name || "").trim();
-            const ttype = (data.ttype || "").trim();
-            const amt = (data.amt || "");
-            if (grp && name) {rows.push({id: docSnap.id, grp, name, ttype, amt,});}
+        const data = docSnap.data();
+        const ttype = (data.ttype || "").trim();
+            rows.push({
+                id: docSnap.id,
+                date: data.date || "",
+                ttype: ttype,
+                fparty: data.fparty || "",
+                tparty: data.tparty || "",
+                nar: data.nar || "",
+                amt: data.amt || "",
+                grp: data.grp || "",
+                name: data.name || "",
+            });
         });
-        const columns = [{title: "Group", field: "grp"}, {title: "Name", field: "name"}, {title: "Type", field: "ttype"}, {title: "Amount", field: "amt"}];
-        createEditableTable(rows, columns, false, true, false);
-        showOnly("fulltableCont");
+        createEditableTable(rows, dcolumns, true, true, false);
+        document.getElementById("fulltableCont").classList.remove("hidden");
+    };
+    window.saveTransaction = async function () {
+        const ttype = document.getElementById("ttype").value.trim();
+        const date = document.getElementById("date").value.trim();
+        const fparty = document.getElementById("txtfrom").value.trim();
+        const tparty = document.getElementById("txtto").value.trim();
+        const amt = parseFloat(document.getElementById("amt").value.trim()) || 0;
+        const nar = document.getElementById("nar").value.trim();
+        if (!ttype || !date || !fparty || !tparty || isNaN(amt) || amt <= 0) {
+            return alert("Please fill all required fields properly (Amount must be a number > 0).");
+        }
+        const tranData = {ttype, date, fparty, tparty, amt, nar};
+        if (window.currentDocId) {
+            const docRef = doc(db, "tran", window.currentDocId);
+            await updateDoc(docRef, tranData);
+            window.insertTranProdLed();
+            alert("Transaction updated successfully.");
+        } else {
+            await addDoc(collection(db, "tran"), tranData);
+            alert("Transaction saved successfully.");
+        }
+        clear();
+        document.getElementById("ttype").disabled = false;
     };
     window.saveProductLedger = async function () {
         const docId = window.currentDocId;
@@ -414,7 +384,7 @@
                     batch.update(docRef, updates);}
             });
             await batch.commit();
-            window.insertProductLedger();
+            window.insertTranProdLed();
             alert("Ledger and linked entries updated successfully.");
         } else {
             const newDocData = {grp: group, name: newName, amt: amt, ttype: ttype};
@@ -423,59 +393,10 @@
             else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {
                 newDocData.tparty = newName;}
             await addDoc(tranCol, newDocData);
-            showOnly('ProdLed');
             alert("New ledger saved successfully.");
         }
         clear();
         loadDropdownData();
-    };
-    
-    window.insertTran = async function () {
-        const snapshot = await getDocs(tranCol);
-        const rows = [];
-        const allowedTypes = ["Sales", "Purchase", "Receipt", "Payment"];
-        snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const ttype = (data.ttype || "").trim();
-            if (allowedTypes.includes(ttype)) {
-                rows.push({
-                    id: docSnap.id,
-                    date: data.date || "",
-                    ttype: ttype,
-                    fparty: data.fparty || "",
-                    tparty: data.tparty || "",
-                    nar: data.nar || "",
-                    amt: data.amt || "",
-                });
-            }
-        });
-        createEditableTable(rows, dcolumns, true, true, false);
-        showOnly("fulltableCont");
-    };
-    window.saveTransaction = async function () {
-        const ttype = document.getElementById("ttype").value.trim();
-        const date = document.getElementById("date").value.trim();
-        const fparty = document.getElementById("txtfrom").value.trim();
-        const tparty = document.getElementById("txtto").value.trim();
-        const amt = parseFloat(document.getElementById("amt").value.trim()) || 0;
-        const nar = document.getElementById("nar").value.trim();
-        if (!ttype || !date || !fparty || !tparty || isNaN(amt) || amt <= 0) {
-            return alert("Please fill all required fields properly (Amount must be a number > 0).");
-        }
-        const tranData = {ttype, date, fparty, tparty, amt, nar};
-        if (window.currentDocId) {
-            const docRef = doc(db, "tran", window.currentDocId);
-            await updateDoc(docRef, tranData);
-            window.insertTran();
-            alert("Transaction updated successfully.");
-        } else {
-            await addDoc(collection(db, "tran"), tranData);
-            showOnly('Transaction');
-            alert("Transaction saved successfully.");
-        }
-        clear();
-        updateCashLabel();
-        document.getElementById("ttype").disabled = false;
     };
 
     window.viewReceivables = async function () {
@@ -500,7 +421,7 @@
                 balances[party] = (balances[party] || 0) - parseFloat(data.amt || "0");
             }
         });
-        const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
+        const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya", "Expense", "Cash"];
         for (const [party, amount] of Object.entries(balances)) {
             const grp = ledgerGroups[party];
             if (amount < 0 && grp && allowedGroups.includes(grp)) {
@@ -509,7 +430,7 @@
         }
         const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
         createEditableTable(rows, columns, false, false, false);
-        showOnly("fulltableCont");
+        document.getElementById("fulltableCont").classList.remove("hidden");
     }
     window.viewPayables = async function () {
         const snapshot = await getDocs(tranCol);
@@ -540,8 +461,27 @@
         }
         const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
         createEditableTable(rows, columns, false, false, false);
-        showOnly("fulltableCont");
+        document.getElementById("fulltableCont").classList.remove("hidden");
     };
+
+    const selectElement = document.getElementById("emojiSelect");
+    const formSections = document.querySelectorAll(".form-section");
+    selectElement.addEventListener("change", function () {
+        const selectedValue = this.value;
+        formSections.forEach(section => {section.classList.add("hidden");});
+        if (selectedValue === "loginContainer") {
+            signOut(auth);
+            document.getElementById("loginPassword").value = "";
+            document.getElementById("loginContainer").classList.remove("hidden");
+        }
+        if (selectedValue) {
+            const selectedForm = document.getElementById(selectedValue);
+            if (selectedForm) selectedForm.classList.remove("hidden");
+        };
+        if (selectedValue === "payables") {viewPayables();}
+        if (selectedValue === "receivables") {viewReceivables();}
+        if (selectedValue === "transprodled") {insertTranProdLed();}
+    });
 
     document.getElementById("ttype").addEventListener("change", changeLists);
 </script>
