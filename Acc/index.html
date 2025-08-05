@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Dark Mode Select</title>    
+    <title>Accounts</title>    
     <script src="https://cdn.tailwindcss.com"></script>    
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator_midnight.min.css" rel="stylesheet">
     <link href="https://unpkg.com/tabulator-tables@5.5.0/dist/css/tabulator.min.css" rel="stylesheet">
@@ -62,7 +62,7 @@
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {getFirestore, collection, getDocs, getDoc, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import {getFirestore, collection, getDocs, getDoc, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc, writeBatch} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
         authDomain: "accounts-19d08.firebaseapp.com",
@@ -144,6 +144,8 @@
         window.currentDocId = null;
         document.querySelectorAll("input").forEach(el => el.value = "");
         document.querySelectorAll("select").forEach(select => {select.selectedIndex = 0;});
+        document.getElementById("ttype").disabled = false;
+        document.getElementById("prodledgrp").disabled = false;
     };
     async function loadDropdownData() {
         const snapshot = await getDocs(tranCol);
@@ -165,7 +167,7 @@
             if (["Creditors", "Debitors"].includes(grp) && name.length > 0) {crdbSet.add(name);}
             if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya",].includes(grp) && name.length > 0) {crdbcsbkangSet.add(name);}
             if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense"].includes(grp) && name.length > 0) {crdbcsbkangexpSet.add(name);}
-            if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense", "Sales Products", "Purchase Products"].includes(grp) && name.length > 0) {prodledSet.add(grp);}
+            if (["Creditors", "Debitors", "Cash", "Bank", "Angadiya", "Expense", "Sales Products", "Purchase Products"].includes(grp)) {prodledSet.add(grp);}
         });
         window.allnames_list = [...nameSet].sort((a, b) => a.localeCompare(b));
         window.ttype_list = ["Sales", "Purchase", "Receipt", "Payment"]
@@ -271,6 +273,7 @@
         targetContainer.classList.remove("hidden");
         document.getElementById("ttype").value = type;
         document.getElementById("ttype").disabled = true;
+        document.getElementById("prodledgrp").disabled = true;
         document.querySelectorAll("input:not(#ttype)").forEach(el => el.value = "");
         changeLists();
         switch (group) {
@@ -313,19 +316,20 @@
         const snapshot = await getDocs(tranCol);
         const rows = [];
         snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const ttype = (data.ttype || "").trim();
-            rows.push({
-                id: docSnap.id,
-                date: data.date || "",
-                ttype: ttype,
-                fparty: data.fparty || "",
-                tparty: data.tparty || "",
-                nar: data.nar || "",
-                amt: data.amt || "",
-                grp: data.grp || "",
-                name: data.name || "",
-            });
+            const data = docSnap.data();
+            const ttype = (data.ttype || "").trim();
+            if (ttype === "Group") return;
+                rows.push({
+                    id: docSnap.id,
+                    date: data.date || "",
+                    ttype: ttype,
+                    fparty: data.fparty || "",
+                    tparty: data.tparty || "",
+                    nar: data.nar || "",
+                    amt: data.amt || "",
+                    grp: data.grp || "",
+                    name: data.name || "",
+                });
         });
         createEditableTable(rows, dcolumns, true, true, false);
         document.getElementById("fulltableCont").classList.remove("hidden");
@@ -344,14 +348,13 @@
         if (window.currentDocId) {
             const docRef = doc(db, "tran", window.currentDocId);
             await updateDoc(docRef, tranData);
-            window.insertTranProdLed();
             alert("Transaction updated successfully.");
         } else {
             await addDoc(collection(db, "tran"), tranData);
             alert("Transaction saved successfully.");
         }
         clear();
-        document.getElementById("ttype").disabled = false;
+        //document.getElementById("transaction").classList.add("hidden");
     };
     window.saveProductLedger = async function () {
         const docId = window.currentDocId;
@@ -359,9 +362,15 @@
         const newName = document.getElementById("prodledname").value.trim();
         const amt = parseFloat(document.getElementById("opstkbal").value) || 0;
         if (!group || !newName) {return alert("Group and Name are required.");}
-        
+
+        if (!docId) {
+            const q = query(tranCol, where("grp", "==", group), where("name", "==", newName));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {return alert("A ledger with this name already exists in the selected group.");}
+        }
+
         let ttype;
-        if (group === "Sales Products" || group === "Purchase Products") {ttype = "Opening Stock";}
+        if (group === "Sales Products" || group === "Purchase Products") {ttype = "Opening Stock";} 
         else {ttype = "Opening Balance";}
         if (docId) {
             const existingDoc = await getDoc(doc(db, "tran", docId));
@@ -375,30 +384,33 @@
                 let shouldUpdate = false;
                 if (data.fparty === oldName) {
                     updates.fparty = newName; 
-                    shouldUpdate = true;}
+                    shouldUpdate = true;
+                }
                 if (data.tparty === oldName) {
                     updates.tparty = newName;
-                    shouldUpdate = true;}
+                    shouldUpdate = true;
+                }
                 if (shouldUpdate) {
                     const docRef = doc(db, "tran", docSnap.id); 
-                    batch.update(docRef, updates);}
+                    batch.update(docRef, updates);
+                }
             });
             await batch.commit();
-            window.insertTranProdLed();
             alert("Ledger and linked entries updated successfully.");
         } else {
             const newDocData = {grp: group, name: newName, amt: amt, ttype: ttype};
             if (group === "Creditors") {
-                newDocData.fparty = newName;} 
-            else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {
-                newDocData.tparty = newName;}
+                newDocData.fparty = newName;
+            } else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {
+                newDocData.tparty = newName;
+            }
             await addDoc(tranCol, newDocData);
             alert("New ledger saved successfully.");
         }
         clear();
         loadDropdownData();
+        //document.getElementById("prodled").classList.add("hidden");
     };
-
     window.viewReceivables = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
@@ -481,6 +493,7 @@
         if (selectedValue === "payables") {viewPayables();}
         if (selectedValue === "receivables") {viewReceivables();}
         if (selectedValue === "transprodled") {insertTranProdLed();}
+        clear()
     });
 
     document.getElementById("ttype").addEventListener("change", changeLists);
