@@ -13,19 +13,19 @@
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>    
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-900 text-white text-[18px] font-[Poppins]">  
-    <select id="emojiSelect" class="fixed top-0 left-0 w-full h-[50px] px-4 bg-gray-900 hover:bg-gray-800">
-        <option value="">👉Select Options👈</option>
-        <option value="transaction">Transaction</option>
-        <option value="prodled">Product/Ledger</option>
-        <option value="transprodled">Update</option>
-        <option value="receivables">Receivables</option>
-        <option value="payables">Payables</option>
-        <option value="spreg">SP Register</option>
-        <option value="profit">Profit & Loss</option>
-        <option value="khatavahi">Khatavahi</option>
-        <option value="loginContainer">⏻ Logout</option>
-    </select>
+<body class="bg-gray-900 text-white text-[16px] font-[Poppins]">  
+<select id="emojiSelect" class="fixed top-0 left-0 w-full h-[50px] px-4 text-[16px] bg-gray-900 hover:bg-gray-800">
+    <option value="">👉Select Options👈</option>
+    <option value="transaction">Transaction</option>
+    <option value="prodled">Product/Ledger</option>
+    <option value="transprodled">Update</option>
+    <option value="receivables">Receivables</option>
+    <option value="payables">Payables</option>
+    <option value="spreg">SP Register</option>
+    <option value="profit">Profit & Loss</option>
+    <option value="khatavahi">Khatavahi</option>
+    <option value="loginContainer">⏻ Logout</option>
+</select>
 <!--LOGIN-->
 <div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="loginContainer">
     <input class="input-box" id="loginEmail" placeholder="Email ....." type="email"><br><br>
@@ -34,19 +34,19 @@
 </div>
 <!--PRODUCT LEDGER-->
 <div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="prodled">
-    <label>Select Group:</label><select class="input-box" id="prodledgrp"></select>
-    <label>Ledger Name:</label><input class="input-box" id="prodledname" type="text" autocomplete="off">
-    <label>Opening Balance/Stock:</label><input class="input-box" id="opstkbal" type="number">
+    <label class="label">Select Group ↓↓</label><select class="input-box" id="prodledgrp"></select>
+    <label class="label">Ledger Name ↓↓</label><input class="input-box" id="prodledname" type="text" autocomplete="off">
+    <label class="label">Opening Balance/Stock ↓↓</label><input class="input-box" id="opstkbal" type="number">
     <button class="button block mx-auto mt-5 bg-green-800" onclick="saveProductLedger()">👉Click to Save👈</button>
 </div>
 <!--TRANSACTION-->
 <div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="transaction">
-    <label>Transaction Type</label><select class="input-box" id="ttype"></select>
-    <label for="date">Date</label><input class="input-box" id="date" type="date"/>
-    <label for="txtfrom">From</label><select class="input-box" id="txtfrom"></select>
-    <label for="txtto">To</label><select class="input-box" id="txtto"></select>
-    <label for="amt">Amount</label><input class="input-box" id="amt" type="number"/>
-    <label for="nar">Narration</label><input class="input-box" id="nar" type="text" autocomplete="off"/>
+    <label class="label">Transaction Type ↓↓</label><select class="input-box" id="ttype"></select>
+    <label class="label">Date ↓↓</label><input class="input-box" id="date" type="date"/>
+    <label class="label">From ↓↓</label><select class="input-box" id="txtfrom"></select>
+    <label class="label">To ↓↓</label><select class="input-box" id="txtto"></select>
+    <label class="label">Amount ↓↓</label><input class="input-box" id="amt" type="number"/>
+    <label class="label">Narration ↓↓</label><input class="input-box" id="nar" type="text" autocomplete="off"/>
     <button class="button block mx-auto mt-5 bg-green-800" onclick="saveTransaction()">👉Click to Save👈</button>
 </div>
 <!--TABLE-->
@@ -55,9 +55,9 @@
         <button class="bg-green-800 text-white h-10" id="excelBtn">𝄜XL</button>
         <button class="bg-red-800 text-white h-10" id="pdfBtn">PDF</button>
         <button class="bg-blue-800 text-white h-10" id="printBtn">🖨️</button>
-        <input class="input-box h-10 px-3 w-full mr-1" id="searchBox" placeholder="Search..." type="text" style="display: flex; align-items: center;"/>
+        <input class="input-box h-10 px-3 w-full mr-1" id="searchBox" placeholder="Search..." type="text"/>
     </div>
-    <div class="overflow-x-auto"><div id="table" class="mr-1 rounded-lg mx-auto text-lg"></div></div>
+    <div class="overflow-x-auto"><div id="table" class="mr-1 rounded-lg mx-auto text-[16px]"></div></div>
 </div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -123,9 +123,9 @@
         }
     };
     document.addEventListener('DOMContentLoaded', () => {
-        const inputClass = "w-full px-2 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400";
-        const labelClass = "mt-3 pl-[10px] text-gray-400 block font-medium mb-1";
-        const buttonClass = "px-2 py-2 text-white hover:bg-blue-600 rounded-lg";
+        const inputClass = "w-full px-2 py-3 text-[16px] bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-500";
+        const labelClass = "mt-3 pl-[10px] text-gray-400 text-[16px] block mb-1";
+        const buttonClass = "px-2 py-2 text-white text-[16px] hover:bg-blue-600 rounded-lg";
         document.querySelectorAll('.input-box').forEach(input => {
             input.classList.add(...inputClass.split(' '));
             if ((input.tagName === "INPUT" && input.type === "text") || input.tagName === "TEXTAREA") {
@@ -539,6 +539,3 @@
 </script>
 </body>
 </html>
-
-
-
