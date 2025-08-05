@@ -30,14 +30,14 @@
 <div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="loginContainer">
     <input class="input-box" id="loginEmail" placeholder="Email ....." type="email"><br><br>
     <input class="input-box" id="loginPassword" placeholder="Password ....." type="password"><br><br>
-    <button class="button mb-3" onclick="login()">🏠︎ Login</button>
+    <button class="button block mx-auto mt-5 bg-green-500" onclick="login()">🏠︎ Login</button>
 </div>
 <!--PRODUCT LEDGER-->
 <div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="prodled">
     <label>Select Group:</label><select class="input-box" id="prodledgrp"></select>
     <label>Ledger Name:</label><input class="input-box" id="prodledname" type="text" autocomplete="off">
     <label>Opening Balance/Stock:</label><input class="input-box" id="opstkbal" type="number">
-    <button class="button" onclick="saveProductLedger()">👉Click to Save👈</button>
+    <button class="button block mx-auto mt-5 bg-green-800" onclick="saveProductLedger()">👉Click to Save👈</button>
 </div>
 <!--TRANSACTION-->
 <div class="form-section hidden w-full max-w-md p-2 pt-10 mt-[50px] rounded-br-2xl bg-gray-800" id="transaction">
@@ -47,21 +47,21 @@
     <label for="txtto">To</label><select class="input-box" id="txtto"></select>
     <label for="amt">Amount</label><input class="input-box" id="amt" type="number"/>
     <label for="nar">Narration</label><input class="input-box" id="nar" type="text" autocomplete="off"/>
-    <button class="button" onclick="saveTransaction()">👉Click to Save👈</button>
+    <button class="button block mx-auto mt-5 bg-green-800" onclick="saveTransaction()">👉Click to Save👈</button>
 </div>
 <!--TABLE-->
-<div class="form-section hidden fixed top-[50px] w-full mx-auto p-1" id="fulltableCont">
-    <div class="flex items-center gap-1 mb-1 flex-wrap">
-        <button class="bg-green-500 px-2 py-3 text-white rounded" id="excelBtn">Excel</button>
-        <button class="bg-red-500 px-2 py-3 text-white rounded" id="pdfBtn">PDF</button>
-        <button class="bg-blue-500 px-2 py-3 text-white rounded" id="printBtn">Print</button>
-        <div class="w-full max-w-xs sm:w-auto"><input class="input-box w-full border p-1 rounded" id="searchBox" placeholder="Search..." type="text"/></div>
+<div class="form-section hidden fixed top-[57px] w-full mx-auto ml-1" id="tableCont">
+    <div class="flex items-center gap-1 mb-1 flex-nowrap">
+        <button class="bg-green-800 text-white rounded h-10" id="excelBtn">𝄜</button>
+        <button class="bg-red-800 text-white rounded h-10" id="pdfBtn">PDF</button>
+        <button class="bg-blue-800 text-white rounded h-10" id="printBtn">🖨️</button>
+        <input class="input-box rounded h-10 px-3 w-full mr-2" id="searchBox" placeholder="Search..." type="text" style="display: flex; align-items: center;"/>
     </div>
-    <div id="tableCont"></div>
+    <div id="table"></div>
 </div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import {getFirestore, collection, getDocs, getDoc, setDoc, deleteDoc, doc, updateDoc, query, where, addDoc, writeBatch} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     const firebaseConfig = {
         apiKey: "AIzaSyDQWZC6iA5zYKvTXsFl9TYLkZCTl5BzfwA",
@@ -109,11 +109,12 @@
     });
     const dcolumns = [{title: "Date", field: "date"}, {title: "Type", field: "ttype"}, {title: "From Party", field: "fparty"}, {title: "To Party", field: "tparty"},
         {title: "Narration", field: "nar"}, {title: "Amount", field: "amt", hozAlign: "right"}, {title: "Group", field: "grp"}, {title: "Name", field: "name"}, {title: "ID", field: "id", visible: false}];
+    const groupNames = ["Cash", "Bank", "Creditors", "Debitors", "Angadiya", "Expense", "Sales Products", "Purchase Products"];
     const createGroupDefinition = (groupName) => ({
         data: {grp: groupName, ttype: "Group"},
-        queryConditions: [where("grp", "==", groupName), where("ttype", "==", "Group"),],
+        queryConditions: [where("grp", "==", groupName), where("ttype", "==", "Group")],
     });
-    const uniqueDocumentDefinitions = [createGroupDefinition("Cash"), createGroupDefinition("Bank"), createGroupDefinition("Creditors"), createGroupDefinition("Debitors"), createGroupDefinition("Angadiya"), createGroupDefinition("Expense"), createGroupDefinition("Sales Products"), createGroupDefinition("Purchase Products"),];
+    const uniqueDocumentDefinitions = groupNames.map(createGroupDefinition);
     window.createAndDeduplicateDocuments = async function () {
         for (const docDef of uniqueDocumentDefinitions) {
             const q = query(tranCol, ...docDef.queryConditions);
@@ -124,7 +125,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         const inputClass = "w-full px-2 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-400";
         const labelClass = "mt-3 pl-[10px] text-gray-400 block font-medium mb-1";
-        const buttonClass = "block mx-auto px-4 py-2 mt-5 bg-gray-700 text-white hover:bg-blue-600 rounded-lg";
+        const buttonClass = "px-2 py-2 text-white hover:bg-blue-600 rounded-lg";
         document.querySelectorAll('.input-box').forEach(input => {
             input.classList.add(...inputClass.split(' '));
             if ((input.tagName === "INPUT" && input.type === "text") || input.tagName === "TEXTAREA") {
@@ -193,11 +194,9 @@
     }
 
     function createEditableTable(rows, columns, showDelete = true, showUpdate = true, editable = false) {
-        if (window.table) {window.table.destroy();}
+        if (window.table && typeof window.table.destroy === "function") window.table.destroy();
         const searchId = document.getElementById('searchBox');
-        const fullColumns = columns.map(col => ({
-            ...col, editor: editable ? col.editor || "input" : false,
-        }));
+        const fullColumns = columns.map(col => ({...col, editor: editable ? col.editor || "input" : false,}));
         if (showDelete) {
             fullColumns.push({
                 title: "",
@@ -208,6 +207,10 @@
                 cellClick: async (e, cell) => {
                     e.stopPropagation();
                     const rowData = cell.getRow().getData();
+                    if (rowData.ttype === "Opening Balance" || rowData.ttype === "Opening Stock") {
+                        alert("Cannot delete Opening Balance or Opening Stock entries.\nData is saved in other vouchers.\nDelete vouchers related to this Ledger First\nContact Gopalji for any issues.");
+                        return;
+                    }
                     const confirmed = confirm("Delete? Are You Sure?");
                     if (confirmed && rowData.id) {
                         await deleteDoc(doc(db, "tran", rowData.id));
@@ -231,7 +234,7 @@
                 }
             });
         }
-        window.table = new Tabulator(document.getElementById('tableCont'), {
+        window.table = new Tabulator(document.getElementById('table'), {
             data: rows,
             layout: "fitData",
             reactiveData: true,
@@ -239,15 +242,9 @@
             maxHeight: "600px",
             columns: fullColumns,
         });
-        document.getElementById('excelBtn')?.addEventListener("click", () => {
-            window.table.download("xlsx", "data.xlsx", {sheetName: "Sheet1"});
-        });
-        document.getElementById('pdfBtn')?.addEventListener("click", () => {
-            window.table.download("pdf", "data.pdf", {orientation: "portrait"});
-        });
-        document.getElementById('printBtn')?.addEventListener("click", () => {
-            window.table.print(false, true);
-        });
+        document.getElementById('excelBtn')?.addEventListener("click", () => {window.table.download("xlsx", "data.xlsx", {sheetName: "Sheet1"});});
+        document.getElementById('pdfBtn')?.addEventListener("click", () => {window.table.download("pdf", "data.pdf", {orientation: "portrait"});});
+        document.getElementById('printBtn')?.addEventListener("click", () => {window.table.print(false, true);});
         bindSearch();
     };
     function bindSearch() {
@@ -268,7 +265,7 @@
         if (["Sales", "Purchase", "Receipt", "Payment"].includes(type)) {group = "transaction";}
         if (["Opening Balance", "Opening Stock"].includes(type)) {group = "prodled";}
         
-        document.getElementById("fulltableCont").classList.add("hidden");
+        document.getElementById("tableCont").classList.add("hidden");
         const targetContainer = document.getElementById(group);
         targetContainer.classList.remove("hidden");
         document.getElementById("ttype").value = type;
@@ -332,7 +329,7 @@
                 });
         });
         createEditableTable(rows, dcolumns, true, true, false);
-        document.getElementById("fulltableCont").classList.remove("hidden");
+        document.getElementById("tableCont").classList.remove("hidden");
     };
     window.saveTransaction = async function () {
         const ttype = document.getElementById("ttype").value.trim();
@@ -354,36 +351,40 @@
             alert("Transaction saved successfully.");
         }
         clear();
-        //document.getElementById("transaction").classList.add("hidden");
     };
     window.saveProductLedger = async function () {
         const docId = window.currentDocId;
         const group = document.getElementById("prodledgrp").value.trim();
         const newName = document.getElementById("prodledname").value.trim();
-        const amt = parseFloat(document.getElementById("opstkbal").value) || 0;
+        const amtValue = document.getElementById("opstkbal").value.trim();
+        let amt;
+        if (amtValue !== "" && !isNaN(amtValue)) {amt = parseFloat(amtValue);}
         if (!group || !newName) {return alert("Group and Name are required.");}
-
         if (!docId) {
             const q = query(tranCol, where("grp", "==", group), where("name", "==", newName));
             const snapshot = await getDocs(q);
             if (!snapshot.empty) {return alert("A ledger with this name already exists in the selected group.");}
         }
-
         let ttype;
         if (group === "Sales Products" || group === "Purchase Products") {ttype = "Opening Stock";} 
         else {ttype = "Opening Balance";}
+
         if (docId) {
+            const updateObj = { grp: group, name: newName, ttype: ttype };
+            if (amt !== undefined) updateObj.amt = amt;
+
             const existingDoc = await getDoc(doc(db, "tran", docId));
             const oldName = existingDoc.data().name || "";
-            await updateDoc(doc(db, "tran", docId), {grp: group, name: newName, amt: amt, ttype: ttype});
+            await updateDoc(doc(db, "tran", docId), updateObj);
+
             const querySnapshot = await getDocs(tranCol);
             const batch = writeBatch(db);
             querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data(); 
-                const updates = {}; 
+                const data = docSnap.data();
+                const updates = {};
                 let shouldUpdate = false;
                 if (data.fparty === oldName) {
-                    updates.fparty = newName; 
+                    updates.fparty = newName;
                     shouldUpdate = true;
                 }
                 if (data.tparty === oldName) {
@@ -391,26 +392,26 @@
                     shouldUpdate = true;
                 }
                 if (shouldUpdate) {
-                    const docRef = doc(db, "tran", docSnap.id); 
+                    const docRef = doc(db, "tran", docSnap.id);
                     batch.update(docRef, updates);
                 }
             });
             await batch.commit();
             alert("Ledger and linked entries updated successfully.");
         } else {
-            const newDocData = {grp: group, name: newName, amt: amt, ttype: ttype};
-            if (group === "Creditors") {
-                newDocData.fparty = newName;
-            } else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {
-                newDocData.tparty = newName;
+            const newDocData = { grp: group, name: newName, ttype: ttype };
+            if (amt !== undefined) {
+                newDocData.amt = amt;
+                if (group === "Creditors" || group === "Sales Products" || group === "Purchase Products") {newDocData.fparty = newName;}
+                else if (group === "Debitors" || group === "Bank" || group === "Cash" || group === "Angadiya") {newDocData.tparty = newName;}
             }
             await addDoc(tranCol, newDocData);
             alert("New ledger saved successfully.");
         }
         clear();
         loadDropdownData();
-        //document.getElementById("prodled").classList.add("hidden");
     };
+
     window.viewReceivables = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
@@ -442,7 +443,7 @@
         }
         const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
         createEditableTable(rows, columns, false, false, false);
-        document.getElementById("fulltableCont").classList.remove("hidden");
+        document.getElementById("tableCont").classList.remove("hidden");
     }
     window.viewPayables = async function () {
         const snapshot = await getDocs(tranCol);
@@ -473,7 +474,7 @@
         }
         const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"},];
         createEditableTable(rows, columns, false, false, false);
-        document.getElementById("fulltableCont").classList.remove("hidden");
+        document.getElementById("tableCont").classList.remove("hidden");
     };
 
     const selectElement = document.getElementById("emojiSelect");
@@ -493,7 +494,7 @@
         if (selectedValue === "payables") {viewPayables();}
         if (selectedValue === "receivables") {viewReceivables();}
         if (selectedValue === "transprodled") {insertTranProdLed();}
-        clear()
+        clear();
     });
 
     document.getElementById("ttype").addEventListener("change", changeLists);
