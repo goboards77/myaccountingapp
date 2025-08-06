@@ -11,9 +11,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>    
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>    
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-900 text-white text-[16px] font-[Poppins]">  
-<select id="emojiSelect" class="fixed top-0 left-0 w-full h-[50px] px-4 text-[16px] bg-gray-900 hover:bg-gray-800">
+<body class="bg-gray-900 text-white">  
+<select id="emojiSelect" class="fixed top-0 left-0 w-full h-[50px] px-4 text-[16px] font-[Poppins] bg-gray-900 hover:bg-gray-800 cursor-pointer">
     <option value="">👉Select Options👈</option>
     <option value="transaction">Transaction</option>
     <option value="prodled">Product/Ledger</option>
@@ -56,7 +57,7 @@
         <button class="bg-blue-800 text-white h-10" id="printBtn">🖨️</button>
         <input class="input-box h-10 px-3 w-full mr-1" id="searchBox" placeholder="Search..." type="text"/>
     </div>
-    <div class="overflow-x-auto"><div id="table" class="mr-1 rounded-lg mx-auto text-[16px]"></div></div>
+    <div class="overflow-x-auto"><div id="table" class="mr-1 rounded-lg mx-auto text-[16px] font-[Roboto]"></div></div>
 </div>
 <script type="module">
     import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -122,9 +123,11 @@
         }
     };
     document.addEventListener('DOMContentLoaded', () => {
-        const inputClass = "w-full px-2 py-3 text-[16px] bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-500";
-        const labelClass = "mt-3 pl-[10px] text-gray-400 text-[16px] block mb-1";
-        const buttonClass = "px-2 py-2 text-white text-[16px] hover:bg-blue-600 rounded-lg";
+        const labelClass = "mt-3 pl-[10px] text-gray-400 text-[16px] font-[Poppins] block mb-1";
+        document.querySelectorAll('label').forEach(label => {label.classList.add(...labelClass.split(' '));});
+        const buttonClass = "px-2 py-2 text-white text-[16px] font-[Poppins] hover:bg-blue-600 rounded-lg";
+        document.querySelectorAll('button').forEach(button => {button.classList.add(...buttonClass.split(' '));});
+        const inputClass = "w-full px-2 py-3 text-[16px] font-[Poppins] bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-500";
         document.querySelectorAll('.input-box').forEach(input => {
             input.classList.add(...inputClass.split(' '));
             if ((input.tagName === "INPUT" && input.type === "text") || input.tagName === "TEXTAREA") {
@@ -136,8 +139,7 @@
                 });
             }
         });
-        document.querySelectorAll('label').forEach(label => {label.classList.add(...labelClass.split(' '));});
-        document.querySelectorAll('button').forEach(button => {button.classList.add(...buttonClass.split(' '));});
+        
     });
     
     async function clear() {
@@ -440,17 +442,25 @@
             }
         });
         const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya", "Expense", "Cash"];
+        let total = 0;
         for (const [party, amount] of Object.entries(balances)) {
             const grp = ledgerGroups[party];
             if (amount < 0 && grp && allowedGroups.includes(grp)) {
-                rows.push({party: party, amount: Math.abs(amount).toFixed(0),});
+                const absAmt = Math.abs(amount);
+                rows.push({party: party, amount: absAmt.toFixed(0)});
+                total += absAmt;
             }
         }
-        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"}];
+        rows.sort((a, b) => Number(b.amount) - Number(a.amount));
+        rows.unshift({party: "Total", amount: total.toFixed(0)});
+        const columns = [
+            {title: "Party", field: "party"},
+            {title: "Amount", field: "amount", hozAlign: "right"}
+        ];
         createEditableTable(rows, columns, false, false, false);
         document.getElementById("tableCont").classList.remove("hidden");
     }
-    
+
     window.viewPayables = async function () {
         const snapshot = await getDocs(tranCol);
         const rows = [];
@@ -474,25 +484,33 @@
             }
         });
         const allowedGroups = ["Creditors", "Debitors", "Bank", "Angadiya"];
+        let total = 0;
         for (const [party, amount] of Object.entries(balances)) {
             const grp = ledgerGroups[party];
-            if (amount > 0 && grp && allowedGroups.includes(grp)) {rows.push({party: party, amount: Number(amount).toFixed(0),});}
+            if (amount > 0 && grp && allowedGroups.includes(grp)) {
+                rows.push({party: party, amount: Number(amount).toFixed(0)});
+                total += Number(amount);
+            }
         }
-        const columns = [{title: "Party", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"}];
+        rows.sort((a, b) => Number(b.amount) - Number(a.amount));
+        rows.unshift({party: "Total", amount: total.toFixed(0)});
+        const columns = [
+            {title: "Party", field: "party"},
+            {title: "Amount", field: "amount", hozAlign: "right"}
+        ];
         createEditableTable(rows, columns, false, false, false);
         document.getElementById("tableCont").classList.remove("hidden");
     };
-    
+
     window.viewSPRegister = async function () {
         const snapshot = await getDocs(tranCol);
-        const rows = [];
         const ledgerGroups = {};
         const balances = {};
         snapshot.forEach((doc) => {
             const data = doc.data();
             const name = (data.name || "").trim();
             const grp = (data.grp || "").trim();
-            if (name && grp) {ledgerGroups[name] = grp;}
+            if (name && grp) { ledgerGroups[name] = grp; }
         });
         snapshot.forEach((doc) => {
             const data = doc.data();
@@ -503,16 +521,42 @@
                 }
             });
         });
-        const allowedGroups = ["Sproducts", "Pproducts"];
+
+        const sproducts = [];
+        const pproducts = [];
+        let sproductsTotal = 0;
+        let pproductsTotal = 0;
+
         for (const [party, amount] of Object.entries(balances)) {
             const grp = ledgerGroups[party];
-            if (amount && grp && allowedGroups.includes(grp)) {rows.push({party: party, amount: Number(amount).toFixed(0),});}
+            if (amount && grp === "Sproducts") {
+                sproducts.push({ party, amount: Number(amount).toFixed(0) });
+                sproductsTotal += Number(amount);
+            }
+            if (amount && grp === "Pproducts") {
+                pproducts.push({ party, amount: Number(amount).toFixed(0) });
+                pproductsTotal += Number(amount);
+            }
         }
-        const columns = [{title: "Products", field: "party"}, {title: "Amount", field: "amount", hozAlign: "right"}];
+
+        sproducts.sort((a, b) => Number(b.amount) - Number(a.amount));
+        pproducts.sort((a, b) => Number(b.amount) - Number(a.amount));
+        const rows = [];
+        rows.push({ party: "Sal/Pur Total", amount: (sproductsTotal + pproductsTotal).toFixed(0) });
+        rows.push({ party: "", amount: "" });
+        rows.push({ party: "Sales Total", amount: sproductsTotal.toFixed(0) });
+        rows.push(...sproducts);
+        rows.push({ party: "", amount: "" });
+        rows.push({ party: "Purchase Total", amount: pproductsTotal.toFixed(0) });
+        rows.push(...pproducts);
+
+        const columns = [
+            { title: "Products", field: "party" },
+            { title: "Amount", field: "amount", hozAlign: "right" }
+        ];
         createEditableTable(rows, columns, false, false, false);
         document.getElementById("tableCont").classList.remove("hidden");
     };
-
     const selectElement = document.getElementById("emojiSelect");
     const formSections = document.querySelectorAll(".form-section");
     selectElement.addEventListener("change", function () {
@@ -535,7 +579,11 @@
     });
 
     document.getElementById("ttype").addEventListener("change", changeLists);
+
+    window.addEventListener("beforeunload", function (e) {
+        e.preventDefault();
+        e.returnValue = "Do u want to close";
+    });
 </script>
 </body>
 </html>
-
