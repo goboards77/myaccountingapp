@@ -116,7 +116,7 @@
 <div class="hidden w-full max-w-md p-2 pt-10 rounded-b-2xl bg-gray-800" id="loginContainer">
     <input class="input-box" id="loginEmail" placeholder="Email ....." type="email"><br><br>
     <input class="input-box" id="loginPassword" placeholder="Password ....." type="password"><br><br>
-    <button class="block mx-auto mt-10 mb-10 px-5 py-3 bg-green-700 hover:bg-green-600 rounded-lg" onclick="login()">🏠︎ Login</button>
+    <button class="block mx-auto mt-10 mb-10 px-5 py-2 bg-green-700 hover:bg-green-600 rounded-lg" onclick="login()">🏠︎ Login</button>
 </div>
 
 <!--Group-->
@@ -124,7 +124,7 @@
     <label class="label">Select Main Group ↓↓</label><input class="input-box" id="maingroup" type="text" autocomplete="off"/>
     <label class="label">Group Name ↓↓</label><input class="input-box" id="groupname" type="text" autocomplete="off"/>
     <label class="label">Narration ↓↓</label><input class="input-box" id="gnar" type="text" autocomplete="off"/>
-    <button class="block mx-auto mt-10 mb-10 px-5 py-3 bg-green-700 hover:bg-green-600 rounded-lg" onclick="saveGroup()">👉Click to Save👈</button>
+    <button class="block mx-auto mt-10 mb-10 px-5 py-2 bg-green-700 hover:bg-green-600 rounded-lg" onclick="saveGroup()">👉Click to Save👈</button>
 </div>
 
 <!--LEDGER-->
@@ -133,7 +133,7 @@
     <label class="label">Ledger Name ↓↓</label><input class="input-box" id="ledgername" type="text" autocomplete="off"/>
     <label class="label">Opening Balance ↓↓</label><input class="input-box" id="opbal" type="number" autocomplete="off"/>
     <label class="label">Narration ↓↓</label><input class="input-box" id="lnar" type="text" autocomplete="off"/>
-    <button class="block mx-auto mt-10 mb-10 px-5 py-3 bg-green-700 hover:bg-green-600 rounded-lg" onclick="saveLedger()">👉Click to Save👈</button>
+    <button class="block mx-auto mt-10 mb-10 px-5 py-2 bg-green-700 hover:bg-green-600 rounded-lg" onclick="saveLedger()">👉Click to Save👈</button>
 </div>
 
 <!--PRODUCT-->
@@ -142,7 +142,7 @@
     <label class="label">Product Name ↓↓</label><input class="input-box" id="productname" type="text" autocomplete="off"/>
     <label class="label">Opening Stock ↓↓</label><input class="input-box" id="opstk" type="number"/>
     <label class="label">Narration ↓↓</label><input class="input-box" id="pnar" type="text" autocomplete="off"/>
-    <button class="block mx-auto mt-10 mb-10 px-5 py-3 bg-green-700 hover:bg-green-600 rounded-lg" onclick="saveProduct()">👉Click to Save👈</button>
+    <button class="block mx-auto mt-10 mb-10 px-5 py-2 bg-green-700 hover:bg-green-600 rounded-lg" onclick="saveProduct()">👉Click to Save👈</button>
 </div>
 
 <!--TRANSACTION-->
@@ -154,8 +154,8 @@
     <label class="label">Amount ↓↓</label><input class="input-box" id="amt" type="number"/>
     <label class="label">Narration ↓↓</label><input class="input-box" id="nar" type="text" autocomplete="off"/>
     <div class="flex items-center gap-1 flex-nowrap">
-        <button class="mt-5 mb-5 px-2 py-3 bg-green-700 hover:bg-green-600 rounded-lg w-[150px]" onclick="saveTransaction()">👉Click to Save👈</button>
-        <input class="mt-5 mb-5 px-2 py-3 bg-gray-800 border border-blue-600 rounded-lg w-[250px]" id="calc" type="text" placeholder="🧮 Calculator" autocomplete="off"/>
+        <button class="mt-5 mb-5 px-2 py-2 bg-green-700 hover:bg-green-600 rounded-lg w-[150px]" onclick="saveTransaction()">👉Save👈</button>
+        <input class="mt-5 mb-5 px-2 py-2 bg-gray-800 border border-blue-600 rounded-lg w-[200px]" id="calc" type="number" placeholder="🧮 Calculator"/>
     </div>
 </div>
 
@@ -164,10 +164,10 @@
     <div class="flex items-center gap-1 mb-1 flex-nowrap">
         <button class="bg-green-800 px-2 py-2 rounded-lg" id="excelBtn">𝄜XL</button>
         <button class="bg-red-800 px-2 py-2 rounded-lg" id="pdfBtn">PDF</button>
-        <button class="bg-blue-800 px-2 py-2 rounded-lg" id="printBtn">🖨️</button>
+        <button class="bg-blue-800 px-3 py-2 rounded-lg" id="printBtn">🖨️</button>
         <input class="input-box h-10 px-3 w-full mr-1" id="searchBox" placeholder="Search..." type="text"/>
     </div>
-    <div class="overflow-x-auto"><div id="table" class="rounded-lg mx-auto text-[16px] font-[Roboto]"></div></div>
+    <div class="overflow-x-auto"><div id="table" class="rounded-lg mx-auto text-[18px] font-[Roboto]"></div></div>
 </div>
 
 <!--ERROR BOX-->
@@ -268,7 +268,7 @@
         const labelClass = "mt-3 pl-[10px] text-gray-400 block mb-1";
         document.querySelectorAll('label').forEach(label => {label.classList.add(...labelClass.split(' '));});
         
-        const inputClass = "w-full px-2 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-500";
+        const inputClass = "w-full px-2 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-yellow-500";
         document.querySelectorAll('.input-box').forEach(input => {
             input.classList.add(...inputClass.split(' '));
 
